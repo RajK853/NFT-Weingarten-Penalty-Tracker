@@ -42,7 +42,7 @@ To run this project locally, follow these steps:
 
 3.  **Run the Streamlit application**:
     ```bash
-    uv run streamlit run app.py
+    uv run streamlit run Home.py
     ```
 
     The application will open in your web browser.

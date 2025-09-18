@@ -5,7 +5,7 @@
 -   [x] **Task 1.2**: Initialize a Git repository and commit the initial project structure.
 -   [x] **Task 1.3**: Create a `requirements.txt` file listing `pandas`, `streamlit`, and `plotly-express`.
 -   [x] **Task 1.4**: Use `uv` to create a virtual environment and install the dependencies from `requirements.txt`.
--   [x] **Task 1.5**: Write a Python script (`app.py`) to read the CSV data into a pandas DataFrame. Include a basic `st.dataframe()` to display the raw data for verification.
+-   [x] **Task 1.5**: Write Python scripts (`Home.py` and `utils.py`) to read the CSV data into a pandas DataFrame and make it accessible across the Streamlit application.
 
 ## Phase 2: Data Analysis and Statistics Calculation
 -   [x] **Task 2.1**: Add a function to calculate the goal-to-miss ratio for each player. A "miss" is defined as a 'saved' or 'out' status.
