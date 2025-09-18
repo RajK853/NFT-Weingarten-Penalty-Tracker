@@ -87,6 +87,6 @@ if __name__ == "__main__":
     pseudo_df = generate_pseudo_data(start_date="2025-01-01", end_date="2025-12-31", penalties_per_player_per_day=3)
     
     # Save to CSV
-    output_path = "data/penalty.csv"
+    output_path = "data/pseudo_penalty.csv"
     pseudo_df.to_csv(output_path, index=False)
     print(f"Generated {len(pseudo_df)} records and saved to {output_path}")

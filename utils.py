@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from itertools import product
+from pathlib import Path
 
 class Constants:
     # Column Names
@@ -32,7 +33,17 @@ class Constants:
     SCATTER_POINT_SIZE = 8
 
 def load_data():
-    data = pd.read_csv("data/penalty.csv")
+    real_data_path = Path("data/penalty.csv")
+    pseudo_data_path = Path("data/pseudo_penalty.csv")
+
+    if real_data_path.exists():
+        data = pd.read_csv(real_data_path)
+    elif pseudo_data_path.exists():
+        st.warning("Real data (data/penalty.csv) not found. Loading pseudo data (data/pseudo_penalty.csv) instead.")
+        data = pd.read_csv(pseudo_data_path)
+    else:
+        st.error("Neither real data nor pseudo data found. Please generate pseudo data or provide real data.")
+        data = pd.DataFrame() # Return empty DataFrame if no data is found
     return data
 
 def calculate_goal_percentage(data):
@@ -69,7 +80,7 @@ def get_player_status_counts_over_time(data, selected_players):
 
     # Ensure all statuses are present for each date and player for consistent plotting
     all_dates = filtered_data["Date"].unique()
-    all_statuses = filtered_data["Status"].unique()
+    all_statuses = [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]
     
     # Create a complete grid of all combinations
     idx = pd.MultiIndex.from_product([all_dates, selected_players, all_statuses], names=["Date", "Shooter Name", "Status"])
@@ -91,6 +102,8 @@ def get_overall_statistics(data, num_periods=None, period_type=None):
             start_date = latest_date - pd.Timedelta(days=num_periods)
         elif period_type == "Months":
             start_date = latest_date - pd.DateOffset(months=num_periods)
+        else:
+            raise ValueError(f"Unsupported period_type: {period_type}. Must be 'Days' or 'Months'.")
         df = df[df[Constants.DATE_COL] >= start_date]
 
     total_penalties = len(df)
