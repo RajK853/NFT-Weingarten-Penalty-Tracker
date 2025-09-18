@@ -30,3 +30,4 @@ The input data is a CSV file (`data/penalty.csv`) with the following columns:
 -   **Error Handling**: Implement robust error handling, especially for file I/O operations (e.g., if the CSV file is not found).
 -   **Modularity**: Break down the code into logical functions and classes where appropriate to improve readability and maintainability.
 -   **User Interface**: Use `streamlit` components to create a clean, intuitive, and interactive user interface. Ensure the dashboard is responsive and works well on different screen sizes.
+-   **String Literals**: Always use double quotation marks (`"`) for string literals.
