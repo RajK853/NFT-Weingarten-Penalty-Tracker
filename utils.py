@@ -237,4 +237,37 @@ def get_keeper_outcome_distribution(data, keeper_name):
 
     return outcome_counts
 
+def get_goal_post_distribution_percentages(data, player_name, decimal_points=0):
+    player_goals = data[(data[Constants.SHOOTER_NAME_COL] == player_name) & (data[Constants.STATUS_COL] == Constants.GOAL_STATUS)]
+    total_goals = len(player_goals)
+
+    # Define the 3x3 grid mapping for shoot positions
+    # Row 0: Top, Row 1: Center, Row 2: Bottom
+    # Col 0: Left, Col 1: Center, Col 2: Right
+    grid_mapping = {
+        "top-left": (0, 0),
+        "center-top": (0, 1),
+        "top-right": (0, 2),
+        "center-left": (1, 0),
+        "center-right": (1, 2),
+        "bottom-left": (2, 0),
+        "center-bottom": (2, 1),
+        "bottom-right": (2, 2),
+        # Assuming 'center' is the middle of the goal, if not explicitly in data, it will be 0
+        "center": (1, 1) # Added for completeness, though not in current shoot_positions
+    }
+
+    # Initialize grid percentages
+    grid_percentages = {(r, c): 0.0 for r in range(3) for c in range(3)}
+
+    if total_goals > 0:
+        shoot_position_counts = player_goals[Constants.SHOOT_POSITION_COL].value_counts()
+        for position, count in shoot_position_counts.items():
+            if position in grid_mapping:
+                row, col = grid_mapping[position]
+                percentage = (count / total_goals) * 100
+                grid_percentages[(row, col)] = round(percentage, decimal_points)
+
+    return grid_percentages
+
 
