@@ -90,7 +90,7 @@ if selected_individual_player:
                     x=[x_pos], y=[y_pos],
                     mode='markers+text',
                     marker=dict(size=marker_size, color=color, symbol='circle'),
-                    text=[f"{percentage:.2f}%"],
+                    text=[f"{percentage:.{DECIMAL_POINTS}f}%"],
                     textfont=dict(size=font_size, color='white'), # Text color on marker
                     textposition='middle center',
                     showlegend=False
