@@ -25,10 +25,18 @@ def calculate_goal_miss_ratio(data):
 def get_player_performance_over_time(data, player_name):
     player_data = data[data["Shooter Name"] == player_name].copy()
     player_data["Date"] = pd.to_datetime(player_data["Date"])
-    
-    performance = player_data.groupby('Date').apply(calculate_goal_miss_ratio).reset_index()
-    performance = performance.drop(columns="level_1") # Drop the extra index column
-    return performance
+
+    # Calculate goals and misses per date
+    daily_performance = player_data.groupby("Date").apply(lambda x: pd.Series({
+        "Goals": (x["Status"] == "goal").sum(),
+        "Misses": (x["Status"] != "goal").sum()
+    })).reset_index()
+
+    daily_performance["Total Shots"] = daily_performance["Goals"] + daily_performance["Misses"]
+    daily_performance["Goal-to-Miss Ratio"] = daily_performance["Goals"] / daily_performance["Misses"]
+    daily_performance["Goal-to-Miss Ratio"] = daily_performance["Goal-to-Miss Ratio"].fillna(0) # Handle division by zero
+
+    return daily_performance
 
 def get_shoot_position_goals(data, player_name):
     player_goals = data[(data["Shooter Name"] == player_name) & (data["Status"] == "goal")]
