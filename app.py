@@ -17,7 +17,7 @@ def calculate_goal_miss_ratio(data):
     
     ratio_df["Misses"] = ratio_df["Misses"].astype(int)
     ratio_df["Total Shots"] = ratio_df["Goals"] + ratio_df["Misses"]
-    ratio_df["Goal-to-Miss Ratio"] = ratio_df["Goals"] / ratio_df["Misses"]
+    ratio_df["Goal-to-Miss Ratio"] = (ratio_df["Goals"] / ratio_df["Total Shots"]) * 100
     ratio_df["Goal-to-Miss Ratio"] = ratio_df["Goal-to-Miss Ratio"].fillna(0) # Handle division by zero
     
     return ratio_df.sort_values(by="Goal-to-Miss Ratio", ascending=False)
@@ -33,7 +33,7 @@ def get_player_performance_over_time(data, player_name):
     })).reset_index()
 
     daily_performance["Total Shots"] = daily_performance["Goals"] + daily_performance["Misses"]
-    daily_performance["Goal-to-Miss Ratio"] = daily_performance["Goals"] / daily_performance["Misses"]
+    daily_performance["Goal-to-Miss Ratio"] = (daily_performance["Goals"] / daily_performance["Total Shots"]) * 100
     daily_performance["Goal-to-Miss Ratio"] = daily_performance["Goal-to-Miss Ratio"].fillna(0) # Handle division by zero
 
     return daily_performance
@@ -55,7 +55,8 @@ def main():
     
     st.subheader("Top 10 Players by Goal-to-Miss Ratio")
     top_10_players = calculate_goal_miss_ratio(data).head(10)
-    st.dataframe(top_10_players)
+    fig_top_players = px.bar(top_10_players, x=top_10_players.index, y="Goal-to-Miss Ratio", title="Top 10 Players by Goal Percentage")
+    st.plotly_chart(fig_top_players)
     
     # Phase 3: Interactive Dashboard Development
     st.sidebar.header("Player Selection")
@@ -65,16 +66,13 @@ def main():
     if selected_player:
         st.subheader(f"{selected_player}'s Performance Over Time")
         player_performance = get_player_performance_over_time(data, selected_player)
-        fig_performance = px.line(player_performance, x="Date", y="Goal-to-Miss Ratio", title=f"{selected_player}'s Goal-to-Miss Ratio Over Time")
+        fig_performance = px.line(player_performance, x="Date", y="Goal-to-Miss Ratio", title=f"{selected_player}'s Goal Percentage Over Time")
         st.plotly_chart(fig_performance)
         
         st.subheader(f"{selected_player}'s Goal Distribution by Shoot Position")
         shoot_position_goals = get_shoot_position_goals(data, selected_player)
         fig_positions = px.bar(shoot_position_goals, x="Shoot Position", y="Goal Count", title=f"{selected_player}'s Goal Distribution by Shoot Position")
         st.plotly_chart(fig_positions)
-    
-    st.subheader("Raw Data")
-    st.dataframe(data)
 
 if __name__ == "__main__":
     main()
