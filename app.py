@@ -1,6 +1,32 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from itertools import product
+
+class Constants:
+    # Column Names
+    DATE_COL = "Date"
+    SHOOTER_NAME_COL = "Shooter Name"
+    KEEPER_NAME_COL = "Keeper Name"
+    STATUS_COL = "Status"
+    SHOOT_POSITION_COL = "Shoot Position"
+    GOALS_COL = "Goals"
+    MISSES_COL = "Misses"
+    TOTAL_SHOTS_COL = "Total Shots"
+    GOAL_RATIO_COL = "Goal-to-Miss Ratio"
+    COUNT_COL = "Count"
+
+    # Statuses
+    GOAL_STATUS = "goal"
+    SAVED_STATUS = "saved"
+    OUT_STATUS = "out"
+
+    # UI
+    LOGO_PATH = "data/logo.jpg"
+    LOGO_WIDTH = 100
+    COLUMNS_RATIO = [1, 4]
+    MAX_PLAYER_SELECTIONS = 5
+    SCATTER_POINT_SIZE = 8
 
 def load_data():
     data = pd.read_csv("data/penalty.csv")
@@ -22,32 +48,10 @@ def calculate_goal_miss_ratio(data):
     
     return ratio_df.sort_values(by="Goal-to-Miss Ratio", ascending=False)
 
-def get_player_performance_over_time(data, player_name):
-    player_data = data[data["Shooter Name"] == player_name].copy()
-    player_data["Date"] = pd.to_datetime(player_data["Date"])
-
-    # Calculate goals and misses per date
-    daily_performance = player_data.groupby("Date").apply(lambda x: pd.Series({
-        "Goals": (x["Status"] == "goal").sum(),
-        "Misses": (x["Status"] != "goal").sum()
-    })).reset_index()
-
-    daily_performance["Total Shots"] = daily_performance["Goals"] + daily_performance["Misses"]
-    daily_performance["Goal-to-Miss Ratio"] = (daily_performance["Goals"] / daily_performance["Total Shots"]) * 100
-    daily_performance["Goal-to-Miss Ratio"] = daily_performance["Goal-to-Miss Ratio"].fillna(0) # Handle division by zero
-
-    return daily_performance
-
 def get_shoot_position_goals(data, player_name):
     player_goals = data[(data["Shooter Name"] == player_name) & (data["Status"] == "goal")]
     shoot_position_counts = player_goals["Shoot Position"].value_counts().reset_index()
-    shoot_position_counts.columns = ["Shoot Position", "Goal Count"]
-    return shoot_position_counts
-
-def get_shoot_position_goals(data, player_name):
-    player_goals = data[(data["Shooter Name"] == player_name) & (data["Status"] == "goal")]
-    shoot_position_counts = player_goals["Shoot Position"].value_counts().reset_index()
-    shoot_position_counts.columns = ["Shoot Position", "Goal Count"]
+    shoot_position_counts.columns = [Constants.SHOOT_POSITION_COL, Constants.COUNT_COL]
     return shoot_position_counts
 
 def get_player_status_counts_over_time(data, selected_players):
@@ -61,7 +65,6 @@ def get_player_status_counts_over_time(data, selected_players):
     status_counts = filtered_data.groupby(["Date", "Shooter Name", "Status"]).size().reset_index(name="Count")
 
     # Ensure all statuses are present for each date and player for consistent plotting
-    from itertools import product
     all_dates = filtered_data["Date"].unique()
     all_statuses = filtered_data["Status"].unique()
     
@@ -77,53 +80,62 @@ def get_player_status_counts_over_time(data, selected_players):
 
 def main():
     st.set_page_config(page_title="NFT Weingarten - Penalty Tracker")
-    col1, col2 = st.columns([1, 4]) # Adjust column width as needed
-    with col1:
-        st.image("data/logo.jpg", width=100)
-    with col2:
-        st.title("NFT Weingarten - Penalty Tracker")
+    
+    display_header()
     data = load_data()
     
+    display_top_players_chart(data)
+    display_player_performance_charts(data)
+    display_individual_goal_distribution(data)
+
+def display_header():
+    col1, col2 = st.columns(Constants.COLUMNS_RATIO)
+    with col1:
+        st.image(Constants.LOGO_PATH, width=Constants.LOGO_WIDTH)
+    with col2:
+        st.title("NFT Weingarten - Penalty Tracker")
+
+def display_top_players_chart(data):
     st.subheader("Top 10 Players by Goal-to-Miss Ratio")
     top_10_players = calculate_goal_miss_ratio(data).head(10)
-    fig_top_players = px.bar(top_10_players, x=top_10_players.index, y="Goal-to-Miss Ratio", title="Top 10 Players by Goal Percentage")
+    fig_top_players = px.bar(top_10_players, x=top_10_players.index, y=Constants.GOAL_RATIO_COL, title="Top 10 Players by Goal Percentage")
     st.plotly_chart(fig_top_players)
-    
-    # Player Selection for Performance Over Time
+
+def display_player_performance_charts(data):
     st.subheader("Compare Player Performance Over Time")
-    player_names = data["Shooter Name"].unique()
-    selected_players = st.multiselect("Select up to 5 Players to Compare", player_names, default=player_names[:2], max_selections=5)
+    player_names = data[Constants.SHOOTER_NAME_COL].unique()
+    selected_players = st.multiselect("Select up to 5 Players to Compare", player_names, default=player_names[:2], max_selections=Constants.MAX_PLAYER_SELECTIONS)
     
     if selected_players:
         st.subheader(f"Performance Over Time")
         player_status_data = get_player_status_counts_over_time(data, selected_players)
         
         if not player_status_data.empty:
-            # Create separate charts for each status
-            status_colors = {"goal": "green", "saved": "orange", "out": "red"}
+            status_colors = {Constants.GOAL_STATUS: "green", Constants.SAVED_STATUS: "orange", Constants.OUT_STATUS: "red"}
+            status_titles = {Constants.GOAL_STATUS: "Goals Over Time", Constants.SAVED_STATUS: "Saves Over Time", Constants.OUT_STATUS: "Outs Over Time"}
 
-            for status, color in status_colors.items():
-                status_df = player_status_data[player_status_data["Status"] == status]
+            for status in status_colors.keys():
+                status_df = player_status_data[player_status_data[Constants.STATUS_COL] == status]
                 if not status_df.empty:
                     fig = px.scatter(status_df,
-                                  x="Date",
-                                  y="Count",
-                                  color="Shooter Name",
-                                  size=[8]*len(status_df), # Fixed size for all points
-                                  title=status.title())
+                                  x=Constants.DATE_COL,
+                                  y=Constants.COUNT_COL,
+                                  color=Constants.SHOOTER_NAME_COL,
+                                  size=[Constants.SCATTER_POINT_SIZE]*len(status_df),
+                                  title=f"{', '.join(selected_players)} - {status_titles[status]}")
                     st.plotly_chart(fig)
                 else:
                     st.info(f"No {status} data to display for selected players.")
 
-    # Individual Player Goal Distribution (remains in sidebar for now, or can be moved)
+def display_individual_goal_distribution(data):
     st.sidebar.header("Individual Player Analysis")
-    individual_player_names = data["Shooter Name"].unique()
+    individual_player_names = data[Constants.SHOOTER_NAME_COL].unique()
     selected_individual_player = st.sidebar.selectbox("Select a Player for Goal Distribution", individual_player_names)
     
     if selected_individual_player:
         st.subheader(f"{selected_individual_player}'s Goal Distribution by Shoot Position")
         shoot_position_goals = get_shoot_position_goals(data, selected_individual_player)
-        fig_positions = px.bar(shoot_position_goals, x="Shoot Position", y="Goal Count", title=f"{selected_individual_player}'s Goal Distribution by Shoot Position")
+        fig_positions = px.bar(shoot_position_goals, x=Constants.SHOOT_POSITION_COL, y=Constants.COUNT_COL, title=f"{selected_individual_player}'s Goal Distribution by Shoot Position")
         st.plotly_chart(fig_positions)
 
 if __name__ == "__main__":
