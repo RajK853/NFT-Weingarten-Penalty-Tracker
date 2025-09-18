@@ -147,12 +147,19 @@ def calculate_save_percentage(data):
     return keeper_stats.sort_values(by=Constants.SAVE_PERCENTAGE_COL, ascending=False)
 
 
-def get_overall_shoot_position_success(data):
+def get_overall_shoot_position_success(data, num_months=None):
+    df = data.copy()
+    if num_months is not None:
+        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+        latest_date = df[Constants.DATE_COL].max()
+        start_date = latest_date - pd.DateOffset(months=num_months)
+        df = df[df[Constants.DATE_COL] >= start_date]
+
     # Total shots for each position
-    total_shots_per_position = data.groupby(Constants.SHOOT_POSITION_COL).size()
+    total_shots_per_position = df.groupby(Constants.SHOOT_POSITION_COL).size()
 
     # Goals for each position
-    goals_per_position = data[data[Constants.STATUS_COL] == Constants.GOAL_STATUS].groupby(Constants.SHOOT_POSITION_COL).size()
+    goals_per_position = df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS].groupby(Constants.SHOOT_POSITION_COL).size()
 
     # Create a DataFrame to calculate success rate
     position_success = pd.DataFrame({

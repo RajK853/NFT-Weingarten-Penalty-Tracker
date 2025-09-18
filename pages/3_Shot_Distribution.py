@@ -1,8 +1,33 @@
 import streamlit as st
+import plotly.express as px
 import plotly.graph_objects as go
-from utils import load_data, get_goal_post_distribution_percentages, Constants
+import pandas as pd
+from utils import load_data, get_overall_shoot_position_success, get_goal_post_distribution_percentages, Constants
 
-st.title("Individual Player Goal Distribution")
+st.set_page_config(
+    page_title="NFT Weingarten - Shot Distribution",
+)
+
+st.title("Shot Distribution Analysis")
+st.markdown(
+        """
+        This page visualizes the effectiveness of different shoot positions and the individual goal distribution of players.
+        """
+    )
+
+data = load_data()
+
+st.subheader("Overall Shoot Position Effectiveness")
+num_months_filter_position = st.slider("Filter for recent N months for Shoot Position Effectiveness", 1, 12, 12, key="shoot_position_months")
+shoot_position_success = get_overall_shoot_position_success(data, num_months=num_months_filter_position)
+fig_position_success = px.bar(shoot_position_success, x=shoot_position_success.index, y=Constants.GOAL_PERCENTAGE_COL,
+                                title=f"Overall Goal Percentage by Shoot Position (Recent {num_months_filter_position} Months)",
+                                hover_data=[Constants.GOALS_COL, Constants.TOTAL_SHOTS_COL])
+fig_position_success.update_layout(yaxis_title="Goal Percentage (%)", yaxis_range=[0, 100])
+fig_position_success.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
+st.plotly_chart(fig_position_success)
+
+st.subheader("Individual Player Goal Distribution")
 st.markdown(
         """
         Explore the goal distribution of individual players based on their shoot positions.
@@ -10,7 +35,6 @@ st.markdown(
         """
     )
 st.sidebar.header("Individual Player Analysis")
-data = load_data()
 
 if data.empty:
     st.warning("No data available to display player distribution.")

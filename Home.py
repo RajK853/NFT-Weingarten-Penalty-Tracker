@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-from utils import load_data, calculate_goal_percentage, get_overall_statistics, calculate_save_percentage, get_overall_shoot_position_success, get_overall_trend_data, get_monthly_outcome_distribution, get_keeper_outcome_distribution, Constants
+from utils import load_data, get_overall_statistics, get_overall_trend_data, get_monthly_outcome_distribution, Constants
 
 st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
@@ -43,45 +43,7 @@ fig_outcome = px.pie(outcome_distribution, values=Constants.GOAL_PERCENTAGE_COL,
 fig_outcome.update_traces(textinfo='percent+label', pull=[0.05 if s == Constants.GOAL_STATUS else 0 for s in outcome_distribution[Constants.STATUS_COL]])
 st.plotly_chart(fig_outcome, use_container_width=True)
 
-st.subheader("Goal Percentage Leaderboard")
-num_players = 10
 
-num_months_filter = st.slider("Filter for recent N months", 1, 12, 12)
-top_players = calculate_goal_percentage(data, num_months=num_months_filter).head(num_players)
-fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.GOAL_PERCENTAGE_COL,
-                         title=f"Top {num_players} Players by Goal Percentage (Recent {num_months_filter} Months)",
-                         hover_data=[Constants.GOALS_COL, Constants.MISSES_COL, Constants.TOTAL_SHOTS_COL])
-fig_top_players.update_layout(yaxis_title="Goal Percentage (%)", yaxis_range=[0, 100])
-fig_top_players.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
-st.plotly_chart(fig_top_players)
-
-st.subheader("Goalkeeper Performance Analysis")
-
-keeper_performance_all = calculate_save_percentage(data)
-top_5_keepers = keeper_performance_all.head(5).index.tolist()
-
-# Create columns dynamically based on the number of top 5 goalkeepers
-cols = st.columns(len(top_5_keepers))
-
-for i, keeper in enumerate(top_5_keepers):
-    with cols[i]:
-        keeper_outcome_dist = get_keeper_outcome_distribution(data, keeper)
-        if not keeper_outcome_dist.empty:
-            fig_keeper_outcome = px.pie(keeper_outcome_dist, values=Constants.COUNT_COL, names=Constants.STATUS_COL,
-                                        title=f"{keeper}'s Outcome Distribution", hole=0.4)
-            fig_keeper_outcome.update_traces(textinfo='percent+label', pull=[0.05 if s == Constants.GOAL_STATUS else 0 for s in keeper_outcome_dist[Constants.STATUS_COL]])
-            st.plotly_chart(fig_keeper_outcome, use_container_width=True)
-        else:
-            st.info(f"No data available for {keeper}.")
-
-st.subheader("Overall Shoot Position Effectiveness")
-shoot_position_success = get_overall_shoot_position_success(data)
-fig_position_success = px.bar(shoot_position_success, x=shoot_position_success.index, y=Constants.GOAL_PERCENTAGE_COL,
-                                title="Overall Goal Percentage by Shoot Position",
-                                hover_data=[Constants.GOALS_COL, Constants.TOTAL_SHOTS_COL])
-fig_position_success.update_layout(yaxis_title="Goal Percentage (%)", yaxis_range=[0, 100])
-fig_position_success.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
-st.plotly_chart(fig_position_success)
 
 st.subheader("Monthly Outcome Trend")
 

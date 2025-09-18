@@ -1,7 +1,11 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-from utils import load_data, get_player_status_counts_over_time, Constants
+from utils import load_data, get_player_status_counts_over_time, calculate_goal_percentage, Constants
+
+st.set_page_config(
+    page_title="NFT Weingarten - Player Performance",
+)
 
 st.title("Player Performance Analysis")
 st.markdown(
@@ -10,9 +14,22 @@ st.markdown(
         visualizing their goals, saves, and shots out.
         """
     )
-st.subheader("Compare Player Performance Over Time")
 data = load_data()
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
+
+st.subheader("Goal Percentage Leaderboard")
+num_players = 10
+
+num_months_filter = st.slider("Filter for recent N months", 1, 12, 12)
+top_players = calculate_goal_percentage(data, num_months=num_months_filter).head(num_players)
+fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.GOAL_PERCENTAGE_COL,
+                         title=f"Top {num_players} Players by Goal Percentage (Recent {num_months_filter} Months)",
+                         hover_data=[Constants.GOALS_COL, Constants.MISSES_COL, Constants.TOTAL_SHOTS_COL])
+fig_top_players.update_layout(yaxis_title="Goal Percentage (%)", yaxis_range=[0, 100])
+fig_top_players.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
+st.plotly_chart(fig_top_players)
+
+st.subheader("Compare Player Performance Over Time")
 player_names = data[Constants.SHOOTER_NAME_COL].unique()
 selected_players = st.multiselect(
     f"Select up to {Constants.MAX_PLAYER_SELECTIONS} Players to Compare",
