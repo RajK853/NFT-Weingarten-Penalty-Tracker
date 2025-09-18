@@ -4,9 +4,14 @@ This project creates an interactive web-based dashboard using Streamlit to visua
 
 ## Features
 
--   **Top 10 Players**: Displays the top 10 players based on their goal-to-miss ratio.
--   **Player Performance Over Time**: Visualizes a selected player's goal-to-miss ratio trend over different dates.
--   **Goal Distribution by Shoot Position**: Shows a bar chart of a selected player's goals across various shoot positions.
+The dashboard is organized into several pages for a comprehensive analysis:
+
+-   **Home (Overview)**: Provides overall shootout statistics, monthly outcome trends, and monthly outcome distribution.
+-   **Player Performance Analysis**: Displays the top players by goal percentage and allows comparison of player performance over time.
+-   **Goalkeeper Performance Analysis**: Offers insights into goalkeeper save percentages and outcome distributions.
+-   **Shot Distribution Analysis**: Visualizes overall shoot position effectiveness with a monthly filter and individual player goal distribution on a goal post grid.
+
+The application also utilizes caching to improve performance.
 
 ## Data
 
