@@ -32,6 +32,7 @@ class Constants:
     MAX_PLAYER_SELECTIONS = 10
     SCATTER_POINT_SIZE = 4
 
+@st.cache_data
 def load_data():
     real_data_path = Path("data/penalty.csv")
     pseudo_data_path = Path("data/pseudo_penalty.csv")
@@ -46,6 +47,7 @@ def load_data():
         data = pd.DataFrame() # Return empty DataFrame if no data is found
     return data
 
+@st.cache_data
 def calculate_goal_percentage(data, num_months=None):
     df = data.copy()
     if num_months is not None:
@@ -75,6 +77,7 @@ def get_shoot_position_goals(data, player_name):
     shoot_position_counts.columns = [Constants.SHOOT_POSITION_COL, Constants.COUNT_COL]
     return shoot_position_counts
 
+@st.cache_data
 def get_player_status_counts_over_time(data, selected_players, start_date=None, end_date=None):
     if not selected_players:
         return pd.DataFrame() # Return empty DataFrame if no players selected
@@ -103,6 +106,7 @@ def get_player_status_counts_over_time(data, selected_players, start_date=None, 
     return status_counts_full.sort_values(by=["Date", "Shooter Name", "Status"])
 
 
+@st.cache_data
 def get_overall_statistics(data, num_periods=None, period_type=None):
     df = data.copy()
     if num_periods is not None and period_type is not None:
@@ -127,6 +131,7 @@ def get_overall_statistics(data, num_periods=None, period_type=None):
     return total_penalties, overall_goal_percentage, outcome_distribution
 
 
+@st.cache_data
 def calculate_save_percentage(data):
     # Penalties faced by each keeper
     penalties_faced = data.groupby(Constants.KEEPER_NAME_COL).size()
@@ -147,6 +152,7 @@ def calculate_save_percentage(data):
     return keeper_stats.sort_values(by=Constants.SAVE_PERCENTAGE_COL, ascending=False)
 
 
+@st.cache_data
 def get_overall_shoot_position_success(data, num_months=None):
     df = data.copy()
     if num_months is not None:
@@ -174,6 +180,7 @@ def get_overall_shoot_position_success(data, num_months=None):
     return position_success.sort_values(by=Constants.GOAL_PERCENTAGE_COL, ascending=False)
 
 
+@st.cache_data
 def get_overall_trend_data(data, start_date=None, end_date=None):
     df = data.copy()
     df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL]) # Convert to pd.Timestamp here
@@ -207,6 +214,7 @@ def get_overall_trend_data(data, start_date=None, end_date=None):
 
     return monthly_stats_melted
 
+@st.cache_data
 def get_monthly_outcome_distribution(data):
     df = data.copy()
     df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
@@ -221,6 +229,7 @@ def get_monthly_outcome_distribution(data):
 
     return monthly_outcome_percentages_melted
 
+@st.cache_data
 def get_keeper_outcome_distribution(data, keeper_name):
     keeper_data = data[data[Constants.KEEPER_NAME_COL] == keeper_name]
     
@@ -244,6 +253,7 @@ def get_keeper_outcome_distribution(data, keeper_name):
 
     return outcome_counts
 
+@st.cache_data
 def get_goal_post_distribution_percentages(data, player_name, decimal_points=0):
     player_goals = data[(data[Constants.SHOOTER_NAME_COL] == player_name) & (data[Constants.STATUS_COL] == Constants.GOAL_STATUS)]
     total_goals = len(player_goals)
