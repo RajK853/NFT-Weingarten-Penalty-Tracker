@@ -45,7 +45,12 @@ def get_shoot_position_goals(data, player_name):
     return shoot_position_counts
 
 def main():
-    st.title("Penalty Shootout Dashboard")
+    st.set_page_config(page_title="NFT Weingarten - Penalty Tracker")
+    col1, col2 = st.columns([1, 4]) # Adjust column width as needed
+    with col1:
+        st.image("data/logo.jpg", width=100)
+    with col2:
+        st.title("NFT Weingarten - Penalty Tracker")
     data = load_data()
     
     st.subheader("Top 10 Players by Goal-to-Miss Ratio")
