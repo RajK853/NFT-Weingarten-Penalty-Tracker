@@ -29,8 +29,8 @@ class Constants:
     LOGO_PATH = "data/logo.jpg"
     LOGO_WIDTH = 100
     
-    MAX_PLAYER_SELECTIONS = 5
-    SCATTER_POINT_SIZE = 8
+    MAX_PLAYER_SELECTIONS = 10
+    SCATTER_POINT_SIZE = 4
 
 def load_data():
     real_data_path = Path("data/penalty.csv")
@@ -46,9 +46,16 @@ def load_data():
         data = pd.DataFrame() # Return empty DataFrame if no data is found
     return data
 
-def calculate_goal_percentage(data):
-    goals = data[data["Status"] == "goal"].groupby("Shooter Name").size()
-    misses = data[data["Status"] != "goal"].groupby("Shooter Name").size()
+def calculate_goal_percentage(data, num_months=None):
+    df = data.copy()
+    if num_months is not None:
+        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+        latest_date = df[Constants.DATE_COL].max()
+        start_date = latest_date - pd.DateOffset(months=num_months)
+        df = df[df[Constants.DATE_COL] >= start_date]
+
+    goals = df[df["Status"] == "goal"].groupby("Shooter Name").size()
+    misses = df[df["Status"] != "goal"].groupby("Shooter Name").size()
     
     ratio_df = pd.DataFrame({
         "Goals": goals,
@@ -68,12 +75,15 @@ def get_shoot_position_goals(data, player_name):
     shoot_position_counts.columns = [Constants.SHOOT_POSITION_COL, Constants.COUNT_COL]
     return shoot_position_counts
 
-def get_player_status_counts_over_time(data, selected_players):
+def get_player_status_counts_over_time(data, selected_players, start_date=None, end_date=None):
     if not selected_players:
         return pd.DataFrame() # Return empty DataFrame if no players selected
 
     filtered_data = data[data["Shooter Name"].isin(selected_players)].copy()
-    filtered_data["Date"] = pd.to_datetime(filtered_data["Date"])
+    filtered_data["Date"] = pd.to_datetime(filtered_data["Date"]).dt.date
+
+    if start_date and end_date:
+        filtered_data = filtered_data[(filtered_data["Date"] >= start_date) & (filtered_data["Date"] <= end_date)]
 
     # Count occurrences of each status for each player per day
     status_counts = filtered_data.groupby(["Date", "Shooter Name", "Status"]).size().reset_index(name="Count")
@@ -157,23 +167,38 @@ def get_overall_shoot_position_success(data):
     return position_success.sort_values(by=Constants.GOAL_PERCENTAGE_COL, ascending=False)
 
 
-def get_overall_trend_data(data):
+def get_overall_trend_data(data, start_date=None, end_date=None):
     df = data.copy()
-    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL]) # Convert to pd.Timestamp here
+
+    if start_date and end_date:
+        # Compare pd.Timestamp with datetime.date objects directly
+        df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
+
     df['Month'] = df[Constants.DATE_COL].dt.to_period('M')
 
     monthly_stats = df.groupby('Month').apply(lambda x:
         pd.Series({
             'Total Shots': len(x),
-            'Goals': len(x[x[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+            'Goals': len(x[x[Constants.STATUS_COL] == Constants.GOAL_STATUS]),
+            'Saved': len(x[x[Constants.STATUS_COL] == Constants.SAVED_STATUS]),
+            'Out': len(x[x[Constants.STATUS_COL] == Constants.OUT_STATUS])
         })
     ).reset_index()
 
-    monthly_stats[Constants.GOAL_PERCENTAGE_COL] = (monthly_stats['Goals'] / monthly_stats['Total Shots']) * 100
-    monthly_stats[Constants.GOAL_PERCENTAGE_COL] = monthly_stats[Constants.GOAL_PERCENTAGE_COL].fillna(0)
+    monthly_stats['Goal Percentage'] = (monthly_stats['Goals'] / monthly_stats['Total Shots']) * 100
+    monthly_stats['Saved Percentage'] = (monthly_stats['Saved'] / monthly_stats['Total Shots']) * 100
+    monthly_stats['Out Percentage'] = (monthly_stats['Out'] / monthly_stats['Total Shots']) * 100
+
+    monthly_stats = monthly_stats.fillna(0)
     monthly_stats['Month'] = monthly_stats['Month'].astype(str)
 
-    return monthly_stats
+    # Melt the DataFrame to long format for Plotly Express
+    monthly_stats_melted = monthly_stats.melt(id_vars=['Month', 'Total Shots'], 
+                                              value_vars=['Goal Percentage', 'Saved Percentage', 'Out Percentage'],
+                                              var_name='Outcome Type', value_name='Percentage')
+
+    return monthly_stats_melted
 
 def get_monthly_outcome_distribution(data):
     df = data.copy()
@@ -188,5 +213,28 @@ def get_monthly_outcome_distribution(data):
     monthly_outcome_percentages_melted = monthly_outcome_percentages.melt(id_vars=['Month'], var_name=Constants.STATUS_COL, value_name=Constants.GOAL_PERCENTAGE_COL)
 
     return monthly_outcome_percentages_melted
+
+def get_keeper_outcome_distribution(data, keeper_name):
+    keeper_data = data[data[Constants.KEEPER_NAME_COL] == keeper_name]
+    
+    # Count goals conceded (status == 'goal'), saves (status == 'saved'), and outs (status == 'out')
+    goals_conceded = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+    saves = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
+    outs = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
+
+    total_faced = goals_conceded + saves + outs
+
+    if total_faced == 0:
+        return pd.DataFrame(columns=[Constants.STATUS_COL, Constants.COUNT_COL])
+
+    outcome_counts = pd.DataFrame({
+        Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS],
+        Constants.COUNT_COL: [goals_conceded, saves, outs]
+    })
+    
+    # Calculate percentages for the pie chart
+    outcome_counts[Constants.GOAL_PERCENTAGE_COL] = (outcome_counts[Constants.COUNT_COL] / total_faced) * 100
+
+    return outcome_counts
 
 
