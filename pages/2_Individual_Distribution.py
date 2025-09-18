@@ -2,6 +2,13 @@ import streamlit as st
 import plotly.express as px
 from utils import load_data, get_shoot_position_goals, Constants
 
+st.title("Individual Player Goal Distribution")
+st.markdown(
+        """
+        Explore the goal distribution of individual players based on their shoot positions.
+        Select a player from the sidebar to see where they tend to aim their shots.
+        """
+    )
 st.sidebar.header("Individual Player Analysis")
 data = load_data()
 individual_player_names = data[Constants.SHOOTER_NAME_COL].unique()

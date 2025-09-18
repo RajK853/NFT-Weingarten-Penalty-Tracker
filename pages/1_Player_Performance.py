@@ -2,6 +2,13 @@ import streamlit as st
 import plotly.express as px
 from utils import load_data, get_player_status_counts_over_time, Constants
 
+st.title("Player Performance Analysis")
+st.markdown(
+        """
+        This page allows you to compare the performance of multiple players over time,
+        visualizing their goals, saves, and shots out.
+        """
+    )
 st.subheader("Compare Player Performance Over Time")
 data = load_data()
 player_names = data[Constants.SHOOTER_NAME_COL].unique()

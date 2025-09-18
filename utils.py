@@ -13,7 +13,7 @@ class Constants:
     GOALS_COL = "Goals"
     MISSES_COL = "Misses"
     TOTAL_SHOTS_COL = "Total Shots"
-    GOAL_RATIO_COL = "Goal-to-Miss Ratio"
+    GOAL_PERCENTAGE_COL = "Goal Percentage"
     COUNT_COL = "Count"
 
     # Statuses
@@ -24,7 +24,7 @@ class Constants:
     # UI
     LOGO_PATH = "data/logo.jpg"
     LOGO_WIDTH = 100
-    COLUMNS_RATIO = [1, 4]
+    
     MAX_PLAYER_SELECTIONS = 5
     SCATTER_POINT_SIZE = 8
 
@@ -32,7 +32,7 @@ def load_data():
     data = pd.read_csv("data/penalty.csv")
     return data
 
-def calculate_goal_miss_ratio(data):
+def calculate_goal_percentage(data):
     goals = data[data["Status"] == "goal"].groupby("Shooter Name").size()
     misses = data[data["Status"] != "goal"].groupby("Shooter Name").size()
     
@@ -43,10 +43,10 @@ def calculate_goal_miss_ratio(data):
     
     ratio_df["Misses"] = ratio_df["Misses"].astype(int)
     ratio_df["Total Shots"] = ratio_df["Goals"] + ratio_df["Misses"]
-    ratio_df["Goal-to-Miss Ratio"] = (ratio_df["Goals"] / ratio_df["Total Shots"]) * 100
-    ratio_df["Goal-to-Miss Ratio"] = ratio_df["Goal-to-Miss Ratio"].fillna(0) # Handle division by zero
+    ratio_df[Constants.GOAL_PERCENTAGE_COL] = (ratio_df["Goals"] / ratio_df["Total Shots"]) * 100
+    ratio_df[Constants.GOAL_PERCENTAGE_COL] = ratio_df[Constants.GOAL_PERCENTAGE_COL].fillna(0) # Handle division by zero
     
-    return ratio_df.sort_values(by="Goal-to-Miss Ratio", ascending=False)
+    return ratio_df.sort_values(by=Constants.GOAL_PERCENTAGE_COL, ascending=False)
 
 def get_shoot_position_goals(data, player_name):
     player_goals = data[(data["Shooter Name"] == player_name) & (data["Status"] == "goal")]
@@ -78,9 +78,4 @@ def get_player_status_counts_over_time(data, selected_players):
 
     return status_counts_full.sort_values(by=["Date", "Shooter Name", "Status"])
 
-def display_header():
-    col1, col2 = st.columns(Constants.COLUMNS_RATIO)
-    with col1:
-        st.image(Constants.LOGO_PATH, width=Constants.LOGO_WIDTH)
-    with col2:
-        st.title("NFT Weingarten - Penalty Tracker")
+
