@@ -221,9 +221,13 @@ def get_overall_trend_data(data, start_date=None, end_date=None):
     return monthly_stats_melted
 
 @st.cache_data
-def get_monthly_outcome_distribution(data):
+def get_monthly_outcome_distribution(data, start_date=None, end_date=None):
     df = data.copy()
     df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+
+    if start_date and end_date:
+        df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
+
     df['Month'] = df[Constants.DATE_COL].dt.to_period('M').astype(str)
 
     monthly_outcome_counts = df.groupby(['Month', Constants.STATUS_COL]).size().unstack(fill_value=0)

@@ -57,20 +57,8 @@ with col_date2:
 
 monthly_trend_data = get_overall_trend_data(data, start_date=start_date_filter, end_date=end_date_filter)
 
-if not monthly_trend_data.empty:
-    fig_monthly_trend = px.line(monthly_trend_data, x="Month", y="Percentage", color="Outcome Type",
-                                  title="Monthly Trend of Penalty Outcomes",
-                                  category_orders={"Outcome Type": ["Goal Percentage", "Saved Percentage", "Out Percentage"]})
-    fig_monthly_trend.update_layout(yaxis_title="Percentage (%)", yaxis_range=[0, 100])
-    fig_monthly_trend.update_traces(line=dict(width=3)) # Make lines bold
-    st.plotly_chart(fig_monthly_trend)
-else:
-    st.info("No data available for the selected date range.")
-
-st.subheader("Monthly Outcome Distribution")
-monthly_outcome_dist = get_monthly_outcome_distribution(data)
+monthly_outcome_dist = get_monthly_outcome_distribution(data, start_date=start_date_filter, end_date=end_date_filter)
 fig_monthly_outcome = px.bar(monthly_outcome_dist, x="Month", y=Constants.GOAL_PERCENTAGE_COL, color=Constants.STATUS_COL,
-                               title="Monthly Distribution of Penalty Outcomes",
                                labels={Constants.GOAL_PERCENTAGE_COL: "Percentage", "Month": "Month"},
                                category_orders={Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]})
 fig_monthly_outcome.update_layout(yaxis_title="Percentage (%)", yaxis_range=[0, 100])
