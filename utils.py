@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Optional, List, Tuple, Dict
 from datetime import date
+import plotly.graph_objects as go
 
 class Constants:
     """
@@ -55,6 +56,8 @@ class Constants:
     GOAL_POST_COLOR: str = "white"
     PITCH_COLOR: str = "lightgreen"
     GRID_DIMENSION: int = 3 # For 3x3 grid
+    GRID_LINES: int = 10
+    GRID_SQUARE_SIZE: int = 20
 
     # Home Page UI
     PIE_CHART_PULL_EFFECT: float = 0.05
@@ -83,8 +86,8 @@ class Constants:
     FONT_SIZE_SCALE: int = 20
     COLOR_MIN_RGB: int = 50
     COLOR_MAX_RGB: int = 200
-    MARKER_SIZE_BASE: int = 30
-    MARKER_SIZE_SCALE: int = 80
+    MARKER_SIZE_BASE: int = 5
+    MARKER_SIZE_SCALE: int = 350
     X_POS_OFFSET: float = 0.5
     Y_POS_INVERT_FACTOR: float = 2.3
 
@@ -444,43 +447,45 @@ def get_keeper_outcome_distribution(data: pd.DataFrame, keeper_name: str, start_
     return outcome_counts
 
 @st.cache_data
-def get_goal_post_distribution_percentages(data: pd.DataFrame, player_name: str, decimal_points: int = 0) -> dict:
+def get_goal_post_distribution_percentages(data: pd.DataFrame, player_name: Optional[str], num_months: Optional[int] = None, decimal_points: int = 0) -> dict:
     """
-    Calculates the percentage of goals scored in each 3x3 grid section of the goal post for a given player.
+    Calculates the percentage of goals scored in each 3x3 grid section of the goal post.
+    If a player_name is provided, it calculates for that player. Otherwise, it calculates for all players.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        player_name (str): The name of the player.
+        player_name (Optional[str]): The name of the player, or None for all players.
+        num_months (Optional[int]): If provided, filters data for the most recent N months.
         decimal_points (int): The number of decimal points to round the percentages to.
 
     Returns:
         dict: A dictionary where keys are (row, col) tuples representing the grid section
               and values are the percentage of goals scored in that section.
     """
-    player_goals = data[(data[Constants.SHOOTER_NAME_COL] == player_name) & (data[Constants.STATUS_COL] == Constants.GOAL_STATUS)]
-    total_goals = len(player_goals)
+    df = data.copy()
+    if num_months is not None:
+        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+        latest_date = df[Constants.DATE_COL].max()
+        start_date = latest_date - pd.DateOffset(months=num_months)
+        df = df[df[Constants.DATE_COL] >= start_date]
 
-    # Define the 3x3 grid mapping for shoot positions
-    # Row 0: Top, Row 1: Center, Row 2: Bottom
-    # Col 0: Left, Col 1: Center, Col 2: Right
+    if player_name:
+        filtered_goals = df[(df[Constants.SHOOTER_NAME_COL] == player_name) & (df[Constants.STATUS_COL] == Constants.GOAL_STATUS)]
+    else:
+        filtered_goals = df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS]
+        
+    total_goals = len(filtered_goals)
+
     grid_mapping: Dict[str, Tuple[int, int]] = {
-        "top-left": (0, 0),
-        "center-top": (0, 1),
-        "top-right": (0, 2),
-        "center-left": (1, 0),
-        "center-right": (1, 2),
-        "bottom-left": (2, 0),
-        "center-bottom": (2, 1),
-        "bottom-right": (2, 2),
-        # Assuming 'center' is the middle of the goal, if not explicitly in data, it will be 0
-        "center": (1, 1) # Added for completeness, though not in current shoot_positions
+        "top-left": (0, 0), "center-top": (0, 1), "top-right": (0, 2),
+        "center-left": (1, 0), "center": (1, 1), "center-right": (1, 2),
+        "bottom-left": (2, 0), "center-bottom": (2, 1), "bottom-right": (2, 2),
     }
 
-    # Initialize grid percentages
-    grid_percentages: Dict[Tuple[int, int], float] = {(r, c): 0.0 for r in range(Constants.GRID_DIMENSION) for c in range(Constants.GRID_DIMENSION)} # type: ignore
+    grid_percentages: Dict[Tuple[int, int], float] = {(r, c): 0.0 for r in range(Constants.GRID_DIMENSION) for c in range(Constants.GRID_DIMENSION)}
 
     if total_goals > 0:
-        shoot_position_counts = player_goals[Constants.SHOOT_POSITION_COL].value_counts()
+        shoot_position_counts = filtered_goals[Constants.SHOOT_POSITION_COL].value_counts()
         for position, count in shoot_position_counts.items():
             if position in grid_mapping:
                 row, col = grid_mapping[position]
@@ -488,5 +493,84 @@ def get_goal_post_distribution_percentages(data: pd.DataFrame, player_name: str,
                 grid_percentages[(row, col)] = round(percentage, decimal_points)
 
     return grid_percentages
+
+
+def create_goal_post_visualization(grid_percentages: dict) -> go.Figure:
+    """
+    Creates a Plotly figure visualizing the goal post with percentage distributions.
+
+    Args:
+        grid_percentages (dict): A dictionary with grid coordinates as keys and percentages as values.
+
+    Returns:
+        go.Figure: A Plotly figure object.
+    """
+    valid_percentages: List[float] = [p for p in grid_percentages.values() if p > 0.0]
+    if valid_percentages:
+        min_percentage: float = min(valid_percentages)
+        max_percentage: float = max(valid_percentages)
+    else:
+        min_percentage = 0.0
+        max_percentage = 100.0
+
+    fig = go.Figure()
+
+    for x in range(0, Constants.GOAL_POST_WIDTH_VISUAL, Constants.GRID_SQUARE_SIZE):
+        # Vertical lines
+        fig.add_shape(type="line",
+                      x0=x, y0=0,
+                      x1=x, y1=Constants.GOAL_POST_HEIGHT_VISUAL,
+                      line=dict(color="rgba(255, 255, 255, 0.5)", width=1, dash="dash"),
+                      layer="below")
+    for y in range(0, Constants.GOAL_POST_HEIGHT_VISUAL, Constants.GRID_SQUARE_SIZE):
+        # Horizontal lines
+        fig.add_shape(type="line",
+                      x0=0, y0=y,
+                      x1=Constants.GOAL_POST_WIDTH_VISUAL, y1=y,
+                      line=dict(color="rgba(255, 255, 255, 0.5)", width=1, dash="dash"),
+                      layer="below")
+
+    fig.add_shape(type="line", x0=0, y0=0, x1=0, y1=Constants.GOAL_POST_HEIGHT_VISUAL, line=dict(color=Constants.GOAL_POST_COLOR, width=Constants.POST_LINE_WIDTH_VISUAL))
+    fig.add_shape(type="line", x0=0, y0=Constants.GOAL_POST_HEIGHT_VISUAL, x1=Constants.GOAL_POST_WIDTH_VISUAL, y1=Constants.GOAL_POST_HEIGHT_VISUAL, line=dict(color=Constants.GOAL_POST_COLOR, width=Constants.POST_LINE_WIDTH_VISUAL))
+    fig.add_shape(type="line", x0=Constants.GOAL_POST_WIDTH_VISUAL, y0=0, x1=Constants.GOAL_POST_WIDTH_VISUAL, y1=Constants.GOAL_POST_HEIGHT_VISUAL, line=dict(color=Constants.GOAL_POST_COLOR, width=Constants.POST_LINE_WIDTH_VISUAL))
+
+    for r in range(Constants.GRID_DIMENSION):
+        for c in range(Constants.GRID_DIMENSION):
+            percentage: float = grid_percentages.get((r, c), 0.0)
+            
+            if percentage > 0.0:
+                x_pos: float = (c + Constants.X_POS_OFFSET) * Constants.GOAL_POST_WIDTH_VISUAL / Constants.GRID_DIMENSION
+                y_pos: float = (Constants.Y_POS_INVERT_FACTOR - r) * Constants.GOAL_POST_HEIGHT_VISUAL / Constants.GRID_DIMENSION
+                
+                font_size: float = Constants.FONT_SIZE_BASE + Constants.FONT_SIZE_SCALE*(percentage / 100) ** (1/2)
+                if max_percentage > min_percentage:
+                    normalized_percentage: float = (percentage - min_percentage) / (max_percentage - min_percentage)
+                else:
+                    normalized_percentage = 0.0
+
+                red_component: int = int(Constants.COLOR_MIN_RGB + (Constants.COLOR_MAX_RGB - Constants.COLOR_MIN_RGB) * (1 - normalized_percentage))
+                green_component: int = int(Constants.COLOR_MIN_RGB + (Constants.COLOR_MAX_RGB - Constants.COLOR_MIN_RGB) * normalized_percentage)
+                color: str = f"rgb({red_component}, {green_component}, 0)"
+                
+                marker_size: float = Constants.MARKER_SIZE_BASE + (percentage / 100) * Constants.MARKER_SIZE_SCALE
+
+                fig.add_trace(go.Scatter(
+                    x=[x_pos], y=[y_pos],
+                    mode='markers+text',
+                    marker=dict(size=marker_size, color=color, symbol='circle'),
+                    text=[f"{percentage:.{Constants.DECIMAL_POINTS_DISPLAY}f}%"],
+                    textfont=dict(size=font_size, color='white'),
+                    textposition='middle center',
+                    showlegend=False
+                ))
+
+    fig.update_layout(
+        xaxis=dict(visible=False, range=[0, Constants.GOAL_POST_WIDTH_VISUAL]),
+        yaxis=dict(visible=False, range=[0, Constants.GOAL_POST_HEIGHT_VISUAL]),
+        showlegend=False,
+        width=Constants.GOAL_POST_WIDTH_VISUAL + Constants.POST_LINE_WIDTH_VISUAL,
+        height=Constants.GOAL_POST_HEIGHT_VISUAL + Constants.POST_LINE_WIDTH_VISUAL,
+    )
+    return fig
 
 
