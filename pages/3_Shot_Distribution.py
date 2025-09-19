@@ -61,25 +61,21 @@ if selected_individual_player:
     # Create the goal post visualization
     fig = go.Figure()
 
-    # Goal post dimensions (4:3 ratio)
-    goal_width = 400
-    goal_height = 300
+    # Goal post dimensions
+    post_width = 50
+    goal_width = 500
+    goal_height = 400
 
-    # Add goal post rectangle
-    fig.add_shape(type="rect",
-                  x0=0, y0=0, x1=goal_width, y1=goal_height,
-                  line=dict(color="RoyalBlue", width=3))
-
-    # Add 3x3 grid lines
-    for i in range(1, 3):
-        # Horizontal lines
-        fig.add_shape(type="line",
-                      x0=0, y0=i * goal_height / 3, x1=goal_width, y1=i * goal_height / 3,
-                      line=dict(color="LightSteelBlue", width=1, dash="dot"))
-        # Vertical lines
-        fig.add_shape(type="line",
-                      x0=i * goal_width / 3, y0=0, x1=i * goal_width / 3, y1=goal_height,
-                      line=dict(color="LightSteelBlue", width=1, dash="dot"))
+    # Add goal post lines for left, top, and right edges
+    fig.add_shape(type="line",
+                  x0=0, y0=0, x1=0, y1=goal_height,
+                  line=dict(color="white", width=post_width)) # Left post
+    fig.add_shape(type="line",
+                  x0=0, y0=goal_height, x1=goal_width, y1=goal_height,
+                  line=dict(color="white", width=post_width)) # Top crossbar
+    fig.add_shape(type="line",
+                  x0=goal_width, y0=0, x1=goal_width, y1=goal_height,
+                  line=dict(color="white", width=post_width)) # Right post
     
     # Add percentages as text annotations
     for r in range(3):
@@ -88,7 +84,7 @@ if selected_individual_player:
             
             if percentage > 0.0: # Only draw if percentage is greater than 0.0
                 x_pos = (c + 0.5) * goal_width / 3
-                y_pos = (2.5 - r) * goal_height / 3 # Invert y-axis for display (row 0 is top)
+                y_pos = (2.3 - r) * goal_height / 3 # Invert y-axis for display (row 0 is top)
                 
                 # Scale font size based on percentage
                 font_size = 12 + (percentage / 100) * 20
@@ -107,13 +103,14 @@ if selected_individual_player:
                 red_component = int(min_color_val + color_range * (1 - normalized_percentage))
                 green_component = int(min_color_val + color_range * normalized_percentage)
                 color = f"rgb({red_component}, {green_component}, 0)"
+                
                 # Scale marker size based on percentage
-                marker_size = 50 + (percentage / 100) * 60
+                marker_size = 30 + (percentage / 100) * 80
 
                 fig.add_trace(go.Scatter(
                     x=[x_pos], y=[y_pos],
                     mode='markers+text',
-                    marker=dict(size=marker_size, color=color, symbol='circle'),
+                    marker=dict(size=marker_size, color=color, symbol='circle', opacity=0.7),
                     text=[f"{percentage:.{DECIMAL_POINTS}f}%"],
                     textfont=dict(size=font_size, color='white'), # Text color on marker
                     textposition='middle center',
@@ -121,12 +118,12 @@ if selected_individual_player:
                 ))
 
     # Update layout
-    fig.update_layout(title=f"{selected_individual_player}'s Goal Post Distribution",
-                      xaxis=dict(visible=False, range=[0, goal_width]),
-                      yaxis=dict(visible=False, range=[0, goal_height]),
-                      plot_bgcolor='white',
-                      showlegend=False,
-                      width=goal_width + 50, # Add some padding
-                      height=goal_height + 50)
+    fig.update_layout(
+        xaxis=dict(visible=False, range=[0, goal_width]),
+        yaxis=dict(visible=False, range=[0, goal_height]),
+        showlegend=False,
+        width=goal_width + post_width, # Add some padding
+        height=goal_height + post_width,
+    )
 
     st.plotly_chart(fig, use_container_width=True)

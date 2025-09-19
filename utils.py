@@ -132,12 +132,18 @@ def get_overall_statistics(data, num_periods=None, period_type=None):
 
 
 @st.cache_data
-def calculate_save_percentage(data):
+def calculate_save_percentage(data, start_date=None, end_date=None):
+    df = data.copy()
+    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+
+    if start_date and end_date:
+        df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
+
     # Penalties faced by each keeper
-    penalties_faced = data.groupby(Constants.KEEPER_NAME_COL).size()
+    penalties_faced = df.groupby(Constants.KEEPER_NAME_COL).size()
 
     # Saves by each keeper
-    saves = data[data[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby(Constants.KEEPER_NAME_COL).size()
+    saves = df[df[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby(Constants.KEEPER_NAME_COL).size()
 
     # Create a DataFrame for save percentages
     keeper_stats = pd.DataFrame({
@@ -230,8 +236,12 @@ def get_monthly_outcome_distribution(data):
     return monthly_outcome_percentages_melted
 
 @st.cache_data
-def get_keeper_outcome_distribution(data, keeper_name):
-    keeper_data = data[data[Constants.KEEPER_NAME_COL] == keeper_name]
+def get_keeper_outcome_distribution(data, keeper_name, start_date=None, end_date=None):
+    keeper_data = data[data[Constants.KEEPER_NAME_COL] == keeper_name].copy()
+    keeper_data[Constants.DATE_COL] = pd.to_datetime(keeper_data[Constants.DATE_COL])
+
+    if start_date and end_date:
+        keeper_data = keeper_data[(keeper_data[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (keeper_data[Constants.DATE_COL] <= pd.Timestamp(end_date))]
     
     # Count goals conceded (status == 'goal'), saves (status == 'saved'), and outs (status == 'out')
     goals_conceded = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])

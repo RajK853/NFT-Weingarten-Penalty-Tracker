@@ -22,6 +22,7 @@
 -   [x] **Task 3.6**: Reorganize plots into separate Streamlit pages based on their categories (Overview, Player Performance, Goalkeeper Analysis, Shot Distribution).
 -   [x] **Task 3.7**: Add a filter to select the number of recent months for the "Overall Shoot Position Effectiveness" plot.
 -   [x] **Task 3.8**: Implement caching (`st.cache_data`) for data loading and computationally intensive functions to improve performance.
+-   [x] **Task 3.9**: Add a date dropdown filter to the 'Goalkeeper Performance Analysis' page.
 
 ## Phase 4: Deployment
 -   [x] **Task 4.1**: Create a `README.md` file explaining the project, how to run it locally, and what the dashboard shows.

@@ -31,6 +31,7 @@ st.plotly_chart(fig_top_players)
 
 st.subheader("Compare Player Performance Over Time")
 player_names = data[Constants.SHOOTER_NAME_COL].unique()
+player_names = list(sorted(player_names))
 selected_players = st.multiselect(
     f"Select up to {Constants.MAX_PLAYER_SELECTIONS} Players to Compare",
     player_names,
