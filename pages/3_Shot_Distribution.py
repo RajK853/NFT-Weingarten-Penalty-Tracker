@@ -26,8 +26,7 @@ num_months_filter_position: int = st.slider("Filter for recent N months for Shoo
                                             Constants.SLIDER_MIN_MONTHS, Constants.SLIDER_MAX_MONTHS, Constants.SLIDER_DEFAULT_MONTHS, 
                                             key="shoot_position_months")
 grid_percentages: dict = get_goal_post_distribution_percentages(data, player_name=None, num_months=num_months_filter_position)
-fig = create_goal_post_visualization(grid_percentages)
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True, config={'staticPlot': True})
 
 st.subheader("Individual Player Goal Distribution")
 st.markdown(
@@ -54,4 +53,4 @@ if selected_individual_player:
     
     grid_percentages: dict = get_goal_post_distribution_percentages(data, selected_individual_player, decimal_points=Constants.DECIMAL_POINTS_DISPLAY)
     fig = create_goal_post_visualization(grid_percentages)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={'staticPlot': True})
