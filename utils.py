@@ -153,10 +153,8 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
     
     overall_goal_percentage = (goals / total_penalties) * 100 if total_penalties > 0 else 0
 
-    outcome_distribution: pd.DataFrame = pd.DataFrame({
-        Constants.STATUS_COL: df[Constants.STATUS_COL].value_counts().index.tolist(),
-        Constants.GOAL_PERCENTAGE_COL: df[Constants.STATUS_COL].value_counts().values
-    })
+    outcome_distribution: pd.DataFrame = df[Constants.STATUS_COL].value_counts().reset_index() # type: ignore
+    outcome_distribution.columns = [Constants.STATUS_COL, Constants.GOAL_PERCENTAGE_COL]
 
     return total_penalties, overall_goal_percentage, outcome_distribution
 
@@ -479,10 +477,7 @@ def get_goal_post_distribution_percentages(data: pd.DataFrame, player_name: str,
     }
 
     # Initialize grid percentages
-    grid_percentages: Dict[Tuple[int, int], float] = {}
-    for r in range(Constants.GRID_DIMENSION):
-        for c in range(Constants.GRID_DIMENSION):
-            grid_percentages[(r, c)] = 0.0 # type: ignore
+    grid_percentages: Dict[Tuple[int, int], float] = {(r, c): 0.0 for r in range(Constants.GRID_DIMENSION) for c in range(Constants.GRID_DIMENSION)} # type: ignore
 
     if total_goals > 0:
         shoot_position_counts = player_goals[Constants.SHOOT_POSITION_COL].value_counts()
