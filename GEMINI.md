@@ -26,7 +26,7 @@ The input data is a CSV file (`data/penalty.csv`) with the following columns:
 
 ## Instructions for Gemini CLI
 -   **Code Style**: Adhere to PEP 8 standards. Use clear variable names and add comments for complex logic.
--   **Environment Setup**: Always use `uv` for managing dependencies. The first step should be to create a virtual environment with `uv venv` and install the required packages using `uv pip install -r requirements.txt`.
+-   **Environment Setup**: Always use `uv` for managing dependencies. The first step should be to create a virtual environment with `uv venv` and install the required packages using `uv pip install -r requirements.txt`. For adding new packages, use `uv add <package_name>` and for removing packages, use `uv remove <package_name>`. To execute Python scripts, prefer using `uv run python <script_name.py>` to ensure the script runs within the activated virtual environment.
 -   **Error Handling**: Implement robust error handling, especially for file I/O operations (e.g., if the CSV file is not found).
 -   **Modularity**: Break down the code into logical functions and classes where appropriate to improve readability and maintainability.
 -   **User Interface**: Use `streamlit` components to create a clean, intuitive, and interactive user interface. Ensure the dashboard is responsive and works well on different screen sizes.
