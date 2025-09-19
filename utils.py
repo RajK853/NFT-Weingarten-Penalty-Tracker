@@ -356,7 +356,7 @@ def get_overall_trend_data(data: pd.DataFrame, start_date: Optional[date] = None
             Constants.GOALS_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.GOAL_STATUS]),
             Constants.SAVED_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.SAVED_STATUS]),
             Constants.OUT_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.OUT_STATUS])
-        })
+        }), include_groups=False # type: ignore
     ).reset_index()
 
     monthly_stats[Constants.GOAL_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.GOALS_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
