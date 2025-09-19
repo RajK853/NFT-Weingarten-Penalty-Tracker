@@ -5,6 +5,7 @@ from utils import load_data, get_overall_statistics, get_overall_trend_data, get
 
 st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
+    page_icon=Constants.LOGO_PATH,
 )
 
 col1, col2 = st.columns([1, 4])

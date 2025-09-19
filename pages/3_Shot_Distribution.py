@@ -10,6 +10,7 @@ from typing import List, Optional
 
 st.set_page_config(
     page_title="NFT Weingarten - Shot Distribution",
+    page_icon=Constants.LOGO_PATH,
 )
 
 st.title("Shot Distribution Analysis")

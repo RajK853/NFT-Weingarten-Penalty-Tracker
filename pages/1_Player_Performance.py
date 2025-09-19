@@ -10,6 +10,7 @@ from datetime import date
 
 st.set_page_config(
     page_title="NFT Weingarten - Player Performance",
+    page_icon=Constants.LOGO_PATH,
 )
 
 st.title("Player Performance Analysis")
