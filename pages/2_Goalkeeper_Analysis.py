@@ -1,5 +1,5 @@
 """
-Streamlit page for analyzing goalkeeper performance in penalty shootouts.
+Streamlit page for analyzing goalkeeper performance in penalties.
 """
 import streamlit as st
 import plotly.express as px

@@ -1,5 +1,5 @@
 """
-Streamlit page for analyzing player performance in penalty shootouts.
+Streamlit page for analyzing player performance in penalties.
 """
 import streamlit as st
 import plotly.express as px
