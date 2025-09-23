@@ -16,7 +16,9 @@ st.set_page_config(
 st.title("Goalkeeper Performance Analysis")
 st.markdown(
         """
-        This page provides insights into goalkeeper performance, showing save percentages and outcome distributions for individual goalkeepers.
+        This page offers a comprehensive analysis of goalkeeper performance in penalty shootouts. 
+        Explore key metrics such as save percentages and detailed outcome distributions 
+        to understand how different goalkeepers perform under pressure.
         """
     )
 
@@ -24,6 +26,7 @@ data: pd.DataFrame = load_data()
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
 st.subheader("Goalkeeper Performance Analysis")
+st.markdown("Utilize the month selector to analyze goalkeeper performance over specific periods. This section provides insights into their overall effectiveness in saving penalties and the distribution of outcomes they face.")
 
 # Generate unique months for the dropdown
 data[Constants.MONTH_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.to_period('M')
@@ -46,6 +49,8 @@ if selected_month_display:
     distribution_tab = st.tabs(["Outcome Distribution"])[0]
 
     with distribution_tab:
+        st.subheader(f"Individual Goalkeeper Outcome Distribution ({selected_month_display})")
+        st.markdown("This section visualizes the distribution of outcomes (Goals Conceded, Saves, Shots Out) for individual goalkeepers within the selected month. Each pie chart provides a clear breakdown of their performance against incoming penalties.")
         top_n_keepers: List[str] = keeper_performance_all.head(Constants.TOP_N_KEEPERS_DISPLAY).index.tolist()
 
         # Create columns dynamically based on the number of top N goalkeepers

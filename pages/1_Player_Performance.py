@@ -16,15 +16,16 @@ st.set_page_config(
 st.title("Player Performance Analysis")
 st.markdown(
         """
-        This page allows you to compare the performance of multiple players over time,
-        visualizing their goals, saves, and shots out.
+        This page is dedicated to in-depth analysis of individual player performance in penalty shootouts. 
+        Utilize the interactive tools below to compare players, understand their scoring consistency, 
+        and identify top performers based on various metrics over customizable timeframes.
         """
     )
 data: pd.DataFrame = load_data()
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
 st.subheader("Player Score Leaderboard")
-st.markdown("This leaderboard ranks players based on a scoring system that assigns points for each shot outcome.")
+st.markdown("This leaderboard ranks players based on a comprehensive scoring system that assigns points for each shot outcome (Goal, Saved, Out). A higher score indicates superior overall performance in penalty shootouts. Use the date range selector to analyze performance during specific periods.")
 
 # Scoring system explanation
 scoring_data = {
@@ -73,6 +74,7 @@ else:
     st.info("Please select both a start and end date for the leaderboard.")
 
 st.subheader("Compare Player Performance Over Time")
+st.markdown("Select multiple players and a specific month to analyze their aggregated performance across different outcome categories (Score, Goals, Saved, Out). This section provides a detailed breakdown of how selected players performed within the chosen timeframe.")
 player_names: List[str] = list(sorted(data[Constants.SHOOTER_NAME_COL].unique()))
 selected_players: List[str] = st.multiselect(
     f"Select up to {Constants.MAX_PLAYER_SELECTIONS} Players to Compare",

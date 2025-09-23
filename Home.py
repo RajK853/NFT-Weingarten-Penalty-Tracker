@@ -28,6 +28,7 @@ data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
 # Homepage Insights
 st.subheader("Top Performers (Past 1 Month)")
+st.markdown("Discover the top-performing player and goalkeeper based on recent penalty shootout data. This section highlights individuals who have demonstrated exceptional skill in scoring or saving penalties over the last month, providing a quick snapshot of current form.")
 
 current_date = pd.to_datetime(data[Constants.DATE_COL]).max()
 start_date_top_performers = (current_date - pd.DateOffset(months=1)).date()
@@ -53,16 +54,32 @@ with col_insight2:
 
 st.subheader("Overall Penalty Statistics")
 st.markdown(f"*(Showing statistics from the recent {Constants.RECENT_DAYS_FILTER} days)*")
+st.markdown("This section provides an overview of penalty outcomes, showing the distribution of goals, saves, and shots out, along with their absolute counts. Gain insights into the overall success rate and how different outcomes contribute to the total penalty events.")
 
 total_penalties, overall_goal_percentage, outcome_distribution = get_overall_statistics(data, num_periods=Constants.RECENT_DAYS_FILTER, period_type=Constants.PERIOD_TYPE_DAYS)
 
 col_stats1, col_stats2 = st.columns(2)
 with col_stats1:
-    st.metric("Total Penalties", total_penalties)
+    st.metric("Total Penalties", total_penalties, help="The total number of penalties recorded within the selected period.")
 with col_stats2:
-    st.metric("Overall Goal Success", f"{overall_goal_percentage:.2f}%")
+    st.metric("Overall Goal Success", f"{overall_goal_percentage:.2f}%", help="The percentage of penalties that resulted in a goal.")
 
 fig_outcome = px.pie(outcome_distribution, values=Constants.GOAL_PERCENTAGE_COL, names=Constants.STATUS_COL,
                         title="Outcome Distribution", hole=0.4)
 fig_outcome.update_traces(textinfo='percent+label', pull=[Constants.PIE_CHART_PULL_EFFECT if s == Constants.GOAL_STATUS else 0 for s in outcome_distribution[Constants.STATUS_COL]])
 st.plotly_chart(fig_outcome, use_container_width=True, config={'displayModeBar': False})
+
+st.subheader("Monthly Outcome Trends")
+st.markdown("Visualize the month-over-month changes in penalty outcomes. This chart helps identify seasonal patterns or trends in goals, saves, and shots out over time.")
+
+monthly_outcome_trend = get_monthly_outcome_distribution(data, period_type=Constants.PERIOD_TYPE_MONTHS)
+fig_monthly_trend = px.line(monthly_outcome_trend, x=Constants.DATE_COL, y=Constants.GOAL_PERCENTAGE_COL, color=Constants.STATUS_COL,
+                            title="Monthly Outcome Trend", markers=True)
+st.plotly_chart(fig_monthly_trend, use_container_width=True, config={'displayModeBar': False})
+
+st.subheader("Monthly Outcome Distribution")
+st.markdown("Examine the distribution of penalty outcomes for each month. This stacked bar chart provides a clear view of the proportion of goals, saves, and shots out within each month.")
+
+fig_monthly_dist = px.bar(monthly_outcome_trend, x=Constants.DATE_COL, y=Constants.GOAL_PERCENTAGE_COL, color=Constants.STATUS_COL,
+                            title="Monthly Outcome Distribution", barmode='stack')
+st.plotly_chart(fig_monthly_dist, use_container_width=True, config={'displayModeBar': False})
