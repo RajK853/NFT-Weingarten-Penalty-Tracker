@@ -27,7 +27,8 @@ data = load_data()
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
 # Homepage Insights
-st.subheader("Top Performers (Past 1 Month)")
+st.subheader("Top Performers")
+st.markdown(f"*(Showing statistics from the recent {Constants.RECENT_DAYS_FILTER} days)*")
 st.markdown("Discover the top-performing player and goalkeeper based on recent penalty shootout data. This section highlights individuals who have demonstrated exceptional skill in scoring or saving penalties over the last month, providing a quick snapshot of current form.")
 
 current_date = pd.to_datetime(data[Constants.DATE_COL]).max()
