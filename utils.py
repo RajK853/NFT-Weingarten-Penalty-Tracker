@@ -115,14 +115,15 @@ def load_data() -> pd.DataFrame:
     real_data_path = Path("data/penalty.csv")
     pseudo_data_path = Path("data/pseudo_penalty.csv")
 
-    if real_data_path.exists():
-        data = pd.read_csv(real_data_path)
-    elif pseudo_data_path.exists():
-        st.warning("Real data (data/penalty.csv) not found. Loading pseudo data (data/pseudo_penalty.csv) instead.")
-        data = pd.read_csv(pseudo_data_path)
-    else:
-        st.error("Neither real data nor pseudo data found. Please generate pseudo data or provide real data.")
-        data = pd.DataFrame() # Return empty DataFrame if no data is found
+    with st.spinner("Loading data..."):
+        if real_data_path.exists():
+            data = pd.read_csv(real_data_path)
+        elif pseudo_data_path.exists():
+            st.warning("Real data (data/penalty.csv) not found. Loading pseudo data (data/pseudo_penalty.csv) instead.")
+            data = pd.read_csv(pseudo_data_path)
+        else:
+            st.error("No data found! Please generate pseudo data using `generate_pseudo_data.py` or provide real data. 📊")
+            data = pd.DataFrame() # Return empty DataFrame if no data is found
     return data
 
 @st.cache_data
@@ -142,30 +143,31 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
             - overall_goal_percentage (float): The overall goal percentage.
             - outcome_distribution (pd.DataFrame): A DataFrame with the distribution of outcomes (goal, saved, out).
     """
-    df = data.copy()
+    with st.spinner("Calculating overall statistics..."):
+        df = data.copy()
 
-    if num_periods is not None:
-        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
-        latest_date = df[Constants.DATE_COL].max()
-        if period_type == "Days":
-            start_date = latest_date - pd.DateOffset(days=num_periods)
-        elif period_type == "Months":
-            start_date = latest_date - pd.DateOffset(months=num_periods)
-        elif period_type == "Years":
-            start_date = latest_date - pd.DateOffset(years=num_periods)
-        else:
-            raise ValueError("period_type must be 'Days', 'Months', or 'Years'")
-        df = df[df[Constants.DATE_COL] >= start_date]
+        if num_periods is not None:
+            df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+            latest_date = df[Constants.DATE_COL].max()
+            if period_type == "Days":
+                start_date = latest_date - pd.DateOffset(days=num_periods)
+            elif period_type == "Months":
+                start_date = latest_date - pd.DateOffset(months=num_periods)
+            elif period_type == "Years":
+                start_date = latest_date - pd.DateOffset(years=num_periods)
+            else:
+                raise ValueError("period_type must be 'Days', 'Months', or 'Years'")
+            df = df[df[Constants.DATE_COL] >= start_date]
 
-    total_penalties = len(df)
-    goals = len(df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS])
-    
-    overall_goal_percentage = (goals / total_penalties) * 100 if total_penalties > 0 else 0
+        total_penalties = len(df)
+        goals = len(df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+        
+        overall_goal_percentage = (goals / total_penalties) * 100 if total_penalties > 0 else 0
 
-    outcome_distribution: pd.DataFrame = df[Constants.STATUS_COL].value_counts().reset_index() # type: ignore
-    outcome_distribution.columns = [Constants.STATUS_COL, Constants.GOAL_PERCENTAGE_COL]
+        outcome_distribution: pd.DataFrame = df[Constants.STATUS_COL].value_counts().reset_index() # type: ignore
+        outcome_distribution.columns = [Constants.STATUS_COL, Constants.GOAL_PERCENTAGE_COL]
 
-    return total_penalties, overall_goal_percentage, outcome_distribution
+        return total_penalties, overall_goal_percentage, outcome_distribution
 
 @st.cache_data
 def calculate_player_scores(data: pd.DataFrame, num_months: Optional[int] = None) -> pd.DataFrame:
@@ -180,26 +182,27 @@ def calculate_player_scores(data: pd.DataFrame, num_months: Optional[int] = None
         pd.DataFrame: A DataFrame with shooter names and their total scores,
                       sorted by score in descending order.
     """
-    df = data.copy()
-    if num_months is not None:
-        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
-        latest_date = df[Constants.DATE_COL].max()
-        start_date = latest_date - pd.DateOffset(months=num_months)
-        df = df[df[Constants.DATE_COL] >= start_date]
+    with st.spinner("Calculating player scores..."):
+        df = data.copy()
+        if num_months is not None:
+            df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+            latest_date = df[Constants.DATE_COL].max()
+            start_date = latest_date - pd.DateOffset(months=num_months)
+            df = df[df[Constants.DATE_COL] >= start_date]
 
-    goals = df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
-    saved = df[df[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
-    out = df[df[Constants.STATUS_COL] == Constants.OUT_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
+        goals = df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
+        saved = df[df[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
+        out = df[df[Constants.STATUS_COL] == Constants.OUT_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
 
-    score_df = pd.DataFrame({
-        Constants.GOAL_STATUS : goals,
-        Constants.SAVED_STATUS: saved,
-        Constants.OUT_STATUS  : out,
-    }).fillna(0)
+        score_df = pd.DataFrame({
+            Constants.GOAL_STATUS : goals,
+            Constants.SAVED_STATUS: saved,
+            Constants.OUT_STATUS  : out,
+        }).fillna(0)
 
-    score_df[Constants.SCORE_COL] = (score_df[Constants.GOAL_STATUS] * Constants.GOAL_SCORE) + (score_df[Constants.SAVED_STATUS] * Constants.SAVED_SCORE) + (score_df[Constants.OUT_STATUS] * Constants.OUT_SCORE)
+        score_df[Constants.SCORE_COL] = (score_df[Constants.GOAL_STATUS] * Constants.GOAL_SCORE) + (score_df[Constants.SAVED_STATUS] * Constants.SAVED_SCORE) + (score_df[Constants.OUT_STATUS] * Constants.OUT_SCORE)
 
-    return score_df.sort_values(by=Constants.SCORE_COL, ascending=False)
+        return score_df.sort_values(by=Constants.SCORE_COL, ascending=False)
 
 
 @st.cache_data
@@ -216,31 +219,32 @@ def get_player_status_counts_over_time(data: pd.DataFrame, selected_players: Lis
     Returns:
         pd.DataFrame: A DataFrame with status counts for each player per day, ensuring all statuses are present.
     """
-    if not selected_players:
-        return pd.DataFrame() # Return empty DataFrame if no players selected
+    with st.spinner("Calculating player status counts..."):
+        if not selected_players:
+            return pd.DataFrame() # Return empty DataFrame if no players selected
 
-    filtered_data = data[data[Constants.SHOOTER_NAME_COL].isin(selected_players)].copy()
-    filtered_data[Constants.DATE_COL] = pd.to_datetime(filtered_data[Constants.DATE_COL]).dt.date
+        filtered_data = data[data[Constants.SHOOTER_NAME_COL].isin(selected_players)].copy()
+        filtered_data[Constants.DATE_COL] = pd.to_datetime(filtered_data[Constants.DATE_COL]).dt.date
 
-    if start_date and end_date:
-        filtered_data = filtered_data[(filtered_data[Constants.DATE_COL] >= start_date) & (filtered_data[Constants.DATE_COL] <= end_date)]
+        if start_date and end_date:
+            filtered_data = filtered_data[(filtered_data[Constants.DATE_COL] >= start_date) & (filtered_data[Constants.DATE_COL] <= end_date)]
 
-    # Count occurrences of each status for each player per day
-    status_counts = filtered_data.groupby([Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL]).size().reset_index(name=Constants.COUNT_COL)
+        # Count occurrences of each status for each player per day
+        status_counts = filtered_data.groupby([Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL]).size().reset_index(name=Constants.COUNT_COL)
 
-    # Ensure all statuses are present for each date and player for consistent plotting
-    all_dates = filtered_data[Constants.DATE_COL].unique()
-    all_statuses = [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]
-    
-    # Create a complete grid of all combinations
-    idx = pd.MultiIndex.from_product([all_dates, selected_players, all_statuses], names=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])
-    full_df = pd.DataFrame(index=idx).reset_index()
+        # Ensure all statuses are present for each date and player for consistent plotting
+        all_dates = filtered_data[Constants.DATE_COL].unique()
+        all_statuses = [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]
+        
+        # Create a complete grid of all combinations
+        idx = pd.MultiIndex.from_product([all_dates, selected_players, all_statuses], names=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])
+        full_df = pd.DataFrame(index=idx).reset_index()
 
-    # Merge with actual counts, filling missing with 0
-    status_counts_full = pd.merge(full_df, status_counts, on=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL], how="left").fillna(0)
-    status_counts_full[Constants.COUNT_COL] = status_counts_full[Constants.COUNT_COL].astype(int)
+        # Merge with actual counts, filling missing with 0
+        status_counts_full = pd.merge(full_df, status_counts, on=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL], how="left").fillna(0)
+        status_counts_full[Constants.COUNT_COL] = status_counts_full[Constants.COUNT_COL].astype(int)
 
-    return status_counts_full.sort_values(by=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])
+        return status_counts_full.sort_values(by=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])
 
 
 @st.cache_data
@@ -257,29 +261,30 @@ def calculate_save_percentage(data: pd.DataFrame, start_date: Optional[date] = N
         pd.DataFrame: A DataFrame with goalkeeper names, total penalties faced, total saves, and save percentage,
                       sorted by save percentage in descending order.
     """
-    df = data.copy()
-    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+    with st.spinner("Calculating save percentages..."):
+        df = data.copy()
+        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
 
-    if start_date and end_date:
-        df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
+        if start_date and end_date:
+            df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
 
-    # Penalties faced by each keeper
-    penalties_faced = df.groupby(Constants.KEEPER_NAME_COL).size()
+        # Penalties faced by each keeper
+        penalties_faced = df.groupby(Constants.KEEPER_NAME_COL).size()
 
-    # Saves by each keeper
-    saves = df[df[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby(Constants.KEEPER_NAME_COL).size()
+        # Saves by each keeper
+        saves = df[df[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby(Constants.KEEPER_NAME_COL).size()
 
-    # Create a DataFrame for save percentages
-    keeper_stats = pd.DataFrame({
-        Constants.TOTAL_FACED_COL: penalties_faced,
-        Constants.TOTAL_SAVES_COL: saves
-    }).fillna(0)
+        # Create a DataFrame for save percentages
+        keeper_stats = pd.DataFrame({
+            Constants.TOTAL_FACED_COL: penalties_faced,
+            Constants.TOTAL_SAVES_COL: saves
+        }).fillna(0)
 
-    keeper_stats[Constants.TOTAL_SAVES_COL] = keeper_stats[Constants.TOTAL_SAVES_COL].astype(int)
-    keeper_stats[Constants.SAVE_PERCENTAGE_COL] = (keeper_stats[Constants.TOTAL_SAVES_COL] / keeper_stats[Constants.TOTAL_FACED_COL]) * 100
-    keeper_stats[Constants.SAVE_PERCENTAGE_COL] = keeper_stats[Constants.SAVE_PERCENTAGE_COL].fillna(0) # Handle division by zero
+        keeper_stats[Constants.TOTAL_SAVES_COL] = keeper_stats[Constants.TOTAL_SAVES_COL].astype(int)
+        keeper_stats[Constants.SAVE_PERCENTAGE_COL] = (keeper_stats[Constants.TOTAL_SAVES_COL] / keeper_stats[Constants.TOTAL_FACED_COL]) * 100
+        keeper_stats[Constants.SAVE_PERCENTAGE_COL] = keeper_stats[Constants.SAVE_PERCENTAGE_COL].fillna(0) # Handle division by zero
 
-    return keeper_stats.sort_values(by=Constants.SAVE_PERCENTAGE_COL, ascending=False)
+        return keeper_stats.sort_values(by=Constants.SAVE_PERCENTAGE_COL, ascending=False)
 
 
 
@@ -297,37 +302,38 @@ def get_overall_trend_data(data: pd.DataFrame, start_date: Optional[date] = None
     Returns:
         pd.DataFrame: A melted DataFrame suitable for plotting, showing monthly percentages of goals, saves, and outs.
     """
-    df = data.copy()
-    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL]) # Convert to pd.Timestamp here
+    with st.spinner("Calculating overall trend data..."):
+        df = data.copy()
+        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL]) # Convert to pd.Timestamp here
 
-    if start_date and end_date:
-        # Compare pd.Timestamp with datetime.date objects directly
-        df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
+        if start_date and end_date:
+            # Compare pd.Timestamp with datetime.date objects directly
+            df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
 
-    df[Constants.MONTH_COL] = df[Constants.DATE_COL].dt.to_period('M')
+        df[Constants.MONTH_COL] = df[Constants.DATE_COL].dt.to_period('M')
 
-    monthly_stats = df.groupby(Constants.MONTH_COL).apply(lambda x:
-        pd.Series({
-            Constants.TOTAL_SHOTS_TREND_COL: len(x),
-            Constants.GOALS_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.GOAL_STATUS]),
-            Constants.SAVED_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.SAVED_STATUS]),
-            Constants.OUT_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.OUT_STATUS])
-        }), include_groups=False # type: ignore
-    ).reset_index()
+        monthly_stats = df.groupby(Constants.MONTH_COL).apply(lambda x:
+            pd.Series({
+                Constants.TOTAL_SHOTS_TREND_COL: len(x),
+                Constants.GOALS_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.GOAL_STATUS]),
+                Constants.SAVED_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.SAVED_STATUS]),
+                Constants.OUT_TREND_COL: len(x[x[Constants.STATUS_COL] == Constants.OUT_STATUS])
+            }), include_groups=False # type: ignore
+        ).reset_index()
 
-    monthly_stats[Constants.GOAL_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.GOALS_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
-    monthly_stats[Constants.SAVED_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.SAVED_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
-    monthly_stats[Constants.OUT_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.OUT_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
+        monthly_stats[Constants.GOAL_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.GOALS_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
+        monthly_stats[Constants.SAVED_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.SAVED_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
+        monthly_stats[Constants.OUT_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.OUT_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
 
-    monthly_stats = monthly_stats.fillna(0)
-    monthly_stats[Constants.MONTH_COL] = monthly_stats[Constants.MONTH_COL].astype(str)
+        monthly_stats = monthly_stats.fillna(0)
+        monthly_stats[Constants.MONTH_COL] = monthly_stats[Constants.MONTH_COL].astype(str)
 
-    # Melt the DataFrame to long format for Plotly Express
-    monthly_stats_melted = monthly_stats.melt(id_vars=[Constants.MONTH_COL, Constants.TOTAL_SHOTS_TREND_COL], 
-                                              value_vars=[Constants.GOAL_PERCENTAGE_TREND_COL, Constants.SAVED_PERCENTAGE_TREND_COL, Constants.OUT_PERCENTAGE_TREND_COL],
-                                              var_name=Constants.OUTCOME_TYPE_COL, value_name=Constants.PERCENTAGE_COL)
+        # Melt the DataFrame to long format for Plotly Express
+        monthly_stats_melted = monthly_stats.melt(id_vars=[Constants.MONTH_COL, Constants.TOTAL_SHOTS_TREND_COL], 
+                                                  value_vars=[Constants.GOAL_PERCENTAGE_TREND_COL, Constants.SAVED_PERCENTAGE_TREND_COL, Constants.OUT_PERCENTAGE_TREND_COL],
+                                                  var_name=Constants.OUTCOME_TYPE_COL, value_name=Constants.PERCENTAGE_COL)
 
-    return monthly_stats_melted
+        return monthly_stats_melted
 
 @st.cache_data
 def get_monthly_outcome_distribution(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
@@ -342,22 +348,23 @@ def get_monthly_outcome_distribution(data: pd.DataFrame, start_date: Optional[da
     Returns:
         pd.DataFrame: A melted DataFrame showing monthly percentages for each outcome type.
     """
-    df = data.copy()
-    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+    with st.spinner("Calculating monthly outcome distribution..."):
+        df = data.copy()
+        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
 
-    if start_date and end_date:
-        df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
+        if start_date and end_date:
+            df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
 
-    df[Constants.MONTH_COL] = df[Constants.DATE_COL].dt.to_period('M').astype(str)
+        df[Constants.MONTH_COL] = df[Constants.DATE_COL].dt.to_period('M').astype(str)
 
-    monthly_outcome_counts = df.groupby([Constants.MONTH_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
-    monthly_outcome_percentages = monthly_outcome_counts.apply(lambda x: x / x.sum() * 100, axis=1)
-    monthly_outcome_percentages = monthly_outcome_percentages.reset_index()
+        monthly_outcome_counts = df.groupby([Constants.MONTH_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
+        monthly_outcome_percentages = monthly_outcome_counts.apply(lambda x: x / x.sum() * 100, axis=1)
+        monthly_outcome_percentages = monthly_outcome_percentages.reset_index()
 
-    # Melt the DataFrame to long format for Plotly Express
-    monthly_outcome_percentages_melted = monthly_outcome_percentages.melt(id_vars=[Constants.MONTH_COL], var_name=Constants.STATUS_COL, value_name=Constants.GOAL_PERCENTAGE_COL)
+        # Melt the DataFrame to long format for Plotly Express
+        monthly_outcome_percentages_melted = monthly_outcome_percentages.melt(id_vars=[Constants.MONTH_COL], var_name=Constants.STATUS_COL, value_name=Constants.GOAL_PERCENTAGE_COL)
 
-    return monthly_outcome_percentages_melted
+        return monthly_outcome_percentages_melted
 
 @st.cache_data
 def get_keeper_outcome_distribution(data: pd.DataFrame, keeper_name: str, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
@@ -373,31 +380,32 @@ def get_keeper_outcome_distribution(data: pd.DataFrame, keeper_name: str, start_
     Returns:
         pd.DataFrame: A DataFrame with outcome statuses and their counts and percentages for the given goalkeeper.
     """
-    keeper_data = data[data[Constants.KEEPER_NAME_COL] == keeper_name].copy()
-    keeper_data[Constants.DATE_COL] = pd.to_datetime(keeper_data[Constants.DATE_COL])
+    with st.spinner("Calculating keeper outcome distribution..."):
+        keeper_data = data[data[Constants.KEEPER_NAME_COL] == keeper_name].copy()
+        keeper_data[Constants.DATE_COL] = pd.to_datetime(keeper_data[Constants.DATE_COL])
 
-    if start_date and end_date:
-        keeper_data = keeper_data[(keeper_data[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (keeper_data[Constants.DATE_COL] <= pd.Timestamp(end_date))]
-    
-    # Count goals conceded (status == 'goal'), saves (status == 'saved'), and outs (status == 'out')
-    goals_conceded = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
-    saves = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
-    outs = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
+        if start_date and end_date:
+            keeper_data = keeper_data[(keeper_data[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (keeper_data[Constants.DATE_COL] <= pd.Timestamp(end_date))]
+        
+        # Count goals conceded (status == 'goal'), saves (status == 'saved'), and outs (status == 'out')
+        goals_conceded = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+        saves = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
+        outs = len(keeper_data[keeper_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
 
-    total_faced = goals_conceded + saves + outs
+        total_faced = goals_conceded + saves + outs
 
-    if total_faced == 0:
-        return pd.DataFrame(columns=[Constants.STATUS_COL, Constants.COUNT_COL])
+        if total_faced == 0:
+            return pd.DataFrame(columns=[Constants.STATUS_COL, Constants.COUNT_COL])
 
-    outcome_counts = pd.DataFrame({
-        Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS],
-        Constants.COUNT_COL: [goals_conceded, saves, outs]
-    })
-    
-    # Calculate percentages for the pie chart
-    outcome_counts[Constants.GOAL_PERCENTAGE_COL] = (outcome_counts[Constants.COUNT_COL] / total_faced) * 100
+        outcome_counts = pd.DataFrame({
+            Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS],
+            Constants.COUNT_COL: [goals_conceded, saves, outs]
+        })
+        
+        # Calculate percentages for the pie chart
+        outcome_counts[Constants.GOAL_PERCENTAGE_COL] = (outcome_counts[Constants.COUNT_COL] / total_faced) * 100
 
-    return outcome_counts
+        return outcome_counts
 
 
 

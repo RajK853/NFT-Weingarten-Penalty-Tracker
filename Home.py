@@ -5,7 +5,7 @@ from utils import load_data, get_overall_statistics, get_overall_trend_data, get
 
 st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
-    page_icon=Constants.LOGO_PATH,
+    page_icon="🏠",
 )
 
 col1, col2 = st.columns([1, 4])
@@ -75,7 +75,8 @@ monthly_trend_data = get_overall_trend_data(data, start_date=start_date_filter, 
 
 fig_monthly_trend = px.line(monthly_trend_data, x=Constants.MONTH_COL, y=Constants.PERCENTAGE_COL, color=Constants.OUTCOME_TYPE_COL,
                             title="Monthly Outcome Trend", markers=True,
-                            labels={Constants.PERCENTAGE_COL: "Percentage", Constants.MONTH_COL: "Month"})
+                            labels={Constants.PERCENTAGE_COL: "Percentage", Constants.MONTH_COL: "Month"},
+                            animation_frame=Constants.MONTH_COL, animation_group=Constants.OUTCOME_TYPE_COL)
 fig_monthly_trend.update_layout(yaxis_title="Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX], xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
 st.plotly_chart(fig_monthly_trend, config={'displayModeBar': False})
 
@@ -83,6 +84,7 @@ monthly_outcome_dist = get_monthly_outcome_distribution(data, start_date=start_d
 fig_monthly_outcome = px.bar(monthly_outcome_dist, x=Constants.MONTH_COL, y=Constants.GOAL_PERCENTAGE_COL, color=Constants.STATUS_COL,
                                title="Monthly Outcome Distribution",
                                labels={Constants.GOAL_PERCENTAGE_COL: "Percentage", Constants.MONTH_COL: "Month"},
-                               category_orders={Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]})
+                               category_orders={Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]},
+                               animation_frame=Constants.MONTH_COL, animation_group=Constants.STATUS_COL)
 fig_monthly_outcome.update_layout(yaxis_title="Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX], xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
 st.plotly_chart(fig_monthly_outcome, config={'displayModeBar': False})

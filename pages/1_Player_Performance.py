@@ -10,7 +10,7 @@ from datetime import date
 
 st.set_page_config(
     page_title="NFT Weingarten - Player Performance",
-    page_icon=Constants.LOGO_PATH,
+    page_icon="⚽",
 )
 
 st.title("Player Performance Analysis")
@@ -73,10 +73,11 @@ if selected_month_display:
         st.subheader("Performance Over Time")
 
         player_status_data: pd.DataFrame = get_player_status_counts_over_time(data, selected_players, start_date=start_date_filter, end_date=end_date_filter)
+        player_status_data[Constants.MONTH_COL] = pd.to_datetime(player_status_data[Constants.DATE_COL]).dt.to_period('M').astype(str)
 
         if not player_status_data.empty:
             # Aggregate data by player and status for the entire month
-            monthly_player_status_summary: pd.DataFrame = player_status_data.groupby([Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])[Constants.COUNT_COL].sum().unstack(fill_value=0).reset_index()
+            monthly_player_status_summary: pd.DataFrame = player_status_data.groupby([Constants.MONTH_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])[Constants.COUNT_COL].sum().unstack(fill_value=0).reset_index()
 
             # Calculate total shots for each player in the month
             monthly_player_status_summary[Constants.TOTAL_SHOTS_COL] = monthly_player_status_summary[Constants.GOAL_STATUS] + monthly_player_status_summary[Constants.SAVED_STATUS] + monthly_player_status_summary[Constants.OUT_STATUS]
@@ -89,26 +90,30 @@ if selected_month_display:
                 with score_tab:
                     fig_total_outcome = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SCORE_COL,
                                                title=f"Player Scores in {selected_month_display}",
-                                               hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS, Constants.TOTAL_SHOTS_COL])
+                                               hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS, Constants.TOTAL_SHOTS_COL],
+                                               animation_frame=Constants.MONTH_COL, animation_group=Constants.SHOOTER_NAME_COL)
                     fig_total_outcome.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
                     st.plotly_chart(fig_total_outcome, use_container_width=True, config={'displayModeBar': False})
 
                 with goal_tab:
                     fig_goals = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.GOAL_STATUS,
-                                       title=f"Goals in {selected_month_display}")
+                                       title=f"Goals in {selected_month_display}",
+                                       animation_frame=Constants.MONTH_COL, animation_group=Constants.SHOOTER_NAME_COL)
                     fig_goals.update_layout(yaxis_title="Goals", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
                     st.plotly_chart(fig_goals, use_container_width=True, config={'displayModeBar': False})
 
                 with saved_tab:
                     fig_saved = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SAVED_STATUS,
-                                       title=f"Saved Shots in {selected_month_display}")
+                                       title=f"Saved Shots in {selected_month_display}",
+                                       animation_frame=Constants.MONTH_COL, animation_group=Constants.SHOOTER_NAME_COL)
                     fig_saved.update_layout(yaxis_title="Saved", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
                     st.plotly_chart(fig_saved, use_container_width=True, config={'displayModeBar': False})
 
                 with out_tab:
                     fig_out = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.OUT_STATUS,
-                                     title=f"Out Shots in {selected_month_display}")
+                                     title=f"Out Shots in {selected_month_display}",
+                                     animation_frame=Constants.MONTH_COL, animation_group=Constants.SHOOTER_NAME_COL)
                     fig_out.update_layout(yaxis_title="Out", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
                     st.plotly_chart(fig_out, use_container_width=True, config={'displayModeBar': False})
             else:
-                st.info(f"No total outcome data to display for {', '.join(selected_players)} in {selected_month_display}.")
+                st.info(f"No data available for the selected players in {selected_month_display}. Please select different players or a different month. 😔")

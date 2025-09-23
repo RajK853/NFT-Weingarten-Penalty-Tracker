@@ -10,7 +10,7 @@ from datetime import date
 
 st.set_page_config(
     page_title="NFT Weingarten - Goalkeeper Analysis",
-    page_icon=Constants.LOGO_PATH,
+    page_icon="🧤",
 )
 
 st.title("Goalkeeper Performance Analysis")
@@ -55,6 +55,6 @@ if selected_month_display:
                 fig_keeper_outcome.update_traces(textinfo='percent+label', pull=[Constants.PIE_CHART_PULL_EFFECT if s == Constants.GOAL_STATUS else 0 for s in keeper_outcome_dist[Constants.STATUS_COL]])
                 st.plotly_chart(fig_keeper_outcome, use_container_width=True, config={'displayModeBar': False})
             else:
-                st.info(f"No data available for {keeper} in {selected_month_display}.")
+                st.info(f"No data available for {keeper} in {selected_month_display}. 😔")
 else:
-    st.info("Please select a month to view goalkeeper performance.")
+    st.info("Please select a month to view goalkeeper performance. 🗓️")
