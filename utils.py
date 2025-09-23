@@ -19,6 +19,7 @@ class Constants:
     GOALS_COL: str = "Goals"
     MISSES_COL: str = "Misses"
     TOTAL_SHOTS_COL: str = "Total Shots"
+    ADJUSTED_GOAL_PERCENTAGE_COL: str = "Adjusted Goal Percentage"
     GOAL_PERCENTAGE_COL: str = "Goal Percentage"
     COUNT_COL: str = "Count"
     SAVE_PERCENTAGE_COL: str = "Save Percentage"
@@ -164,15 +165,15 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
 @st.cache_data
 def calculate_goal_percentage(data: pd.DataFrame, num_months: Optional[int] = None) -> pd.DataFrame:
     """
-    Calculates the goal percentage for each shooter.
+    Calculates the goal percentage for each shooter using a Bayesian average.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
         num_months (Optional[int]): If provided, filters data for the most recent N months.
 
     Returns:
-        pd.DataFrame: A DataFrame with shooter names, goals, misses, total shots, and goal percentage,
-                      sorted by goal percentage in descending order.
+        pd.DataFrame: A DataFrame with shooter names, goals, misses, total shots, and adjusted goal percentage,
+                      sorted by adjusted goal percentage in descending order.
     """
     df = data.copy()
     if num_months is not None:
@@ -193,8 +194,14 @@ def calculate_goal_percentage(data: pd.DataFrame, num_months: Optional[int] = No
     ratio_df[Constants.TOTAL_SHOTS_COL] = ratio_df[Constants.GOALS_COL] + ratio_df[Constants.MISSES_COL]
     ratio_df[Constants.GOAL_PERCENTAGE_COL] = (ratio_df[Constants.GOALS_COL] / ratio_df[Constants.TOTAL_SHOTS_COL]) * 100
     ratio_df[Constants.GOAL_PERCENTAGE_COL] = ratio_df[Constants.GOAL_PERCENTAGE_COL].fillna(0) # Handle division by zero
+
+    # Bayesian average calculation
+    C = ratio_df[Constants.TOTAL_SHOTS_COL].mean()
+    m = ratio_df[Constants.GOAL_PERCENTAGE_COL].mean()
+
+    ratio_df[Constants.ADJUSTED_GOAL_PERCENTAGE_COL] = (ratio_df[Constants.GOAL_PERCENTAGE_COL] * ratio_df[Constants.TOTAL_SHOTS_COL] + m * C) / (ratio_df[Constants.TOTAL_SHOTS_COL] + C)
     
-    return ratio_df.sort_values(by=Constants.GOAL_PERCENTAGE_COL, ascending=False)
+    return ratio_df.sort_values(by=Constants.ADJUSTED_GOAL_PERCENTAGE_COL, ascending=False)
 
 
 

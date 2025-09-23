@@ -53,7 +53,7 @@ if selected_month_display:
                 fig_keeper_outcome = px.pie(keeper_outcome_dist, values=Constants.COUNT_COL, names=Constants.STATUS_COL,
                                             title=keeper, hole=Constants.PIE_CHART_HOLE_SIZE)
                 fig_keeper_outcome.update_traces(textinfo='percent+label', pull=[Constants.PIE_CHART_PULL_EFFECT if s == Constants.GOAL_STATUS else 0 for s in keeper_outcome_dist[Constants.STATUS_COL]])
-                st.plotly_chart(fig_keeper_outcome, use_container_width=True, config={'staticPlot': True})
+                st.plotly_chart(fig_keeper_outcome, use_container_width=True, config={'displayModeBar': False})
             else:
                 st.info(f"No data available for {keeper} in {selected_month_display}.")
 else:

@@ -23,16 +23,17 @@ st.markdown(
 data: pd.DataFrame = load_data()
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
-st.subheader("Goal Percentage Leaderboard")
+st.subheader("Adjusted Goal Percentage Leaderboard")
+st.markdown("This leaderboard shows the top players based on an adjusted goal percentage, which provides a more reliable measure of performance by factoring in the number of attempts.")
 
 num_months_filter: int = st.slider("Filter for recent N months", 1, 12, 12)
 top_players: pd.DataFrame = calculate_goal_percentage(data, num_months=num_months_filter).head(Constants.DEFAULT_NUM_PLAYERS_DISPLAY)
-fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.GOAL_PERCENTAGE_COL,
-                         title=f"Top {Constants.DEFAULT_NUM_PLAYERS_DISPLAY} Players by Goal Percentage (Recent {num_months_filter} Months)",
-                         hover_data=[Constants.GOALS_COL, Constants.MISSES_COL, Constants.TOTAL_SHOTS_COL])
-fig_top_players.update_layout(yaxis_title="Goal Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX])
+fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.ADJUSTED_GOAL_PERCENTAGE_COL,
+                         title=f"Top {Constants.DEFAULT_NUM_PLAYERS_DISPLAY} Players by Adjusted Goal Percentage (Recent {num_months_filter} Months)",
+                         hover_data=[Constants.GOALS_COL, Constants.MISSES_COL, Constants.TOTAL_SHOTS_COL, Constants.GOAL_PERCENTAGE_COL])
+fig_top_players.update_layout(yaxis_title="Adjusted Goal Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX], xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
 fig_top_players.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
-st.plotly_chart(fig_top_players, config={'staticPlot': True})
+st.plotly_chart(fig_top_players, config={'displayModeBar': False})
 
 st.subheader("Compare Player Performance Over Time")
 player_names: List[str] = list(sorted(data[Constants.SHOOTER_NAME_COL].unique()))
@@ -89,7 +90,7 @@ if selected_month_display:
                                            color=Constants.STATUS_COL,
                                            title=f"Outcome Distribution per Player in {selected_month_display}",
                                            category_orders={Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]})
-                fig_total_outcome.update_layout(yaxis_title="Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX])
-                st.plotly_chart(fig_total_outcome, use_container_width=True, config={'staticPlot': True})
+                fig_total_outcome.update_layout(yaxis_title="Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX], xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+                st.plotly_chart(fig_total_outcome, use_container_width=True, config={'displayModeBar': False})
             else:
                 st.info(f"No total outcome data to display for {', '.join(selected_players)} in {selected_month_display}.")
