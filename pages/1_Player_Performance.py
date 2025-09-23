@@ -135,7 +135,7 @@ if selected_month_display:
                 with saved_tab:
                     max_saved = monthly_player_status_summary[Constants.SAVED_STATUS].max()
                     min_saved = monthly_player_status_summary[Constants.SAVED_STATUS].min()
-                    colors_saved = [Constants.COLOR_GREEN if saved == max_saved else Constants.COLOR_RED if saved == min_saved else Constants.COLOR_LIGHTGRAY for saved in monthly_player_status_summary[Constants.SAVED_STATUS]]
+                    colors_saved = [Constants.COLOR_RED if saved == max_saved else Constants.COLOR_GREEN if saved == min_saved else Constants.COLOR_LIGHTGRAY for saved in monthly_player_status_summary[Constants.SAVED_STATUS]]
                     fig_saved_monthly = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SAVED_STATUS,
                                               title="Player Monthly Saved Shots")
                     fig_saved_monthly.update_traces(marker_color=colors_saved)
