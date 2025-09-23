@@ -73,6 +73,7 @@ class Constants:
     Y_AXIS_RANGE_MAX: int = 100
     RECENT_DAYS_FILTER: int = 30
     PERIOD_TYPE_DAYS: str = "Days"
+    PERIOD_TYPE_MONTHS: str = "Months"
 
     # Player Performance UI
     TOP_N_PLAYERS_LEADERBOARD: int = 10

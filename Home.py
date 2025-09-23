@@ -69,17 +69,3 @@ fig_outcome = px.pie(outcome_distribution, values=Constants.GOAL_PERCENTAGE_COL,
 fig_outcome.update_traces(textinfo='percent+label', pull=[Constants.PIE_CHART_PULL_EFFECT if s == Constants.GOAL_STATUS else 0 for s in outcome_distribution[Constants.STATUS_COL]])
 st.plotly_chart(fig_outcome, use_container_width=True, config={'displayModeBar': False})
 
-st.subheader("Monthly Outcome Trends")
-st.markdown("Visualize the month-over-month changes in penalty outcomes. This chart helps identify seasonal patterns or trends in goals, saves, and shots out over time.")
-
-monthly_outcome_trend = get_monthly_outcome_distribution(data, period_type=Constants.PERIOD_TYPE_MONTHS)
-fig_monthly_trend = px.line(monthly_outcome_trend, x=Constants.DATE_COL, y=Constants.GOAL_PERCENTAGE_COL, color=Constants.STATUS_COL,
-                            title="Monthly Outcome Trend", markers=True)
-st.plotly_chart(fig_monthly_trend, use_container_width=True, config={'displayModeBar': False})
-
-st.subheader("Monthly Outcome Distribution")
-st.markdown("Examine the distribution of penalty outcomes for each month. This stacked bar chart provides a clear view of the proportion of goals, saves, and shots out within each month.")
-
-fig_monthly_dist = px.bar(monthly_outcome_trend, x=Constants.DATE_COL, y=Constants.GOAL_PERCENTAGE_COL, color=Constants.STATUS_COL,
-                            title="Monthly Outcome Distribution", barmode='stack')
-st.plotly_chart(fig_monthly_dist, use_container_width=True, config={'displayModeBar': False})
