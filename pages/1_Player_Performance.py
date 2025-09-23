@@ -4,7 +4,7 @@ Streamlit page for analyzing player performance in penalty shootouts.
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-from utils import load_data, get_player_status_counts_over_time, calculate_goal_percentage, Constants
+from utils import load_data, get_player_status_counts_over_time, calculate_player_scores, Constants
 from typing import List
 from datetime import date
 
@@ -23,24 +23,33 @@ st.markdown(
 data: pd.DataFrame = load_data()
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
-st.subheader("Adjusted Goal Percentage Leaderboard")
-st.markdown("This leaderboard shows the top players based on an adjusted goal percentage, which provides a more reliable measure of performance by factoring in the number of attempts.")
+st.subheader("Player Score Leaderboard")
+st.markdown("This leaderboard ranks players based on a scoring system that assigns points for each shot outcome.")
+
+# Scoring system explanation
+scoring_data = {
+    'Outcome': ['Goal', 'Saved', 'Out'],
+    'Points': [Constants.GOAL_SCORE, Constants.SAVED_SCORE, Constants.OUT_SCORE]
+}
+scoring_df = pd.DataFrame(scoring_data)
+st.dataframe(scoring_df, hide_index=True)
 
 num_months_filter: int = st.slider("Filter for recent N months", 1, 12, 12)
-top_players: pd.DataFrame = calculate_goal_percentage(data, num_months=num_months_filter).head(Constants.DEFAULT_NUM_PLAYERS_DISPLAY)
-fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.ADJUSTED_GOAL_PERCENTAGE_COL,
-                         title=f"Top {Constants.DEFAULT_NUM_PLAYERS_DISPLAY} Players by Adjusted Goal Percentage (Recent {num_months_filter} Months)",
-                         hover_data=[Constants.GOALS_COL, Constants.MISSES_COL, Constants.TOTAL_SHOTS_COL, Constants.GOAL_PERCENTAGE_COL])
-fig_top_players.update_layout(yaxis_title="Adjusted Goal Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX], xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
-fig_top_players.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
+top_players: pd.DataFrame = calculate_player_scores(data, num_months=num_months_filter).head(Constants.TOP_N_PLAYERS_LEADERBOARD)
+fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.SCORE_COL,
+                         title=f"Top {Constants.TOP_N_PLAYERS_LEADERBOARD} Players by Score (Recent {num_months_filter} Months)",
+                         hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS])
+fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+fig_top_players.update_traces(texttemplate='%{y}', textposition='outside')
 st.plotly_chart(fig_top_players, config={'displayModeBar': False})
+st.dataframe(top_players)
 
 st.subheader("Compare Player Performance Over Time")
 player_names: List[str] = list(sorted(data[Constants.SHOOTER_NAME_COL].unique()))
 selected_players: List[str] = st.multiselect(
     f"Select up to {Constants.MAX_PLAYER_SELECTIONS} Players to Compare",
     player_names,
-    default=player_names[:int(Constants.MAX_PLAYER_SELECTIONS/Constants.DEFAULT_PLAYER_SELECTION_DIVISOR)],
+    default=player_names[:Constants.DEFAULT_NUM_PLAYERS_MULTISELECT],
     max_selections=Constants.MAX_PLAYER_SELECTIONS,
 )
 
@@ -72,25 +81,14 @@ if selected_month_display:
             # Calculate total shots for each player in the month
             monthly_player_status_summary[Constants.TOTAL_SHOTS_COL] = monthly_player_status_summary[Constants.GOAL_STATUS] + monthly_player_status_summary[Constants.SAVED_STATUS] + monthly_player_status_summary[Constants.OUT_STATUS]
 
-            # Calculate percentages for each status
-            for status in [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]:
-                monthly_player_status_summary[status] = (monthly_player_status_summary[status] / monthly_player_status_summary[Constants.TOTAL_SHOTS_COL]) * 100
-                monthly_player_status_summary[status] = monthly_player_status_summary[status].fillna(0) # Handle division by zero if Total Shots is 0
+            # Calculate score for each player
+            monthly_player_status_summary[Constants.SCORE_COL] = (monthly_player_status_summary[Constants.GOAL_STATUS] * Constants.GOAL_SCORE) + (monthly_player_status_summary[Constants.SAVED_STATUS] * Constants.SAVED_SCORE) + (monthly_player_status_summary[Constants.OUT_STATUS] * Constants.OUT_SCORE)
 
-            # Melt to long format for stacked bar chart
-            player_outcome_percentages_melted: pd.DataFrame = monthly_player_status_summary.melt(id_vars=[Constants.SHOOTER_NAME_COL, Constants.TOTAL_SHOTS_COL],
-                                                                                value_vars=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS],
-                                                                                var_name=Constants.STATUS_COL, value_name=Constants.PERCENTAGE_COL)
-
-            # Filter out rows where Percentage is NaN (e.g., if Total Shots was 0)
-            player_outcome_percentages_melted = player_outcome_percentages_melted.dropna(subset=[Constants.PERCENTAGE_COL])
-
-            if not player_outcome_percentages_melted.empty:
-                fig_total_outcome = px.bar(player_outcome_percentages_melted, x=Constants.SHOOTER_NAME_COL, y=Constants.PERCENTAGE_COL,
-                                           color=Constants.STATUS_COL,
-                                           title=f"Outcome Distribution per Player in {selected_month_display}",
-                                           category_orders={Constants.STATUS_COL: [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]})
-                fig_total_outcome.update_layout(yaxis_title="Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX], xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+            if not monthly_player_status_summary.empty:
+                fig_total_outcome = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SCORE_COL,
+                                           title=f"Player Scores in {selected_month_display}",
+                                           hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS, Constants.TOTAL_SHOTS_COL])
+                fig_total_outcome.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
                 st.plotly_chart(fig_total_outcome, use_container_width=True, config={'displayModeBar': False})
             else:
                 st.info(f"No total outcome data to display for {', '.join(selected_players)} in {selected_month_display}.")
