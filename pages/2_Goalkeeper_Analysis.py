@@ -43,21 +43,9 @@ if selected_month_display:
     keeper_performance_all: pd.DataFrame = calculate_save_percentage(data, start_date=start_date_filter, end_date=end_date_filter)
 
     # Create tabs
-    overall_tab, distribution_tab = st.tabs(["Overall Save Percentage", "Outcome Distribution"])
-
-    with overall_tab:
-        st.subheader(f"Overall Goalkeeper Save Percentage ({selected_month_display})")
-        if not keeper_performance_all.empty:
-            fig_overall_save = px.bar(keeper_performance_all, x=keeper_performance_all.index, y=Constants.SAVE_PERCENTAGE_COL,
-                                      title="Overall Save Percentage",
-                                      hover_data=[Constants.TOTAL_FACED_COL, Constants.TOTAL_SAVES_COL])
-            fig_overall_save.update_layout(yaxis_title="Save Percentage (%)", yaxis_range=[Constants.Y_AXIS_RANGE_MIN, Constants.Y_AXIS_RANGE_MAX], xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
-            st.plotly_chart(fig_overall_save, use_container_width=True, config={'displayModeBar': False})
-        else:
-            st.info(f"No overall save percentage data to display for {selected_month_display}. 😔")
+    distribution_tab = st.tabs(["Outcome Distribution"])[0]
 
     with distribution_tab:
-        st.subheader(f"Individual Goalkeeper Outcome Distribution ({selected_month_display})")
         top_n_keepers: List[str] = keeper_performance_all.head(Constants.TOP_N_KEEPERS_DISPLAY).index.tolist()
 
         # Create columns dynamically based on the number of top N goalkeepers

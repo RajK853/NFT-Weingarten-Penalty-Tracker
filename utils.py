@@ -25,6 +25,8 @@ class Constants:
     SAVE_PERCENTAGE_COL: str = "Save Percentage"
     TOTAL_SAVES_COL: str = "Total Saves"
     TOTAL_FACED_COL: str = "Total Faced"
+    SHOT_X_COL: str = "Shot_X"
+    SHOT_Y_COL: str = "Shot_Y"
 
     # Trend Analysis Columns
     MONTH_COL: str = "Month"
@@ -406,6 +408,59 @@ def get_keeper_outcome_distribution(data: pd.DataFrame, keeper_name: str, start_
         outcome_counts[Constants.GOAL_PERCENTAGE_COL] = (outcome_counts[Constants.COUNT_COL] / total_faced) * 100
 
         return outcome_counts
+
+
+def create_shot_distribution_chart(data: pd.DataFrame) -> go.Figure:
+    """
+    Creates a scatter plot of shot distribution on a goalpost visual.
+
+    Args:
+        data (pd.DataFrame): The input DataFrame containing penalty shootout data
+                             with 'Shot_X', 'Shot_Y', and 'Status' columns.
+
+    Returns:
+        go.Figure: A Plotly Graph Object figure displaying the shot distribution.
+    """
+    fig = go.Figure()
+
+    # Draw the goalpost (simplified rectangle)
+    fig.add_shape(
+        type="rect",
+        x0=0, y0=0, x1=Constants.GOAL_WIDTH, y1=Constants.GOAL_HEIGHT,
+        line=dict(color=Constants.GOAL_POST_COLOR, width=Constants.GOAL_POST_LINE_WIDTH),
+        fillcolor=Constants.PITCH_COLOR
+    )
+
+    # Add scatter points for each shot
+    # Assuming Shot_X and Shot_Y are normalized or within the GOAL_WIDTH/GOAL_HEIGHT range
+    fig.add_trace(go.Scatter(
+        x=data[Constants.SHOT_X_COL],
+        y=data[Constants.SHOT_Y_COL],
+        mode='markers',
+        marker=dict(
+            size=10,
+            color=data[Constants.STATUS_COL].map({
+                Constants.GOAL_STATUS: 'green',
+                Constants.SAVED_STATUS: 'blue',
+                Constants.OUT_STATUS: 'red'
+            }),
+            opacity=0.7
+        ),
+        text=data.apply(lambda row: f"Shooter: {row[Constants.SHOOTER_NAME_COL]}<br>Outcome: {row[Constants.STATUS_COL]}", axis=1),
+        hoverinfo='text'
+    ))
+
+    fig.update_layout(
+        title="Shot Distribution on Goal",
+        xaxis=dict(range=[0, Constants.GOAL_WIDTH], showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(range=[0, Constants.GOAL_HEIGHT], showgrid=False, zeroline=False, visible=False),
+        plot_bgcolor='rgba(0,0,0,0)', # Make plot background transparent to show pitch color
+        showlegend=True,
+        width=Constants.GOAL_POST_WIDTH_VISUAL,
+        height=Constants.GOAL_POST_HEIGHT_VISUAL
+    )
+
+    return fig
 
 
 
