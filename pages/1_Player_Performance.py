@@ -60,7 +60,12 @@ if leaderboard_start_date and leaderboard_end_date:
     fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.SCORE_COL,
                              title=f"Top {Constants.TOP_N_PLAYERS_LEADERBOARD} Players by Score",
                              hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS])
-    fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(range=[0, top_players[Constants.SCORE_COL].max() * 1.1]))
+    min_score_val = top_players[Constants.SCORE_COL].min()
+    max_score_val = top_players[Constants.SCORE_COL].max()
+    buffer = (max_score_val - min_score_val) * 0.1 # 10% buffer
+    y_range_min = min_score_val - buffer
+    y_range_max = max_score_val + buffer
+    fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(range=[y_range_min, y_range_max]))
     fig_top_players.update_traces(texttemplate='%{y}', textposition='outside')
     st.plotly_chart(fig_top_players, config={'displayModeBar': False})
     st.dataframe(top_players)
