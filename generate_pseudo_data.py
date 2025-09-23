@@ -20,7 +20,7 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
     shooters: List[str] = ["Aadesh", "Bikash", "Biraj", "Gaganshing", "Arbin", "Anupam", "Binod", "Gautam", "Bhuwan", "Bhawani", "Gopal", "Raj", "Prashant", "Manglunghang", "Sujan", "Prabhat", "Sishir", "Yukpuhang", "Mojamil", "Govin", "Ritik"]
     keepers: List[str] = ["Nawaraj", "Prabin"]
     statuses: List[str] = [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]
-    shoot_positions: List[str] = ["top-left", "top-right", "bottom-left", "bottom-right", "center-left", "center-right", "center-top", "center-bottom"]
+    remarks: List[int] = [11, 12, 13, 21, 22, 23, 31, 32, 33]
 
     # Define a pool of status probability distributions
     status_distributions_pool: List[List[float]] = [
@@ -28,20 +28,11 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
         [0.75, 0.10, 0.15], [0.55, 0.25, 0.20], [0.80, 0.10, 0.10], [0.60, 0.30, 0.10]
     ]
 
-    # Define a pool of position probability distributions
-    position_distributions_pool: List[List[float]] = [
-        [0.20, 0.20, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10], [0.10, 0.10, 0.20, 0.20, 0.10, 0.10, 0.10, 0.10],
-        [0.10, 0.10, 0.10, 0.10, 0.20, 0.20, 0.10, 0.10], [0.20, 0.10, 0.10, 0.10, 0.10, 0.10, 0.15, 0.15],
-        [0.10, 0.20, 0.10, 0.10, 0.10, 0.10, 0.15, 0.15], [0.15, 0.15, 0.10, 0.10, 0.10, 0.10, 0.10, 0.20],
-        [0.10, 0.10, 0.15, 0.15, 0.10, 0.10, 0.20, 0.10], [0.10, 0.10, 0.10, 0.10, 0.10, 0.20, 0.15, 0.25]
-    ]
-
     # Randomly assign probability distributions to each player
     player_probabilities: Dict[str, Dict[str, List[float]]] = {}
     for shooter in shooters:
         player_probabilities[shooter] = {
-            "status": random.choice(status_distributions_pool),
-            "position": random.choice(position_distributions_pool)
+            "status": random.choice(status_distributions_pool)
         }
 
     data_list: List[List[Any]] = []
@@ -74,13 +65,13 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
 
         for shooter in shooters:
             for _ in range(penalties_per_player_per_day):
-                # Use player-specific probabilities for status and position
+                # Use player-specific probabilities for status
                 status: str = random.choices(statuses, weights=player_probabilities[shooter]["status"], k=1)[0]
-                position: str = random.choices(shoot_positions, weights=player_probabilities[shooter]["position"], k=1)[0]
+                remark: int = random.choice(remarks)
 
-                data_list.append([current_date.strftime("%m/%d/%Y"), shooter, daily_keeper, status, position])
+                data_list.append([current_date.strftime("%m/%d/%Y"), shooter, daily_keeper, status, remark])
 
-    df = pd.DataFrame(data_list, columns=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.KEEPER_NAME_COL, Constants.STATUS_COL, Constants.SHOOT_POSITION_COL])
+    df = pd.DataFrame(data_list, columns=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.KEEPER_NAME_COL, Constants.STATUS_COL, Constants.REMARK_COL])
     return df
 
 if __name__ == "__main__":
