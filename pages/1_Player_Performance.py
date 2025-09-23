@@ -34,10 +34,19 @@ scoring_data = {
 scoring_df = pd.DataFrame(scoring_data)
 st.dataframe(scoring_df, hide_index=True)
 
-num_months_filter: int = st.slider("Filter for recent N months", 1, 12, 12)
-top_players: pd.DataFrame = calculate_player_scores(data, num_months=num_months_filter).head(Constants.TOP_N_PLAYERS_LEADERBOARD)
+min_date_leaderboard = data[Constants.DATE_COL].min()
+max_date_leaderboard = data[Constants.DATE_COL].max()
+
+leaderboard_start_date, leaderboard_end_date = st.date_input(
+    "Select date range for Leaderboard",
+    value=[min_date_leaderboard, max_date_leaderboard],
+    min_value=min_date_leaderboard,
+    max_value=max_date_leaderboard
+)
+
+top_players: pd.DataFrame = calculate_player_scores(data, start_date=leaderboard_start_date, end_date=leaderboard_end_date).head(Constants.TOP_N_PLAYERS_LEADERBOARD)
 fig_top_players = px.bar(top_players, x=top_players.index, y=Constants.SCORE_COL,
-                         title=f"Top {Constants.TOP_N_PLAYERS_LEADERBOARD} Players by Score (Recent {num_months_filter} Months)",
+                         title=f"Top {Constants.TOP_N_PLAYERS_LEADERBOARD} Players by Score (from {leaderboard_start_date} to {leaderboard_end_date})",
                          hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS])
 fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
 fig_top_players.update_traces(texttemplate='%{y}', textposition='outside')

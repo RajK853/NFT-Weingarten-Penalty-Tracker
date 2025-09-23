@@ -26,39 +26,40 @@ data = load_data()
 # Convert 'Date' column to datetime objects and extract only the date part
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
-st.subheader("Overall Penalty Statistics")
-st.markdown(f"*(Showing statistics from the recent {Constants.RECENT_DAYS_FILTER} days)*")
+# Create two columns for the top section
+main_stats_col, top_performers_col = st.columns([2, 1])
 
-total_penalties, overall_goal_percentage, outcome_distribution = get_overall_statistics(data, num_periods=Constants.RECENT_DAYS_FILTER, period_type=Constants.PERIOD_TYPE_DAYS)
+with main_stats_col:
+    st.subheader("Overall Penalty Statistics")
+    st.markdown(f"*(Showing statistics from the recent {Constants.RECENT_DAYS_FILTER} days)*")
 
-col_stats1, col_stats2 = st.columns(2)
-with col_stats1:
-    st.metric("Total Penalties", total_penalties)
-with col_stats2:
-    st.metric("Overall Goal Success", f"{overall_goal_percentage:.2f}%")
+    total_penalties, overall_goal_percentage, outcome_distribution = get_overall_statistics(data, num_periods=Constants.RECENT_DAYS_FILTER, period_type=Constants.PERIOD_TYPE_DAYS)
 
-# Homepage Insights
-st.subheader("Top Performers (All Time)")
+    col_stats1, col_stats2 = st.columns(2)
+    with col_stats1:
+        st.metric("Total Penalties", total_penalties)
+    with col_stats2:
+        st.metric("Overall Goal Success", f"{overall_goal_percentage:.2f}%")
 
-top_player_df = calculate_player_scores(data).head(1)
-top_player_name = top_player_df.index[0]
-top_player_score = top_player_df[Constants.SCORE_COL].iloc[0]
+    fig_outcome = px.pie(outcome_distribution, values=Constants.GOAL_PERCENTAGE_COL, names=Constants.STATUS_COL,
+                         title="Outcome Distribution", hole=0.4)
+    fig_outcome.update_traces(textinfo='percent+label', pull=[Constants.PIE_CHART_PULL_EFFECT if s == Constants.GOAL_STATUS else 0 for s in outcome_distribution[Constants.STATUS_COL]])
+    st.plotly_chart(fig_outcome, use_container_width=True, config={'displayModeBar': False})
 
-top_keeper_df = calculate_save_percentage(data).head(1)
-top_keeper_name = top_keeper_df.index[0]
-top_keeper_save_percentage = top_keeper_df[Constants.SAVE_PERCENTAGE_COL].iloc[0]
+with top_performers_col:
+    # Homepage Insights
+    st.subheader("Top Performers (All Time)")
 
-col_insight1, col_insight2 = st.columns(2)
-with col_insight1:
+    top_player_df = calculate_player_scores(data).head(1)
+    top_player_name = top_player_df.index[0]
+    top_player_score = top_player_df[Constants.SCORE_COL].iloc[0]
+
+    top_keeper_df = calculate_save_percentage(data).head(1)
+    top_keeper_name = top_keeper_df.index[0]
+    top_keeper_save_percentage = top_keeper_df[Constants.SAVE_PERCENTAGE_COL].iloc[0]
+
     st.metric("Top Player", f"{top_player_name} ({top_player_score} points)")
-with col_insight2:
     st.metric("Top Goalkeeper", f"{top_keeper_name} ({top_keeper_save_percentage:.2f}% saves)")
-
-fig_outcome = px.pie(outcome_distribution, values=Constants.GOAL_PERCENTAGE_COL, names=Constants.STATUS_COL,
-                     title="Outcome Distribution", hole=0.4)
-fig_outcome.update_traces(textinfo='percent+label', pull=[Constants.PIE_CHART_PULL_EFFECT if s == Constants.GOAL_STATUS else 0 for s in outcome_distribution[Constants.STATUS_COL]])
-st.plotly_chart(fig_outcome, use_container_width=True, config={'displayModeBar': False})
-
 
 
 st.subheader("Monthly Outcome Trend")

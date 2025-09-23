@@ -170,13 +170,14 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
         return total_penalties, overall_goal_percentage, outcome_distribution
 
 @st.cache_data
-def calculate_player_scores(data: pd.DataFrame, num_months: Optional[int] = None) -> pd.DataFrame:
+def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
     """
     Calculates the total score for each shooter based on the outcome of their shots.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        num_months (Optional[int]): If provided, filters data for the most recent N months.
+        start_date (Optional[date]): The start date for filtering the data.
+        end_date (Optional[date]): The end date for filtering the data.
 
     Returns:
         pd.DataFrame: A DataFrame with shooter names and their total scores,
@@ -184,11 +185,10 @@ def calculate_player_scores(data: pd.DataFrame, num_months: Optional[int] = None
     """
     with st.spinner("Calculating player scores..."):
         df = data.copy()
-        if num_months is not None:
-            df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
-            latest_date = df[Constants.DATE_COL].max()
-            start_date = latest_date - pd.DateOffset(months=num_months)
-            df = df[df[Constants.DATE_COL] >= start_date]
+        df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+
+        if start_date and end_date:
+            df = df[(df[Constants.DATE_COL] >= pd.Timestamp(start_date)) & (df[Constants.DATE_COL] <= pd.Timestamp(end_date))]
 
         goals = df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
         saved = df[df[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby(Constants.SHOOTER_NAME_COL).size().fillna(0)
