@@ -32,7 +32,7 @@ st.markdown(f"*(Showing statistics from the recent {Constants.RECENT_DAYS_FILTER
 st.markdown("Discover the top-performing player and goalkeeper based on recent penalty shootout data. This section highlights individuals who have demonstrated exceptional skill in scoring or saving penalties over the last month, providing a quick snapshot of current form.")
 
 current_date = pd.to_datetime(data[Constants.DATE_COL]).max()
-start_date_top_performers = (current_date - pd.DateOffset(months=1)).date()
+start_date_top_performers = (current_date - pd.DateOffset(days=Constants.RECENT_DAYS_FILTER)).date()
 end_date_top_performers = current_date.date()
 
 top_player_df = calculate_player_scores(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
