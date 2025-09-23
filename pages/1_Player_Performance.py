@@ -85,10 +85,30 @@ if selected_month_display:
             monthly_player_status_summary[Constants.SCORE_COL] = (monthly_player_status_summary[Constants.GOAL_STATUS] * Constants.GOAL_SCORE) + (monthly_player_status_summary[Constants.SAVED_STATUS] * Constants.SAVED_SCORE) + (monthly_player_status_summary[Constants.OUT_STATUS] * Constants.OUT_SCORE)
 
             if not monthly_player_status_summary.empty:
-                fig_total_outcome = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SCORE_COL,
-                                           title=f"Player Scores in {selected_month_display}",
-                                           hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS, Constants.TOTAL_SHOTS_COL])
-                fig_total_outcome.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
-                st.plotly_chart(fig_total_outcome, use_container_width=True, config={'displayModeBar': False})
+                score_tab, goal_tab, saved_tab, out_tab = st.tabs(["Score", "Goals", "Saved", "Out"])
+                with score_tab:
+                    fig_total_outcome = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SCORE_COL,
+                                               title=f"Player Scores in {selected_month_display}",
+                                               hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS, Constants.TOTAL_SHOTS_COL])
+                    fig_total_outcome.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+                    st.plotly_chart(fig_total_outcome, use_container_width=True, config={'displayModeBar': False})
+
+                with goal_tab:
+                    fig_goals = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.GOAL_STATUS,
+                                       title=f"Goals in {selected_month_display}")
+                    fig_goals.update_layout(yaxis_title="Goals", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+                    st.plotly_chart(fig_goals, use_container_width=True, config={'displayModeBar': False})
+
+                with saved_tab:
+                    fig_saved = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SAVED_STATUS,
+                                       title=f"Saved Shots in {selected_month_display}")
+                    fig_saved.update_layout(yaxis_title="Saved", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+                    st.plotly_chart(fig_saved, use_container_width=True, config={'displayModeBar': False})
+
+                with out_tab:
+                    fig_out = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.OUT_STATUS,
+                                     title=f"Out Shots in {selected_month_display}")
+                    fig_out.update_layout(yaxis_title="Out", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+                    st.plotly_chart(fig_out, use_container_width=True, config={'displayModeBar': False})
             else:
                 st.info(f"No total outcome data to display for {', '.join(selected_players)} in {selected_month_display}.")
