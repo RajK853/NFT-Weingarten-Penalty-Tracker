@@ -4,13 +4,13 @@ Streamlit page for analyzing player performance in penalties.
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-from utils import load_data, get_player_status_counts_over_time, calculate_player_scores, Constants
+from utils import load_data, get_player_status_counts_over_time, calculate_player_scores, Constants, _get_date_range_from_month_display
 from typing import List
 from datetime import date
 
 st.set_page_config(
     page_title="NFT Weingarten - Player Performance",
-    page_icon="⚽",
+    page_icon=Constants.EMOJI_PLAYER_PAGE,
 )
 
 st.title("Player Performance Analysis")
@@ -29,7 +29,7 @@ st.markdown("This leaderboard ranks players based on a comprehensive scoring sys
 
 # Scoring system explanation
 scoring_data = {
-    'Outcome': ['Goal', 'Saved', 'Out'],
+    'Outcome': [Constants.TAB_GOALS, Constants.TAB_SAVED, Constants.TAB_OUT],
     'Points': [Constants.GOAL_SCORE, Constants.SAVED_SCORE, Constants.OUT_SCORE]
 }
 scoring_df = pd.DataFrame(scoring_data)
@@ -63,15 +63,15 @@ if leaderboard_start_date and leaderboard_end_date:
                              hover_data=[Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS])
     min_score_val = top_players[Constants.SCORE_COL].min()
     max_score_val = top_players[Constants.SCORE_COL].max()
-    buffer = (max_score_val - min_score_val) * 0.1 # 10% buffer
+    buffer = (max_score_val - min_score_val) * Constants.CHART_Y_AXIS_BUFFER # 10% buffer
     y_range_min = min_score_val - buffer
     y_range_max = max_score_val + buffer
-    fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=True), yaxis=dict(range=[y_range_min, y_range_max]))
-    fig_top_players.update_traces(texttemplate='%{y}', textposition='outside')
-    st.plotly_chart(fig_top_players, config={'displayModeBar': False})
+    fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE), yaxis=dict(range=[y_range_min, y_range_max]))
+    fig_top_players.update_traces(texttemplate=Constants.PLOTLY_TEXT_TEMPLATE, textposition=Constants.PLOTLY_TEXT_POSITION_OUTSIDE)
+    st.plotly_chart(fig_top_players, config={'displayModeBar': Constants.PLOTLY_DISPLAY_MODE_BAR})
     st.dataframe(top_players)
 else:
-    st.info("Please select both a start and end date for the leaderboard.")
+    st.info(Constants.INFO_SELECT_DATE_RANGE)
 
 st.subheader("Compare Player Performance Over Time")
 st.markdown("Select multiple players and a specific month to analyze their aggregated performance across different outcome categories (Score, Goals, Saved, Out). This section provides a detailed breakdown of how selected players performed within the chosen timeframe.")
@@ -92,12 +92,7 @@ selected_month_display: str = st.selectbox("Select a Month", unique_months_displ
 
 # Determine start and end dates for the selected month
 if selected_month_display:
-    # Convert display format back to Period for date calculation
-    selected_month_period: pd.Period = pd.Period(selected_month_display.replace(" ", "-"), freq='M')
-    year: int = selected_month_period.year
-    month: int = selected_month_period.month
-    start_date_filter: date = pd.Timestamp(year=year, month=month, day=1).date()
-    end_date_filter: date = (pd.Timestamp(year=year, month=month, day=1) + pd.DateOffset(months=1) - pd.Timedelta(days=1)).date()
+    start_date_filter, end_date_filter = _get_date_range_from_month_display(selected_month_display)
 
     if selected_players:
         st.subheader("Performance Over Time")
@@ -107,7 +102,7 @@ if selected_month_display:
 
         if not player_status_data.empty:
             # Aggregate data by player and status for the entire month
-            monthly_player_status_summary: pd.DataFrame = player_status_data.groupby([Constants.MONTH_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])[Constants.COUNT_COL].sum().unstack(fill_value=0).reset_index()
+            monthly_player_status_summary: pd.DataFrame = player_status_data.groupby([Constants.MONTH_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])[Constants.COUNT_COL].sum().unstack(fill_value=Constants.DEFAULT_FILL_VALUE).reset_index()
 
             # Calculate total shots for each player in the month
             monthly_player_status_summary[Constants.TOTAL_SHOTS_COL] = monthly_player_status_summary[Constants.GOAL_STATUS] + monthly_player_status_summary[Constants.SAVED_STATUS] + monthly_player_status_summary[Constants.OUT_STATUS]
@@ -116,47 +111,47 @@ if selected_month_display:
             monthly_player_status_summary[Constants.SCORE_COL] = (monthly_player_status_summary[Constants.GOAL_STATUS] * Constants.GOAL_SCORE) + (monthly_player_status_summary[Constants.SAVED_STATUS] * Constants.SAVED_SCORE) + (monthly_player_status_summary[Constants.OUT_STATUS] * Constants.OUT_SCORE)
 
             if not monthly_player_status_summary.empty:
-                score_tab, goal_tab, saved_tab, out_tab = st.tabs(["Score", "Goals", "Saved", "Out"])
+                score_tab, goal_tab, saved_tab, out_tab = st.tabs([Constants.TAB_SCORE, Constants.TAB_GOALS, Constants.TAB_SAVED, Constants.TAB_OUT])
                 with score_tab:
                     max_score = monthly_player_status_summary[Constants.SCORE_COL].max()
                     min_score = monthly_player_status_summary[Constants.SCORE_COL].min()
-                    colors_score = ['green' if score == max_score else 'red' if score == min_score else 'lightgray' for score in monthly_player_status_summary[Constants.SCORE_COL]]
+                    colors_score = [Constants.COLOR_GREEN if score == max_score else Constants.COLOR_RED if score == min_score else Constants.COLOR_LIGHTGRAY for score in monthly_player_status_summary[Constants.SCORE_COL]]
                     fig_score_monthly = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SCORE_COL,
                                               title="Player Monthly Score")
                     fig_score_monthly.update_traces(marker_color=colors_score)
-                    fig_score_monthly.update_layout(yaxis_title="Score", xaxis_title="Player Name", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
-                    st.plotly_chart(fig_score_monthly, use_container_width=True, config={'displayModeBar': False})
+                    fig_score_monthly.update_layout(yaxis_title="Score", xaxis_title="Player Name", xaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE))
+                    st.plotly_chart(fig_score_monthly, use_container_width=True, config={'displayModeBar': Constants.PLOTLY_DISPLAY_MODE_BAR})
 
                 with goal_tab:
                     max_goals = monthly_player_status_summary[Constants.GOAL_STATUS].max()
                     min_goals = monthly_player_status_summary[Constants.GOAL_STATUS].min()
-                    colors_goals = ['green' if goals == max_goals else 'red' if goals == min_goals else 'lightgray' for goals in monthly_player_status_summary[Constants.GOAL_STATUS]]
+                    colors_goals = [Constants.COLOR_GREEN if goals == max_goals else Constants.COLOR_RED if goals == min_goals else Constants.COLOR_LIGHTGRAY for goals in monthly_player_status_summary[Constants.GOAL_STATUS]]
                     fig_goals_monthly = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.GOAL_STATUS,
                                               title="Player Monthly Goals")
                     fig_goals_monthly.update_traces(marker_color=colors_goals)
-                    fig_goals_monthly.update_layout(yaxis_title="Goals", xaxis_title="Player Name", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
-                    st.plotly_chart(fig_goals_monthly, use_container_width=True, config={'displayModeBar': False})
+                    fig_goals_monthly.update_layout(yaxis_title="Goals", xaxis_title="Player Name", xaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE))
+                    st.plotly_chart(fig_goals_monthly, use_container_width=True, config={'displayModeBar': Constants.PLOTLY_DISPLAY_MODE_BAR})
 
                 with saved_tab:
                     max_saved = monthly_player_status_summary[Constants.SAVED_STATUS].max()
                     min_saved = monthly_player_status_summary[Constants.SAVED_STATUS].min()
-                    colors_saved = ['green' if saved == max_saved else 'red' if saved == min_saved else 'lightgray' for saved in monthly_player_status_summary[Constants.SAVED_STATUS]]
+                    colors_saved = [Constants.COLOR_GREEN if saved == max_saved else Constants.COLOR_RED if saved == min_saved else Constants.COLOR_LIGHTGRAY for saved in monthly_player_status_summary[Constants.SAVED_STATUS]]
                     fig_saved_monthly = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.SAVED_STATUS,
                                               title="Player Monthly Saved Shots")
                     fig_saved_monthly.update_traces(marker_color=colors_saved)
-                    fig_saved_monthly.update_layout(yaxis_title="Saved Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
-                    st.plotly_chart(fig_saved_monthly, use_container_width=True, config={'displayModeBar': False})
+                    fig_saved_monthly.update_layout(yaxis_title="Saved Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE))
+                    st.plotly_chart(fig_saved_monthly, use_container_width=True, config={'displayModeBar': Constants.PLOTLY_DISPLAY_MODE_BAR})
 
                 with out_tab:
                     max_out = monthly_player_status_summary[Constants.OUT_STATUS].max()
                     min_out = monthly_player_status_summary[Constants.OUT_STATUS].min()
-                    colors_out = ['red' if out_val == max_out else 'green' if out_val == min_out else 'lightgray' for out_val in monthly_player_status_summary[Constants.OUT_STATUS]]
+                    colors_out = [Constants.COLOR_RED if out_val == max_out else Constants.COLOR_GREEN if out_val == min_out else Constants.COLOR_LIGHTGRAY for out_val in monthly_player_status_summary[Constants.OUT_STATUS]]
                     fig_out_monthly = px.bar(monthly_player_status_summary, x=Constants.SHOOTER_NAME_COL, y=Constants.OUT_STATUS,
                                             title="Player Monthly Out Shots")
                     fig_out_monthly.update_traces(marker_color=colors_out)
-                    fig_out_monthly.update_layout(yaxis_title="Out Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
-                    st.plotly_chart(fig_out_monthly, use_container_width=True, config={'displayModeBar': False})
+                    fig_out_monthly.update_layout(yaxis_title="Out Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=Constants.PLOTLY_FIXED_RANGE))
+                    st.plotly_chart(fig_out_monthly, use_container_width=True, config={'displayModeBar': Constants.PLOTLY_DISPLAY_MODE_BAR})
 
 
             else:
-                st.info(f"No data available for the selected players in {selected_month_display}. Please select different players or a different month. 😔")
+                st.info(Constants.INFO_NO_PLAYER_DATA.format(selected_month_display=selected_month_display))

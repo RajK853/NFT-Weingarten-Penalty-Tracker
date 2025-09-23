@@ -53,6 +53,8 @@ class Constants:
     # UI
     LOGO_PATH: str = "data/logo.jpg"
     LOGO_WIDTH: int = 100
+    EMOJI_HOME_PAGE: str = "🏠"
+    HOME_PAGE_COLUMN_RATIO: List[int] = [1, 4]
     
     MAX_PLAYER_SELECTIONS: int = 10
     SCATTER_POINT_SIZE: int = 4
@@ -74,11 +76,41 @@ class Constants:
     RECENT_DAYS_FILTER: int = 30
     PERIOD_TYPE_DAYS: str = "Days"
     PERIOD_TYPE_MONTHS: str = "Months"
+    GOLD_TEXT_STYLE: str = "color: gold; text-shadow: 0 0 2px gold, 0 0 4px gold, 0 0 6px gold;"
 
     # Player Performance UI
     TOP_N_PLAYERS_LEADERBOARD: int = 10
     DEFAULT_NUM_PLAYERS_MULTISELECT: int = 4
     PIE_CHART_HOLE_SIZE: float = 0.4
+    CHART_Y_AXIS_BUFFER: float = 0.1
+    COLOR_GREEN: str = "green"
+    COLOR_RED: str = "red"
+    COLOR_LIGHTGRAY: str = "lightgray"
+    COLOR_BLUE: str = "blue"
+    PLOTLY_DISPLAY_MODE_BAR: bool = False
+    PLOTLY_FIXED_RANGE: bool = True
+    PLOTLY_TEXT_TEMPLATE: str = '%{y}'
+    PLOTLY_TEXT_POSITION_OUTSIDE: str = 'outside'
+    PLOTLY_SCATTER_MARKER_SIZE: int = 10
+    PLOTLY_SCATTER_MARKER_OPACITY: float = 0.7
+    PLOTLY_BG_COLOR_TRANSPARENT: str = 'rgba(0,0,0,0)'
+    PLOTLY_SHOW_LEGEND: bool = True
+    PLOTLY_AXIS_SHOWGRID: bool = False
+    PLOTLY_AXIS_ZEROLINE: bool = False
+    PLOTLY_AXIS_VISIBLE: bool = False
+    EMOJI_PLAYER_PAGE: str = "⚽"
+    EMOJI_GOALKEEPER_PAGE: str = "🧤"
+    EMOJI_INFO_SAD: str = "😔"
+    EMOJI_INFO_CALENDAR: str = "🗓️"
+    INFO_SELECT_DATE_RANGE: str = "Please select both a start and end date for the leaderboard."
+    INFO_NO_PLAYER_DATA: str = "No data available for the selected players in {selected_month_display}. Please select different players or a different month. 😔"
+    INFO_NO_KEEPER_DATA: str = "No data available for {keeper} in {selected_month_display}. 😔"
+    INFO_SELECT_MONTH_KEEPER: str = "Please select a month to view goalkeeper performance. 🗓️"
+    TAB_SCORE: str = "Score"
+    TAB_GOALS: str = "Goals"
+    TAB_SAVED: str = "Saved"
+    TAB_OUT: str = "Out"
+    TAB_OUTCOME_DISTRIBUTION: str = "Outcome Distribution"
 
     # Goalkeeper Analysis UI
     TOP_N_KEEPERS_DISPLAY: int = 5
@@ -99,6 +131,13 @@ class Constants:
     MARKER_SIZE_SCALE: int = 350
     X_POS_OFFSET: float = 0.5
     Y_POS_INVERT_FACTOR: float = 2.3
+
+    # Data Processing/Calculations
+    PERCENTAGE_MULTIPLIER: int = 100
+    DEFAULT_FILL_VALUE: int = 0
+    DATE_OFFSET_MONTHS_ONE: int = 1
+    DATE_OFFSET_DAYS_ONE: int = 1
+    DATE_DAY_ONE: int = 1
 
     # Pseudo Data Generation
     MIN_DAYS_PER_WEEK: int = 3
@@ -128,6 +167,17 @@ def load_data() -> pd.DataFrame:
             st.error("No data found! Please generate pseudo data using `generate_pseudo_data.py` or provide real data. 📊")
             data = pd.DataFrame() # Return empty DataFrame if no data is found
     return data
+
+def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:
+    """
+    Helper function to determine the start and end dates for a given month display string.
+    """
+    selected_month_period: pd.Period = pd.Period(selected_month_display.replace(" ", "-"), freq='M')
+    year: int = selected_month_period.year
+    month: int = selected_month_period.month
+    start_date_filter: date = pd.Timestamp(year=year, month=month, day=Constants.DATE_DAY_ONE).date()
+    end_date_filter: date = (pd.Timestamp(year=year, month=month, day=Constants.DATE_DAY_ONE) + pd.DateOffset(months=Constants.DATE_OFFSET_MONTHS_ONE) - pd.Timedelta(days=Constants.DATE_OFFSET_DAYS_ONE)).date()
+    return start_date_filter, end_date_filter
 
 @st.cache_data
 def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None, period_type: str = "Days") -> Tuple[int, float, pd.DataFrame]:
@@ -165,7 +215,7 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
         total_penalties = len(df)
         goals = len(df[df[Constants.STATUS_COL] == Constants.GOAL_STATUS])
         
-        overall_goal_percentage = (goals / total_penalties) * 100 if total_penalties > 0 else 0
+        overall_goal_percentage = (goals / total_penalties) * Constants.PERCENTAGE_MULTIPLIER if total_penalties > Constants.DEFAULT_FILL_VALUE else Constants.DEFAULT_FILL_VALUE
 
         outcome_distribution: pd.DataFrame = df[Constants.STATUS_COL].value_counts().reset_index() # type: ignore
         outcome_distribution.columns = [Constants.STATUS_COL, Constants.GOAL_PERCENTAGE_COL]
@@ -201,7 +251,7 @@ def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = Non
             Constants.GOAL_STATUS : goals,
             Constants.SAVED_STATUS: saved,
             Constants.OUT_STATUS  : out,
-        }).fillna(0)
+        }).fillna(Constants.DEFAULT_FILL_VALUE)
 
         score_df[Constants.SCORE_COL] = (score_df[Constants.GOAL_STATUS] * Constants.GOAL_SCORE) + (score_df[Constants.SAVED_STATUS] * Constants.SAVED_SCORE) + (score_df[Constants.OUT_STATUS] * Constants.OUT_SCORE)
 
@@ -244,7 +294,7 @@ def get_player_status_counts_over_time(data: pd.DataFrame, selected_players: Lis
         full_df = pd.DataFrame(index=idx).reset_index()
 
         # Merge with actual counts, filling missing with 0
-        status_counts_full = pd.merge(full_df, status_counts, on=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL], how="left").fillna(0)
+        status_counts_full = pd.merge(full_df, status_counts, on=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL], how="left").fillna(Constants.DEFAULT_FILL_VALUE)
         status_counts_full[Constants.COUNT_COL] = status_counts_full[Constants.COUNT_COL].astype(int)
 
         return status_counts_full.sort_values(by=[Constants.DATE_COL, Constants.SHOOTER_NAME_COL, Constants.STATUS_COL])
@@ -281,11 +331,11 @@ def calculate_save_percentage(data: pd.DataFrame, start_date: Optional[date] = N
         keeper_stats = pd.DataFrame({
             Constants.TOTAL_FACED_COL: penalties_faced,
             Constants.TOTAL_SAVES_COL: saves
-        }).fillna(0)
+        }).fillna(Constants.DEFAULT_FILL_VALUE)
 
         keeper_stats[Constants.TOTAL_SAVES_COL] = keeper_stats[Constants.TOTAL_SAVES_COL].astype(int)
-        keeper_stats[Constants.SAVE_PERCENTAGE_COL] = (keeper_stats[Constants.TOTAL_SAVES_COL] / keeper_stats[Constants.TOTAL_FACED_COL]) * 100
-        keeper_stats[Constants.SAVE_PERCENTAGE_COL] = keeper_stats[Constants.SAVE_PERCENTAGE_COL].fillna(0) # Handle division by zero
+        keeper_stats[Constants.SAVE_PERCENTAGE_COL] = (keeper_stats[Constants.TOTAL_SAVES_COL] / keeper_stats[Constants.TOTAL_FACED_COL]) * Constants.PERCENTAGE_MULTIPLIER
+        keeper_stats[Constants.SAVE_PERCENTAGE_COL] = keeper_stats[Constants.SAVE_PERCENTAGE_COL].fillna(Constants.DEFAULT_FILL_VALUE) # Handle division by zero
 
         return keeper_stats.sort_values(by=Constants.SAVE_PERCENTAGE_COL, ascending=False)
 
@@ -324,11 +374,11 @@ def get_overall_trend_data(data: pd.DataFrame, start_date: Optional[date] = None
             }), include_groups=False # type: ignore
         ).reset_index()
 
-        monthly_stats[Constants.GOAL_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.GOALS_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
-        monthly_stats[Constants.SAVED_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.SAVED_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
-        monthly_stats[Constants.OUT_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.OUT_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * 100
+        monthly_stats[Constants.GOAL_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.GOALS_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * Constants.PERCENTAGE_MULTIPLIER
+        monthly_stats[Constants.SAVED_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.SAVED_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * Constants.PERCENTAGE_MULTIPLIER
+        monthly_stats[Constants.OUT_PERCENTAGE_TREND_COL] = (monthly_stats[Constants.OUT_TREND_COL] / monthly_stats[Constants.TOTAL_SHOTS_TREND_COL]) * Constants.PERCENTAGE_MULTIPLIER
 
-        monthly_stats = monthly_stats.fillna(0)
+        monthly_stats = monthly_stats.fillna(Constants.DEFAULT_FILL_VALUE)
         monthly_stats[Constants.MONTH_COL] = monthly_stats[Constants.MONTH_COL].astype(str)
 
         # Melt the DataFrame to long format for Plotly Express
@@ -360,8 +410,8 @@ def get_monthly_outcome_distribution(data: pd.DataFrame, start_date: Optional[da
 
         df[Constants.MONTH_COL] = df[Constants.DATE_COL].dt.to_period('M').astype(str)
 
-        monthly_outcome_counts = df.groupby([Constants.MONTH_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
-        monthly_outcome_percentages = monthly_outcome_counts.apply(lambda x: x / x.sum() * 100, axis=1)
+        monthly_outcome_counts = df.groupby([Constants.MONTH_COL, Constants.STATUS_COL]).size().unstack(fill_value=Constants.DEFAULT_FILL_VALUE)
+        monthly_outcome_percentages = monthly_outcome_counts.apply(lambda x: x / x.sum() * Constants.PERCENTAGE_MULTIPLIER, axis=1)
         monthly_outcome_percentages = monthly_outcome_percentages.reset_index()
 
         # Melt the DataFrame to long format for Plotly Express
@@ -397,7 +447,7 @@ def get_keeper_outcome_distribution(data: pd.DataFrame, keeper_name: str, start_
 
         total_faced = goals_conceded + saves + outs
 
-        if total_faced == 0:
+        if total_faced == Constants.DEFAULT_FILL_VALUE:
             return pd.DataFrame(columns=[Constants.STATUS_COL, Constants.COUNT_COL])
 
         outcome_counts = pd.DataFrame({
@@ -406,7 +456,7 @@ def get_keeper_outcome_distribution(data: pd.DataFrame, keeper_name: str, start_
         })
         
         # Calculate percentages for the pie chart
-        outcome_counts[Constants.GOAL_PERCENTAGE_COL] = (outcome_counts[Constants.COUNT_COL] / total_faced) * 100
+        outcome_counts[Constants.GOAL_PERCENTAGE_COL] = (outcome_counts[Constants.COUNT_COL] / total_faced) * Constants.PERCENTAGE_MULTIPLIER
 
         return outcome_counts
 
@@ -439,13 +489,13 @@ def create_shot_distribution_chart(data: pd.DataFrame) -> go.Figure:
         y=data[Constants.SHOT_Y_COL],
         mode='markers',
         marker=dict(
-            size=10,
+            size=Constants.PLOTLY_SCATTER_MARKER_SIZE,
             color=data[Constants.STATUS_COL].map({
-                Constants.GOAL_STATUS: 'green',
-                Constants.SAVED_STATUS: 'blue',
-                Constants.OUT_STATUS: 'red'
+                Constants.GOAL_STATUS: Constants.COLOR_GREEN,
+                Constants.SAVED_STATUS: Constants.COLOR_BLUE,
+                Constants.OUT_STATUS: Constants.COLOR_RED
             }),
-            opacity=0.7
+            opacity=Constants.PLOTLY_SCATTER_MARKER_OPACITY
         ),
         text=data.apply(lambda row: f"Shooter: {row[Constants.SHOOTER_NAME_COL]}<br>Outcome: {row[Constants.STATUS_COL]}", axis=1),
         hoverinfo='text'
@@ -453,10 +503,10 @@ def create_shot_distribution_chart(data: pd.DataFrame) -> go.Figure:
 
     fig.update_layout(
         title="Shot Distribution on Goal",
-        xaxis=dict(range=[0, Constants.GOAL_WIDTH], showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(range=[0, Constants.GOAL_HEIGHT], showgrid=False, zeroline=False, visible=False),
-        plot_bgcolor='rgba(0,0,0,0)', # Make plot background transparent to show pitch color
-        showlegend=True,
+        xaxis=dict(range=[Constants.DEFAULT_FILL_VALUE, Constants.GOAL_WIDTH], showgrid=Constants.PLOTLY_AXIS_SHOWGRID, zeroline=Constants.PLOTLY_AXIS_ZEROLINE, visible=Constants.PLOTLY_AXIS_VISIBLE),
+        yaxis=dict(range=[Constants.DEFAULT_FILL_VALUE, Constants.GOAL_HEIGHT], showgrid=Constants.PLOTLY_AXIS_SHOWGRID, zeroline=Constants.PLOTLY_AXIS_ZEROLINE, visible=Constants.PLOTLY_AXIS_VISIBLE),
+        plot_bgcolor=Constants.PLOTLY_BG_COLOR_TRANSPARENT, # Make plot background transparent to show pitch color
+        showlegend=Constants.PLOTLY_SHOW_LEGEND,
         width=Constants.GOAL_POST_WIDTH_VISUAL,
         height=Constants.GOAL_POST_HEIGHT_VISUAL
     )
