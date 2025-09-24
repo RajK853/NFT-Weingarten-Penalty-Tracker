@@ -1,13 +1,21 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import time
+
+
 from utils import (
-    load_data, get_overall_statistics, calculate_player_scores, 
+    load_data, calculate_player_scores, 
     calculate_save_percentage, Constants, get_recent_penalties,
     get_longest_goal_streak, get_most_goals_in_session,
     get_most_saves_in_session, get_marathon_man, get_busiest_day, 
     get_biggest_rivalry
 )
+
+if "reveal_player" not in st.session_state:
+    st.session_state.reveal_player = False
+if "reveal_keeper" not in st.session_state:
+    st.session_state.reveal_keeper = False
 
 st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
@@ -39,9 +47,9 @@ if not data.empty:
     data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
     # --- Main Content ---
-    col_main1, col_main2 = st.columns([1, 1.2], gap="large")
+    col_hof, col_top_performers = st.columns(2, gap="large")
 
-    with col_main1:
+    with col_hof:
 
 
         with st.container(border=True):
@@ -109,7 +117,7 @@ if not data.empty:
                         help="The date with the highest number of penalties taken."
                     )
 
-    with col_main2:
+    with col_top_performers:
         with st.container(border=True):
             st.subheader("Top Performers")
             st.markdown("Highlights top-performing players and goalkeepers from the last 30 days, showcasing their current form and impact.")
@@ -126,94 +134,120 @@ if not data.empty:
             top_keeper_name = top_keeper_df.index[0]
             top_keeper_save_percentage = top_keeper_df[Constants.SAVE_PERCENTAGE_COL].iloc[0]
 
-            performer_col1, performer_col2 = st.columns(2)
-            with performer_col1:
-                with st.expander("🏆 Top Player", expanded=False):
+            player_tab, keeper_tab = st.tabs(["🏆 Top Player", "🧤 Top Goalkeeper"])
+
+            with player_tab:
+                player_button_placeholder = st.empty()
+                if not st.session_state.reveal_player:
+                    if player_button_placeholder.button("Reveal Top Player", key="btn_reveal_player"):
+                        st.session_state.reveal_player = True
+                        player_button_placeholder.empty() # Clear the button immediately
+                        countdown_placeholder = st.empty()
+                        for i in range(3, 0, -1):
+                            countdown_placeholder.metric(label="Revealing in...", value=f"{i} seconds")
+                            time.sleep(1)
+                        countdown_placeholder.empty() # Clear the countdown
+
+                if st.session_state.reveal_player:
                     st.metric(
                         label="Score",
                         value=top_player_name,
                         delta=f"{top_player_score} points",
-                        help=f"The player's score is calculated based on the outcome of their shots (goal: {Constants.GOAL_SCORE:.1f}, saved: {Constants.SAVED_SCORE:.1f}, out: {Constants.OUT_SCORE:.1f})."
+                        help=f"The player\'s score is calculated based on the outcome of their shots (goal: {Constants.GOAL_SCORE:.1f}, saved: {Constants.SAVED_SCORE:.1f}, out: {Constants.OUT_SCORE:.1f})."
                     )
-            with performer_col2:
-                with st.expander("🧤 Top Goalkeeper", expanded=False):
+
+            with keeper_tab:
+                keeper_button_placeholder = st.empty()
+                if not st.session_state.reveal_keeper:
+                    if keeper_button_placeholder.button("Reveal Top Goalkeeper", key="btn_reveal_keeper"):
+                        st.session_state.reveal_keeper = True
+                        keeper_button_placeholder.empty() # Clear the button immediately
+                        countdown_placeholder = st.empty()
+                        for i in range(3, 0, -1):
+                            countdown_placeholder.metric(label="Revealing in...", value=f"{i} seconds")
+                            time.sleep(1)
+                        countdown_placeholder.empty() # Clear the countdown
+
+                if st.session_state.reveal_keeper:
                     st.metric(
                         label="Save Percentage",
                         value=top_keeper_name,
                         delta=f"{top_keeper_save_percentage:.1f}% saves",
                         help="The percentage of penalties faced by the goalkeeper that were saved."
                     )
-        
-        with st.container(border=True):
-            st.subheader("Recent Activity")
-            st.markdown("A summary of the latest penalty session, including player and goalkeeper performance. Compare current stats with the previous session for quick insights.")
 
-            # Get unique sorted dates
-            unique_dates = sorted(data[Constants.DATE_COL].unique(), reverse=True)
+    # Recent Activity content (full width)
+    with st.container(border=True):
+        st.subheader("Recent Activity")
+        st.markdown("A summary of the latest penalty session, including player and goalkeeper performance. Compare current stats with the previous session for quick insights.")
 
-            latest_date = unique_dates[0]
-            formatted_latest_date = latest_date.strftime("%d %B, %Y")
-            st.markdown(f"Latest session date: <span style='color: green;'>{formatted_latest_date}</span>", unsafe_allow_html=True)
+        # Get unique sorted dates
+        unique_dates = sorted(data[Constants.DATE_COL].unique(), reverse=True)
 
-            latest_session_data = data[data[Constants.DATE_COL] == latest_date]
+        latest_date = unique_dates[0]
+        formatted_latest_date = latest_date.strftime("%d %B, %Y")
+        st.markdown(f"Latest session date: <span style='color: green;'>{formatted_latest_date}</span>", unsafe_allow_html=True)
 
-            # Calculate aggregated metrics for the latest session
-            total_goals_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
-            total_saves_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
-            total_outs_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
+        latest_session_data = data[data[Constants.DATE_COL] == latest_date]
 
-            # Initialize previous session metrics and deltas
-            total_goals_previous = 0
-            total_saves_previous = 0
-            total_outs_previous = 0
-            delta_goals = 0
-            delta_saves = 0
-            delta_outs = 0
+        # Calculate aggregated metrics for the latest session
+        total_goals_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+        total_saves_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
+        total_outs_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
 
-            # Check if there's a previous session
-            if len(unique_dates) > 1:
-                previous_date = unique_dates[1]
-                previous_session_data = data[data[Constants.DATE_COL] == previous_date]
+        # Initialize previous session metrics and deltas
+        total_goals_previous = 0
+        total_saves_previous = 0
+        total_outs_previous = 0
+        delta_goals = 0
+        delta_saves = 0
+        delta_outs = 0
 
-                total_goals_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
-                total_saves_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
-                total_outs_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
+        # Check if there's a previous session
+        if len(unique_dates) > 1:
+            previous_date = unique_dates[1]
+            previous_session_data = data[data[Constants.DATE_COL] == previous_date]
 
-                delta_goals = total_goals_latest - total_goals_previous
-                delta_saves = total_saves_latest - total_saves_previous
-                delta_outs = total_outs_latest - total_outs_previous
+            total_goals_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+            total_saves_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
+            total_outs_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
 
-            # Display aggregated metrics with deltas
-            col_metrics1, col_metrics2, col_metrics3 = st.columns(3)
-            with col_metrics1:
-                st.metric(
-                    label="Goals",
-                    value=total_goals_latest,
-                    delta=delta_goals,
-                    help="Latest session's goals. Delta: change from previous session."
-                )
-            with col_metrics2:
-                st.metric(
-                    label="Saves",
-                    value=total_saves_latest,
-                    delta=delta_saves,
-                    help="Latest session's saves. Delta: change from previous session."
-                )
-            with col_metrics3:
-                st.metric(
-                    label="Outs",
-                    value=total_outs_latest,
-                    delta=delta_outs,
-                    help="Latest session's outs. Delta: change from previous session."
-                )
+            delta_goals = total_goals_latest - total_goals_previous
+            delta_saves = total_saves_latest - total_saves_previous
+            delta_outs = total_outs_latest - total_outs_previous
 
-            # Use tabs for Player and Keeper Stats
-            tab_players, tab_keepers = st.tabs(["Player Stats", "Keeper Stats"])
+        # Display aggregated metrics with deltas
+        col_metrics1, col_metrics2, col_metrics3 = st.columns(3)
+        with col_metrics1:
+            st.metric(
+                label="Goals",
+                value=total_goals_latest,
+                delta=delta_goals,
+                help="Latest session's goals. Delta: change from previous session."
+            )
+        with col_metrics2:
+            st.metric(
+                label="Saves",
+                value=total_saves_latest,
+                delta=delta_saves,
+                help="Latest session's saves. Delta: change from previous session."
+            )
+        with col_metrics3:
+            st.metric(
+                label="Outs",
+                value=total_outs_latest,
+                delta=delta_outs,
+                help="Latest session's outs. Delta: change from previous session."
+            )
 
-            with tab_players:
-                player_stats = latest_session_data.groupby([Constants.SHOOTER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
-                st.dataframe(player_stats, use_container_width=True)
 
-            with tab_keepers:
-                keeper_stats = latest_session_data.groupby([Constants.KEEPER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
-                st.dataframe(keeper_stats, use_container_width=True)
+        # Use tabs for Player and Keeper Stats
+        tab_players, tab_keepers = st.tabs(["Player Stats", "Keeper Stats"])
+
+        with tab_players:
+            player_stats = latest_session_data.groupby([Constants.SHOOTER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
+            st.dataframe(player_stats, use_container_width=True)
+
+        with tab_keepers:
+            keeper_stats = latest_session_data.groupby([Constants.KEEPER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
+            st.dataframe(keeper_stats, use_container_width=True)
