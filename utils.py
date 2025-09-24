@@ -513,6 +513,64 @@ def create_shot_distribution_chart(data: pd.DataFrame) -> go.Figure:
 
     return fig
 
+@st.cache_data
+def get_recent_penalties(data: pd.DataFrame, n: int = 5) -> pd.DataFrame:
+    """Returns the last n penalties."""
+    return data.tail(n)
 
+@st.cache_data
+def get_longest_goal_streak(data: pd.DataFrame) -> Tuple[str, int]:
+    """Calculates the longest goal streak for any player."""
+    longest_streak = 0
+    streaking_player = None
+    for player in data[Constants.SHOOTER_NAME_COL].unique():
+        player_data = data[data[Constants.SHOOTER_NAME_COL] == player]
+        current_streak = 0
+        for status in player_data[Constants.STATUS_COL]:
+            if status == Constants.GOAL_STATUS:
+                current_streak += 1
+            else:
+                if current_streak > longest_streak:
+                    longest_streak = current_streak
+                    streaking_player = player
+                current_streak = 0
+        if current_streak > longest_streak:
+            longest_streak = current_streak
+            streaking_player = player
+    return streaking_player, longest_streak
 
+@st.cache_data
+def get_most_goals_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
+    """Finds the player who scored the most goals in a single session."""
+    goals_in_session = data[data[Constants.STATUS_COL] == Constants.GOAL_STATUS].groupby([Constants.DATE_COL, Constants.SHOOTER_NAME_COL]).size().reset_index(name='goals')
+    if not goals_in_session.empty:
+        most_goals = goals_in_session.loc[goals_in_session['goals'].idxmax()]
+        return most_goals[Constants.SHOOTER_NAME_COL], most_goals[Constants.DATE_COL], most_goals['goals']
+    return None, None, 0
 
+@st.cache_data
+def get_marathon_man(data: pd.DataFrame) -> Tuple[str, int]:
+    """Finds the player who has participated in the most sessions."""
+    session_counts = data.groupby(Constants.SHOOTER_NAME_COL)[Constants.DATE_COL].nunique()
+    if not session_counts.empty:
+        marathon_man = session_counts.idxmax()
+        return marathon_man, session_counts.max()
+    return None, 0
+
+@st.cache_data
+def get_busiest_day(data: pd.DataFrame) -> Tuple[date, int]:
+    """Finds the date with the most penalties taken."""
+    day_counts = data.groupby(Constants.DATE_COL).size()
+    if not day_counts.empty:
+        busiest_day = day_counts.idxmax()
+        return busiest_day, day_counts.max()
+    return None, 0
+
+@st.cache_data
+def get_biggest_rivalry(data: pd.DataFrame) -> Tuple[str, str, int]:
+    """Finds the most frequent shooter-keeper matchup."""
+    rivalry_counts = data.groupby([Constants.SHOOTER_NAME_COL, Constants.KEEPER_NAME_COL]).size().reset_index(name='encounters')
+    if not rivalry_counts.empty:
+        biggest_rivalry = rivalry_counts.loc[rivalry_counts['encounters'].idxmax()]
+        return biggest_rivalry[Constants.SHOOTER_NAME_COL], biggest_rivalry[Constants.KEEPER_NAME_COL], biggest_rivalry['encounters']
+    return None, None, 0
