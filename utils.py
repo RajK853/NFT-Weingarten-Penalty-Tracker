@@ -46,7 +46,7 @@ class Constants:
     OUT_STATUS: str = "out"
 
     # Scoring
-    GOAL_SCORE: int = 1
+    GOAL_SCORE: int = 1.5
     SAVED_SCORE: int = 0
     OUT_SCORE: int = -1
 
