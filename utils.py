@@ -574,3 +574,12 @@ def get_biggest_rivalry(data: pd.DataFrame) -> Tuple[str, str, int]:
         biggest_rivalry = rivalry_counts.loc[rivalry_counts['encounters'].idxmax()]
         return biggest_rivalry[Constants.SHOOTER_NAME_COL], biggest_rivalry[Constants.KEEPER_NAME_COL], biggest_rivalry['encounters']
     return None, None, 0
+
+@st.cache_data
+def get_most_saves_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
+    """Finds the keeper who saved the most goals in a single session."""
+    saves_in_session = data[data[Constants.STATUS_COL] == Constants.SAVED_STATUS].groupby([Constants.DATE_COL, Constants.KEEPER_NAME_COL]).size().reset_index(name='saves')
+    if not saves_in_session.empty:
+        most_saves = saves_in_session.loc[saves_in_session['saves'].idxmax()]
+        return most_saves[Constants.KEEPER_NAME_COL], most_saves[Constants.DATE_COL], most_saves['saves']
+    return None, None, 0

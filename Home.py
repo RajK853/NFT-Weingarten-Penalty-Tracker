@@ -5,7 +5,8 @@ from utils import (
     load_data, get_overall_statistics, calculate_player_scores, 
     calculate_save_percentage, Constants, get_recent_penalties,
     get_longest_goal_streak, get_most_goals_in_session,
-    get_marathon_man, get_busiest_day, get_biggest_rivalry
+    get_most_saves_in_session, get_marathon_man, get_busiest_day, 
+    get_biggest_rivalry
 )
 
 st.set_page_config(
@@ -16,16 +17,18 @@ st.set_page_config(
 )
 
 # --- Header ---
-col1, col2 = st.columns(Constants.HOME_PAGE_COLUMN_RATIO)
-with col1:
-    st.image(Constants.LOGO_PATH, width=Constants.LOGO_WIDTH)
+
+col1, col2, col3 = st.columns([4,1,4])
 with col2:
-    st.title("Penalty Dashboard")
+    st.image(Constants.LOGO_PATH, use_container_width=True)
+
+st.markdown("<h1 style='text-align: center;'>NFT Weingarten Penalty Tracker</h1>", unsafe_allow_html=True)
 
 st.markdown(
     """
-    This interactive dashboard visualizes penalty data, offering insights into player performance and shot outcomes.
-    Explore key statistics and trends from various penalties.
+    Welcome to the **NFT Weingarten Penalty Tracker**! This dashboard offers a deep dive into our penalty shootout data, providing a comprehensive overview of player performances, goalkeeper stats, and historical trends. 
+    
+    Whether you're a player looking to analyze your performance or a fan interested in the stats, this dashboard has something for you. Explore the different sections to uncover insights and celebrate the best moments of our penalty shootouts.
     """
 )
 
@@ -44,10 +47,12 @@ if not data.empty:
 
         with st.container(border=True):
             st.subheader("Hall of Fame")
+            st.markdown("This section celebrates the most remarkable achievements and milestones in our penalty shootout history. Browse through the tabs to discover all-time records, single-session heroics, and fun facts about our players and games.")
             
             # Get records data
             longest_streak_player, longest_streak = get_longest_goal_streak(data)
             most_goals_player, most_goals_date, most_goals = get_most_goals_in_session(data)
+            most_saves_keeper, most_saves_date, most_saves = get_most_saves_in_session(data)
             marathon_man, sessions = get_marathon_man(data)
             busiest_date, busiest_count = get_busiest_day(data)
             rival_shooter, rival_keeper, encounters = get_biggest_rivalry(data)
@@ -55,20 +60,60 @@ if not data.empty:
             tab1, tab2, tab3 = st.tabs(["🏆 All-Time Records", "📅 Single Session Records", "✨ Fun Facts"])
 
             with tab1:
-                st.metric("Longest Goal Streak", f"{longest_streak_player} ({longest_streak} goals)")
-                st.metric("Biggest Rivalry", f"{rival_shooter} vs {rival_keeper} ({encounters} encounters)")
+                col1_tab1, col2_tab1 = st.columns(2)
+                with col1_tab1:
+                    st.metric(
+                        label="🏆 Longest Goal Streak",
+                        value=longest_streak_player,
+                        delta=f"{longest_streak} goals",
+                        help="The player with the most consecutive goals scored."
+                    )
+                with col2_tab1:
+                    st.metric(
+                        label="⚔️ Biggest Rivalry",
+                        value=f"{rival_shooter} vs {rival_keeper}",
+                        delta=f"{encounters} encounters",
+                        help="The most frequent matchup between a shooter and a goalkeeper."
+                    )
 
             with tab2:
-                st.metric("Most Goals in a Session", f"{most_goals_player} ({most_goals} goals on {most_goals_date})")
+                col1_tab2, col2_tab2 = st.columns(2)
+                with col1_tab2:
+                    st.metric(
+                        label="⚽ Most Goals in a Session",
+                        value=most_goals_player,
+                        delta=f"{most_goals} goals on {most_goals_date}",
+                        help="The player who scored the most goals in a single session."
+                    )
+                with col2_tab2:
+                    st.metric(
+                        label="🧤 Most Saves in a Session",
+                        value=most_saves_keeper,
+                        delta=f"{most_saves} saves on {most_saves_date}",
+                        help="The goalkeeper who made the most saves in a single session."
+                    )
 
             with tab3:
-                st.metric("Marathon Man (Most Sessions)", f"{marathon_man} ({sessions} sessions)")
-                st.metric("Busiest Day", f"{busiest_date} ({busiest_count} penalties)")
+                col1_tab3, col2_tab3 = st.columns(2)
+                with col1_tab3:
+                    st.metric(
+                        label="🏃 Marathon Man (Most Sessions)",
+                        value=marathon_man,
+                        delta=f"{sessions} sessions",
+                        help="The player who has participated in the most penalty sessions."
+                    )
+                with col2_tab3:
+                    st.metric(
+                        label="🗓️ Busiest Day",
+                        value=str(busiest_date),
+                        delta=f"{busiest_count} penalties",
+                        help="The date with the highest number of penalties taken."
+                    )
 
     with col_main2:
         with st.container(border=True):
             st.subheader("Top Performers")
-            st.text("Selected based on performance in the last 30 days")
+            st.markdown("This section highlights the player and goalkeeper who have shown exceptional performance in the last 30 days. It's a snapshot of who is currently in top form.")
             
             current_date = pd.to_datetime(data[Constants.DATE_COL]).max()
             start_date_top_performers = (current_date - pd.DateOffset(days=Constants.RECENT_DAYS_FILTER)).date()
@@ -102,6 +147,7 @@ if not data.empty:
         
         with st.container(border=True):
             st.subheader("Recent Activity")
+            st.markdown("Here's a summary of the latest penalty session. You can see the performance of each player and goalkeeper from the most recent game.")
             latest_date = data[Constants.DATE_COL].max()
             st.write(f"Latest session date: {latest_date}")
 
