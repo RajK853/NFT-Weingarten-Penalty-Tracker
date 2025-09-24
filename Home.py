@@ -89,14 +89,14 @@ if not data.empty:
                     st.metric(
                         label="⚽ Most Goals in a Session",
                         value=most_goals_player,
-                        delta=f"{most_goals} goals on {most_goals_date}",
+                        delta=f"{most_goals} goals on {most_goals_date.strftime('%d-%m-%Y')}",
                         help="The player who scored the most goals in a single session."
                     )
                 with col2_tab2:
                     st.metric(
                         label="🧤 Most Saves in a Session",
                         value=most_saves_keeper,
-                        delta=f"{most_saves} saves on {most_saves_date}",
+                        delta=f"{most_saves} saves on {most_saves_date.strftime('%d-%m-%Y')}",
                         help="The goalkeeper who made the most saves in a single session."
                     )
 
@@ -112,7 +112,7 @@ if not data.empty:
                 with col2_tab3:
                     st.metric(
                         label="🗓️ Busiest Day",
-                        value=str(busiest_date),
+                        value=busiest_date.strftime("%d %B, %Y"),
                         delta=f"{busiest_count} penalties",
                         help="The date with the highest number of penalties taken."
                     )
