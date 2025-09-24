@@ -6,6 +6,8 @@ from utils import load_data, get_overall_statistics, get_monthly_outcome_distrib
 st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
     page_icon=Constants.EMOJI_HOME_PAGE,
+    initial_sidebar_state="expanded",
+    layout="wide"
 )
 
 col1, col2 = st.columns(Constants.HOME_PAGE_COLUMN_RATIO)
