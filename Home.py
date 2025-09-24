@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 import time
+from streamlit_extras.skeleton import skeleton
 
 
 from utils import (
@@ -64,24 +65,45 @@ if not data.empty:
             busiest_date, busiest_count = get_busiest_day(data)
             rival_shooter, rival_keeper, encounters = get_biggest_rivalry(data)
 
-            tab1, tab2, tab3 = st.tabs(["🏆 All-Time Records", "📅 Single Session Records", "✨ Fun Facts"])
+            tab1, tab2, tab3, tab4 = st.tabs(["🗓️ Current Year Records", "📅 Single Session Records", "🏆 All-Time Records", "✨ Fun Facts"])
 
             with tab1:
-                col1_tab1, col2_tab1 = st.columns(2)
-                with col1_tab1:
-                    st.metric(
-                        label="🏆 Longest Goal Streak",
-                        value=longest_streak_player,
-                        delta=f"{longest_streak} goals",
-                        help="The player with the most consecutive goals scored."
-                    )
-                with col2_tab1:
-                    st.metric(
-                        label="⚔️ Biggest Rivalry",
-                        value=f"{rival_shooter} vs {rival_keeper}",
-                        delta=f"{encounters} encounters",
-                        help="The most frequent matchup between a shooter and a goalkeeper."
-                    )
+                current_year = pd.Timestamp.now().year
+                current_year_data = data[pd.to_datetime(data[Constants.DATE_COL]).dt.year == current_year]
+
+                col1_tab4, col2_tab4 = st.columns(2)
+
+                with col1_tab4:
+                    if not current_year_data.empty:
+                        top_player_current_year_df = calculate_player_scores(current_year_data).head(1)
+                        if not top_player_current_year_df.empty:
+                            top_player_current_year_name = top_player_current_year_df.index[0]
+                            top_player_current_year_score = top_player_current_year_df[Constants.SCORE_COL].iloc[0]
+                            st.metric(
+                                label="⚽ Top Scorer",
+                                value=top_player_current_year_name,
+                                delta=f"{top_player_current_year_score} points"
+                            )
+                        else:
+                            skeleton(height=80)
+                    else:
+                        skeleton(height=80)
+
+                with col2_tab4:
+                    if not current_year_data.empty:
+                        top_keeper_current_year_df = calculate_save_percentage(current_year_data).head(1)
+                        if not top_keeper_current_year_df.empty:
+                            top_keeper_current_year_name = top_keeper_current_year_df.index[0]
+                            top_keeper_current_year_save_percentage = top_keeper_current_year_df[Constants.SAVE_PERCENTAGE_COL].iloc[0]
+                            st.metric(
+                                label="🧤 Top Goalkeeper",
+                                value=top_keeper_current_year_name,
+                                delta=f"{top_keeper_current_year_save_percentage:.1f}% saves"
+                            )
+                        else:
+                            skeleton(height=80)
+                    else:
+                        skeleton(height=80)
 
             with tab2:
                 col1_tab2, col2_tab2 = st.columns(2)
@@ -101,6 +123,23 @@ if not data.empty:
                     )
 
             with tab3:
+                col1_tab1, col2_tab1 = st.columns(2)
+                with col1_tab1:
+                    st.metric(
+                        label="🏆 Longest Goal Streak",
+                        value=longest_streak_player,
+                        delta=f"{longest_streak} goals",
+                        help="The player with the most consecutive goals scored."
+                    )
+                with col2_tab1:
+                    st.metric(
+                        label="⚔️ Biggest Rivalry",
+                        value=f"{rival_shooter} vs {rival_keeper}",
+                        delta=f"{encounters} encounters",
+                        help="The most frequent matchup between a shooter and a goalkeeper."
+                    )
+
+            with tab4:
                 col1_tab3, col2_tab3 = st.columns(2)
                 with col1_tab3:
                     st.metric(
@@ -120,7 +159,7 @@ if not data.empty:
     with col_top_performers:
         with st.container(border=True):
             st.subheader("Top Performers")
-            st.markdown("Highlights top-performing players and goalkeepers from the last 30 days, showcasing their current form and impact.")
+            st.markdown(f"Highlights top-performing players and goalkeepers from the `recent {Constants.RECENT_DAYS_FILTER} days`, showcasing their current form and impact.")
             
             current_date = pd.to_datetime(data[Constants.DATE_COL]).max()
             start_date_top_performers = (current_date - pd.DateOffset(days=Constants.RECENT_DAYS_FILTER)).date()
