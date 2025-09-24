@@ -77,7 +77,7 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
 if __name__ == "__main__":
     # Example usage:
     # Generate data for the year 2025, with each player taking 3 penalties per day
-    pseudo_df: pd.DataFrame = generate_pseudo_data(start_date="2025-01-01", end_date="2025-12-31", penalties_per_player_per_day=3)
+    pseudo_df: pd.DataFrame = generate_pseudo_data(start_date="2023-01-01", end_date="2025-12-31", penalties_per_player_per_day=3)
     
     # Save to CSV
     output_path: str = Constants.PSEUDO_DATA_OUTPUT_PATH
