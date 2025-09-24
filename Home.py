@@ -18,7 +18,7 @@ st.set_page_config(
 
 # --- Header ---
 
-col1, col2, col3 = st.columns([4,1,4])
+col1, col2, col3 = st.columns([1,0.5,1])
 with col2:
     st.image(Constants.LOGO_PATH, use_container_width=True)
 
@@ -26,11 +26,10 @@ st.markdown("<h1 style='text-align: center;'>NFT Weingarten Penalty Tracker</h1>
 
 st.markdown(
     """
-    Welcome to the **NFT Weingarten Penalty Tracker**! This dashboard offers a deep dive into our penalty shootout data, providing a comprehensive overview of player performances, goalkeeper stats, and historical trends. 
-    
-    Whether you're a player looking to analyze your performance or a fan interested in the stats, this dashboard has something for you. Explore the different sections to uncover insights and celebrate the best moments of our penalty shootouts.
+    Welcome to the **NFT Weingarten Penalty Tracker**! This interactive dashboard provides a comprehensive overview of penalty shootout data. Explore player performances, goalkeeper statistics, and historical trends to gain insights into the game.
     """
 )
+st.write("")
 
 st.markdown("---")
 
@@ -40,14 +39,14 @@ if not data.empty:
     data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
     # --- Main Content ---
-    col_main1, col_main2 = st.columns(2, gap="large")
+    col_main1, col_main2 = st.columns([1, 1.2], gap="large")
 
     with col_main1:
 
 
         with st.container(border=True):
             st.subheader("Hall of Fame")
-            st.markdown("This section celebrates the most remarkable achievements and milestones in our penalty shootout history. Browse through the tabs to discover all-time records, single-session heroics, and fun facts about our players and games.")
+            st.markdown("Discover the most remarkable achievements and milestones in our penalty shootout history. Explore all-time records, single-session heroics, and fun facts across various categories.")
             
             # Get records data
             longest_streak_player, longest_streak = get_longest_goal_streak(data)
@@ -113,7 +112,7 @@ if not data.empty:
     with col_main2:
         with st.container(border=True):
             st.subheader("Top Performers")
-            st.markdown("This section highlights the player and goalkeeper who have shown exceptional performance in the last 30 days. It's a snapshot of who is currently in top form.")
+            st.markdown("Highlights top-performing players and goalkeepers from the last 30 days, showcasing their current form and impact.")
             
             current_date = pd.to_datetime(data[Constants.DATE_COL]).max()
             start_date_top_performers = (current_date - pd.DateOffset(days=Constants.RECENT_DAYS_FILTER)).date()
@@ -147,16 +146,74 @@ if not data.empty:
         
         with st.container(border=True):
             st.subheader("Recent Activity")
-            st.markdown("Here's a summary of the latest penalty session. You can see the performance of each player and goalkeeper from the most recent game.")
-            latest_date = data[Constants.DATE_COL].max()
-            st.write(f"Latest session date: {latest_date}")
+            st.markdown("A summary of the latest penalty session, including player and goalkeeper performance. Compare current stats with the previous session for quick insights.")
+
+            # Get unique sorted dates
+            unique_dates = sorted(data[Constants.DATE_COL].unique(), reverse=True)
+
+            latest_date = unique_dates[0]
+            formatted_latest_date = latest_date.strftime("%d %B, %Y")
+            st.markdown(f"Latest session date: <span style='color: green;'>{formatted_latest_date}</span>", unsafe_allow_html=True)
 
             latest_session_data = data[data[Constants.DATE_COL] == latest_date]
 
-            player_stats = latest_session_data.groupby([Constants.SHOOTER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
-            st.write("Player Stats")
-            st.dataframe(player_stats, use_container_width=True)
+            # Calculate aggregated metrics for the latest session
+            total_goals_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+            total_saves_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
+            total_outs_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
 
-            keeper_stats = latest_session_data.groupby([Constants.KEEPER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
-            st.write("Keeper Stats")
-            st.dataframe(keeper_stats, use_container_width=True)
+            # Initialize previous session metrics and deltas
+            total_goals_previous = 0
+            total_saves_previous = 0
+            total_outs_previous = 0
+            delta_goals = 0
+            delta_saves = 0
+            delta_outs = 0
+
+            # Check if there's a previous session
+            if len(unique_dates) > 1:
+                previous_date = unique_dates[1]
+                previous_session_data = data[data[Constants.DATE_COL] == previous_date]
+
+                total_goals_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
+                total_saves_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
+                total_outs_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
+
+                delta_goals = total_goals_latest - total_goals_previous
+                delta_saves = total_saves_latest - total_saves_previous
+                delta_outs = total_outs_latest - total_outs_previous
+
+            # Display aggregated metrics with deltas
+            col_metrics1, col_metrics2, col_metrics3 = st.columns(3)
+            with col_metrics1:
+                st.metric(
+                    label="Goals",
+                    value=total_goals_latest,
+                    delta=delta_goals,
+                    help="Latest session's goals. Delta: change from previous session."
+                )
+            with col_metrics2:
+                st.metric(
+                    label="Saves",
+                    value=total_saves_latest,
+                    delta=delta_saves,
+                    help="Latest session's saves. Delta: change from previous session."
+                )
+            with col_metrics3:
+                st.metric(
+                    label="Outs",
+                    value=total_outs_latest,
+                    delta=delta_outs,
+                    help="Latest session's outs. Delta: change from previous session."
+                )
+
+            # Use tabs for Player and Keeper Stats
+            tab_players, tab_keepers = st.tabs(["Player Stats", "Keeper Stats"])
+
+            with tab_players:
+                player_stats = latest_session_data.groupby([Constants.SHOOTER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
+                st.dataframe(player_stats, use_container_width=True)
+
+            with tab_keepers:
+                keeper_stats = latest_session_data.groupby([Constants.KEEPER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
+                st.dataframe(keeper_stats, use_container_width=True)
