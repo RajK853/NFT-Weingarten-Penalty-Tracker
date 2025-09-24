@@ -46,13 +46,13 @@ class Constants:
     OUT_STATUS: str = "out"
 
     # Scoring
-    GOAL_SCORE: int = 1.5
-    SAVED_SCORE: int = 0
-    OUT_SCORE: int = -1
+    GOAL_SCORE : float = +1.5
+    SAVED_SCORE: float =  0.0
+    OUT_SCORE  : float = -1.0
 
     # UI
     LOGO_PATH: str = "data/logo.jpg"
-    LOGO_WIDTH: int = 100
+    LOGO_WIDTH: int = 150
     EMOJI_HOME_PAGE: str = "🏠"
     HOME_PAGE_COLUMN_RATIO: List[int] = [1, 4]
     

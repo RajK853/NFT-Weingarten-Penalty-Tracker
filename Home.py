@@ -9,8 +9,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
     layout="wide"
 )
-st.logo(Constants.LOGO_PATH)
-st.title("Penalty Dashboard")
+
+col1, col2 = st.columns(Constants.HOME_PAGE_COLUMN_RATIO)
+with col1:
+    st.image(Constants.LOGO_PATH, width=Constants.LOGO_WIDTH)
+with col2:
+    st.title("Penalty Dashboard")
 
 st.markdown(
         """
