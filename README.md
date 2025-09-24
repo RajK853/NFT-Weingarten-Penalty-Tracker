@@ -1,51 +1,47 @@
-# Penalty Shootout Dashboard
+# NFT Weingarten Penalty Tracker
 
-This project creates an interactive web-based dashboard using Streamlit to visualize penalty shootout data. The dashboard provides key statistics, player performance over time, and goal distribution by shoot position.
+This is a Python-based Streamlit application designed to track and visualize NFT (Non-Fungible Token) Weingarten penalty shootout data. It provides comprehensive insights into player performance, goalkeeper analysis, and overall penalty statistics through interactive dashboards and charts.
 
-## Features
+## Key Features
 
-The dashboard is organized into several pages for a comprehensive analysis:
-
--   **Home (Overview)**: Provides overall shootout statistics, monthly outcome trends, and monthly outcome distribution.
--   **Player Performance Analysis**: Displays the top players by goal percentage and allows comparison of player performance over time.
--   **Goalkeeper Performance Analysis**: Offers insights into goalkeeper save percentages and outcome distributions.
--   **Shot Distribution Analysis**: Visualizes overall shoot position effectiveness with a monthly filter and individual player goal distribution on a goal post grid.
-
-The application also utilizes caching to improve performance.
+The dashboard is organized into several pages, each offering a unique perspective on the penalty shootout data:
+*   **Home (Overview)**: Displays overall shootout statistics, including total penalties and overall goal percentage. It also highlights top-performing players and goalkeepers based on recent data and shows the outcome distribution (goals, saves, outs).
+*   **Player Performance Analysis**: Provides an in-depth look at individual player performance. It features a player leaderboard based on a custom scoring system (3 points for a goal, 0 for a save, -1 for an out) and allows for comparing multiple players' performance over customizable timeframes, showing their monthly scores, goals, saves, and out shots.
+*   **Goalkeeper Performance Analysis**: Focuses on goalkeeper effectiveness, showcasing save percentages and detailed outcome distributions (goals conceded, saves, outs) for top goalkeepers over selected periods.
 
 ## Data
 
-The dashboard uses penalty shootout data from `data/penalty.csv`. The CSV file contains the following columns:
+The application primarily uses penalty shootout data from `data/penalty.csv`. If this file is not found, it gracefully falls back to `data/pseudo_penalty.csv`. The data structure includes the following key columns:
+*   `Date`: The date of the shootout.
+*   `Shooter Name`: The name of the player who took the shot.
+*   `Keeper Name`: The name of the goalkeeper.
+*   `Status`: The outcome of the shot (`'goal'`, `'saved'`, or `'out'`).
 
--   `Date`: The date of the shootout.
--   `Shooter Name`: The name of the player who took the shot.
--   `Keeper Name`: The name of the goalkeeper.
--   `Status`: The outcome of the shot ('goal', 'saved', or 'out').
--   `Shoot Position`: The location where the shot was aimed (e.g., 'top-left', 'center-right').
+## Building and Running
 
-## Local Setup
-
-To run this project locally, follow these steps:
+To set up the environment and run the application locally, follow these steps:
 
 1.  **Clone the repository**:
     ```bash
     git clone <your-repository-url>
-    cd penalty-shootout-dashboard
+    cd NFT-Weingarten-Penalty-Tracker
     ```
-
 2.  **Create a virtual environment and install dependencies using `uv`**:
     ```bash
     uv venv
     . .venv/bin/activate
     uv pip install -r requirements.txt
     ```
-
-3.  **Run the Streamlit application**:
+3.  **Generate Pseudo Data (Optional)**: If `data/penalty.csv` is not available, you can generate synthetic data:
     ```bash
-    uv run streamlit run Home.py
+    uv run python generate_pseudo_data.py
     ```
-
-    The application will open in your web browser.
+    This will create `data/pseudo_penalty.csv`.
+4.  **Run the Streamlit application**:
+    ```bash
+    streamlit run Home.py
+    ```
+    The application will then open in your default web browser.
 
 ## Deployment
 
