@@ -256,7 +256,7 @@ if not data.empty:
             delta_outs = total_outs_latest - total_outs_previous
 
         # Display aggregated metrics with deltas
-        col_metrics1, col_metrics2, col_metrics3 = st.columns(3)
+        _, col_metrics1, _, col_metrics2, _, col_metrics3, _ = st.columns(7)
         with col_metrics1:
             st.metric(
                 label="Goals",
