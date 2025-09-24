@@ -225,7 +225,7 @@ if not data.empty:
 
         latest_date = unique_dates[0]
         formatted_latest_date = latest_date.strftime("%d %B, %Y")
-        st.markdown(f"Latest session date: <span style='color: green;'>{formatted_latest_date}</span>", unsafe_allow_html=True)
+        st.markdown(f"Latest session date: `{formatted_latest_date}`")
 
         latest_session_data = data[data[Constants.DATE_COL] == latest_date]
 
