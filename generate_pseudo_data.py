@@ -17,7 +17,7 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
         pd.DataFrame: A DataFrame containing the generated pseudo data.
     """
 
-    shooters: List[str] = ["Aadesh", "Bikash", "Biraj", "Gaganshing", "Arbin", "Anupam", "Binod", "Gautam", "Bhuwan", "Bhawani", "Gopal", "Raj", "Prashant", "Manglunghang", "Sujan", "Prabhat", "Sishir", "Yukpuhang", "Mojamil", "Govin", "Ritik"]
+    shooters: List[str] = ["Pelé", "Diego Maradona", "Lionel Messi", "Cristiano Ronaldo", "Johan Cruyff", "Franz Beckenbauer", "Zinedine Zidane", "Ronaldo Nazário", "George Best", "Alfredo Di Stéfano", "Eusébio", "Gerd Müller", "Michel Platini", "Roberto Baggio", "Ronaldinho", "Thierry Henry", "Kaká", "Luka Modrić", "Mohamed Salah", "Kylian Mbappé"]
     keepers: List[str] = ["Nawaraj", "Prabin"]
     statuses: List[str] = [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]
     remarks: List[int] = [11, 12, 13, 21, 22, 23, 31, 32, 33]
