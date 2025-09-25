@@ -4,7 +4,7 @@ Streamlit page for analyzing player performance in penalties.
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-from utils import load_data, get_player_status_counts_over_time, calculate_player_scores, Constants, _get_date_range_from_month_display
+from utils import load_data, get_player_status_counts_over_time, calculate_player_scores, Constants, _get_date_range_from_month_display, gender_selection_ui
 from typing import List
 from datetime import date
 
@@ -32,7 +32,8 @@ st.markdown(
 )
 st.write("")
 st.markdown("---")
-data: pd.DataFrame = load_data()
+gender_selection = gender_selection_ui()
+data: pd.DataFrame = load_data(gender=gender_selection)
 data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
 with st.container(border=True):

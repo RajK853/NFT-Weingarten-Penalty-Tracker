@@ -62,6 +62,9 @@ class Constants:
     GENDER_MALE: str = "Male"
     GENDER_FEMALE: str = "Female"
 
+    # Session State Keys
+    SESSION_STATE_KEY_GENDER: str = "gender"
+
     # UI
     LOGO_PATH: str = "data/logo.jpg"
     LOGO_WIDTH: int = 150
@@ -653,3 +656,33 @@ def get_most_saves_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
         most_saves = saves_in_session.loc[saves_in_session['saves'].idxmax()]
         return most_saves[Constants.KEEPER_NAME_COL], most_saves[Constants.DATE_COL], most_saves['saves']
     return None, None, 0
+
+def gender_selection_ui():
+    """
+    Creates a gender selection UI in the sidebar and returns the selected gender.
+    Manages state across pages using st.session_state.
+    """
+    st.sidebar.title("Team Selection")
+
+    gender_map = {
+        Constants.GENDER_MALE: f"👨 {Constants.GENDER_MALE}",
+        Constants.GENDER_FEMALE: f"👩 {Constants.GENDER_FEMALE}"
+    }
+
+    # Initialize the main gender state if it doesn't exist
+    if Constants.SESSION_STATE_KEY_GENDER not in st.session_state:
+        st.session_state[Constants.SESSION_STATE_KEY_GENDER] = Constants.GENDER_MALE
+
+    # Use a separate key for the widget itself
+    selected_gender = st.sidebar.pills(
+        "Gender",
+        options=list(gender_map.keys()),
+        format_func=lambda option: gender_map[option],
+        key="gender_selector_widget", # A unique key for this specific widget instance
+        default=st.session_state[Constants.SESSION_STATE_KEY_GENDER] # Explicitly set default from our main state
+    )
+
+    # On each run, update our main state variable with the current value of the widget
+    st.session_state[Constants.SESSION_STATE_KEY_GENDER] = selected_gender
+
+    return st.session_state[Constants.SESSION_STATE_KEY_GENDER]

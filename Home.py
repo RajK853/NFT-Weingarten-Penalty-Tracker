@@ -6,7 +6,7 @@ from streamlit_extras.skeleton import skeleton
 from utils import (
     load_data, calculate_player_scores, calculate_save_percentage, Constants,
     get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
-    get_marathon_man, get_busiest_day, get_biggest_rivalry, stream_data
+    get_marathon_man, get_busiest_day, get_biggest_rivalry, stream_data, gender_selection_ui
 )
 
 if "reveal_player" not in st.session_state:
@@ -38,18 +38,8 @@ st.markdown(
 )
 st.write("")
 
-# --- Gender Selection Pills ---
-gender_options = {
-    Constants.GENDER_MALE  : f"👨 {Constants.GENDER_MALE}",
-    Constants.GENDER_FEMALE: f"👩 {Constants.GENDER_FEMALE}" 
-}
-gender_selection = st.sidebar.pills(
-    "**Select Team Gender**",
-    default=Constants.GENDER_MALE,
-    options=list(gender_options.keys()),
-    format_func=lambda option: gender_options[option],
-)
-
+# --- Sidebar for Gender Selection ---
+gender_selection = gender_selection_ui()
 st.markdown("---")
 
 # --- Load Data ---
