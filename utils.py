@@ -1,7 +1,7 @@
 import time
 from pathlib import Path
 from datetime import date
-from typing import Optional, List, Tuple, Generator
+from typing import Optional, List, Tuple, Generator, Iterable, Any
 
 import pandas as pd
 import streamlit as st
@@ -141,26 +141,31 @@ class Constants:
     DATE_OFFSET_MONTHS_ONE: int = 1
     DATE_OFFSET_DAYS_ONE: int = 1
     DATE_DAY_ONE: int = 1
-    TYPING_ANIMATION_TIMEOUT: float = 0.02
+    TYPING_ANIMATION_TIMEOUT: float = 0.2
 
     # Pseudo Data Generation
     MIN_DAYS_PER_WEEK: int = 3
     MAX_DAYS_PER_WEEK: int = 4
     PSEUDO_DATA_OUTPUT_PATH: str = "data/pseudo_penalty.csv"
 
-def stream_data(text: str, timeout: float = Constants.TYPING_ANIMATION_TIMEOUT) -> Generator[str, None, None]:
+def stream_data(iterable: Iterable[Any], timeout: float = Constants.TYPING_ANIMATION_TIMEOUT) -> Generator[Any, None, None]:
     """
-    Streams text character by character with a delay to simulate a typing effect.
+    Streams an iterable with a delay between each item.
+
+    This function takes an iterable and yields each string from the
+    iterable one by one. A delay, controlled by the `timeout` parameter, is
+    introduced after each string is yielded.
 
     Args:
-        text (str): The input string to stream.
-        timeout (float, optional): The delay in seconds between yielding each character. Defaults to 0.05.
+        iterable (Iterable[Any]): An iterable to be streamed.
+        timeout (float, optional): The delay in seconds after yielding each string.
+                                 Defaults to `Constants.TYPING_ANIMATION_TIMEOUT`.
 
     Yields:
-        Generator[str, None, None]: A generator that yields one character at a time.
+        Generator[Any, None, None]: A generator that yields one item at a time from the iterable.
     """
-    for char in text:
-        yield char
+    for item in iterable:
+        yield item
         time.sleep(timeout)
 
 

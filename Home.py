@@ -238,16 +238,22 @@ if not data.empty:
                         players_list = list(top_10_players_df.itertuples(index=True, name=None))
                         middle_index = round(len(players_list)/2)
 
+                        col_left_items = []
+                        col_right_items = []
+
                         for i, (name, goals, saved, out, score) in enumerate(players_list):
                             rank = i + 1
-                            formatted_string = f"{rank:>2}. {name} `({score:.1f} pts)`"
-                            string_stream = stream_data(formatted_string, timeout=Constants.TYPING_ANIMATION_TIMEOUT)
+                            formatted_string = f"{rank:>2}. {name} `({score:.1f} pts)`\n"
                             if i < middle_index:
-                                with col_left:
-                                    st.write_stream(string_stream)
+                                col_left_items.append(formatted_string)
                             else:
-                                with col_right:
-                                    st.write_stream(string_stream)
+                                col_right_items.append(formatted_string)
+
+                        with col_left:
+                            st.write_stream(stream_data(col_left_items))
+
+                        with col_right:
+                            st.write_stream(stream_data(col_right_items))
                     else:
                         st.info("No top 10 players to display for the selected period.")
 
