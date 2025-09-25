@@ -38,14 +38,19 @@ st.markdown(
 )
 st.write("")
 
-st.markdown("---")
-
-# --- Sidebar for Gender Selection ---
-st.sidebar.title("Team Selection")
-gender_selection = st.sidebar.radio(
-    "Gender",
-    (Constants.GENDER_MALE, Constants.GENDER_FEMALE)
+# --- Gender Selection Pills ---
+gender_options = {
+    Constants.GENDER_MALE  : f"👨 {Constants.GENDER_MALE}",
+    Constants.GENDER_FEMALE: f"👩 {Constants.GENDER_FEMALE}" 
+}
+gender_selection = st.sidebar.pills(
+    "**Select Team Gender**",
+    default=Constants.GENDER_MALE,
+    options=list(gender_options.keys()),
+    format_func=lambda option: gender_options[option],
 )
+
+st.markdown("---")
 
 # --- Load Data ---
 data = load_data(gender=gender_selection)
