@@ -210,12 +210,9 @@ def load_data(gender: str) -> pd.DataFrame:
         if data_path.exists():
             data = pd.read_csv(data_path)
             st.success(f"Successfully loaded {gender.lower()} team data.")
-        elif pseudo_data_path.exists():
-            st.warning(f"{gender} data not found at '{data_path}'. Loading pseudo data instead.")
-            data = pd.read_csv(pseudo_data_path)
         else:
-            st.error(f"Critical error: Neither {gender} data nor pseudo data found.")
-            data = pd.DataFrame()
+            st.warning(f"{gender} data not found. Loading pseudo data instead.")
+            data = pd.read_csv(pseudo_data_path)
     return data
 
 def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:
