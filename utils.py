@@ -181,7 +181,7 @@ def stream_data(iterable: Iterable[Any], timeout: float = Constants.TYPING_ANIMA
         yield item
         time.sleep(timeout)
 
-
+@st.cache_data
 def load_data(gender: str) -> pd.DataFrame:
     """
     Loads penalty shootout data for the specified gender.
