@@ -40,6 +40,7 @@ st.write("")
 
 # --- Sidebar for Gender Selection ---
 gender_selection = gender_selection_ui()
+st.markdown("You can change the gender from the left sidebar option.")
 st.markdown("---")
 
 # --- Load Data ---
