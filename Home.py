@@ -236,12 +236,13 @@ if not data.empty:
                     if not top_10_players_df.empty:
                         col_left, col_right = st.columns(2)
                         players_list = list(top_10_players_df.itertuples(index=True, name=None))
+                        middle_index = round(len(players_list)/2)
 
                         for i, (name, goals, saved, out, score) in enumerate(players_list):
                             rank = i + 1
                             formatted_string = f"{rank:>2}. {name} `({score:.1f} pts)`"
-                            string_stream = stream_data(formatted_string, timeout=0.05)
-                            if i < 5:
+                            string_stream = stream_data(formatted_string, timeout=Constants.TYPING_ANIMATION_TIMEOUT)
+                            if i < middle_index:
                                 with col_left:
                                     st.write_stream(string_stream)
                             else:

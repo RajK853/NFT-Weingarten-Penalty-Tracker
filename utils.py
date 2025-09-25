@@ -141,13 +141,14 @@ class Constants:
     DATE_OFFSET_MONTHS_ONE: int = 1
     DATE_OFFSET_DAYS_ONE: int = 1
     DATE_DAY_ONE: int = 1
+    TYPING_ANIMATION_TIMEOUT: float = 0.02
 
     # Pseudo Data Generation
     MIN_DAYS_PER_WEEK: int = 3
     MAX_DAYS_PER_WEEK: int = 4
     PSEUDO_DATA_OUTPUT_PATH: str = "data/pseudo_penalty.csv"
 
-def stream_data(text: str, timeout: float = 0.05) -> Generator[str, None, None]:
+def stream_data(text: str, timeout: float = Constants.TYPING_ANIMATION_TIMEOUT) -> Generator[str, None, None]:
     """
     Streams text character by character with a delay to simulate a typing effect.
 
