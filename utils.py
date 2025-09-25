@@ -1,9 +1,12 @@
-import streamlit as st
-import pandas as pd
+import time
 from pathlib import Path
-from typing import Optional, List, Tuple, Dict
 from datetime import date
+from typing import Optional, List, Tuple, Generator
+
+import pandas as pd
+import streamlit as st
 import plotly.graph_objects as go
+
 
 class Constants:
     """
@@ -143,6 +146,21 @@ class Constants:
     MIN_DAYS_PER_WEEK: int = 3
     MAX_DAYS_PER_WEEK: int = 4
     PSEUDO_DATA_OUTPUT_PATH: str = "data/pseudo_penalty.csv"
+
+def stream_data(text: str, timeout: float = 0.05) -> Generator[str, None, None]:
+    """
+    Streams text character by character with a delay to simulate a typing effect.
+
+    Args:
+        text (str): The input string to stream.
+        timeout (float, optional): The delay in seconds between yielding each character. Defaults to 0.05.
+
+    Yields:
+        Generator[str, None, None]: A generator that yields one character at a time.
+    """
+    for char in text:
+        yield char
+        time.sleep(timeout)
 
 
 def load_data() -> pd.DataFrame:

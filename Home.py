@@ -1,7 +1,7 @@
+import time
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import time
 from streamlit_extras.skeleton import skeleton
 
 
@@ -10,13 +10,16 @@ from utils import (
     calculate_save_percentage, Constants, get_recent_penalties,
     get_longest_goal_streak, get_most_goals_in_session,
     get_most_saves_in_session, get_marathon_man, get_busiest_day, 
-    get_biggest_rivalry
+    get_biggest_rivalry,
+    stream_data
 )
 
 if "reveal_player" not in st.session_state:
     st.session_state.reveal_player = False
 if "reveal_keeper" not in st.session_state:
     st.session_state.reveal_keeper = False
+if "reveal_top10_players" not in st.session_state:
+    st.session_state.reveal_top10_players = False
 
 st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
@@ -173,7 +176,7 @@ if not data.empty:
             top_keeper_name = top_keeper_df.index[0]
             top_keeper_save_percentage = top_keeper_df[Constants.SAVE_PERCENTAGE_COL].iloc[0]
 
-            player_tab, keeper_tab = st.tabs(["🏆 Top Player", "🧤 Top Goalkeeper"])
+            player_tab, keeper_tab, top10_players_tab = st.tabs(["🏆 Top Player", "🧤 Top Goalkeeper", "🔟 Top-10 Players"])
 
             with player_tab:
                 player_button_placeholder = st.empty()
@@ -214,6 +217,38 @@ if not data.empty:
                         delta=f"{top_keeper_save_percentage:.1f}% saves",
                         help="The percentage of penalties faced by the goalkeeper that were saved."
                     )
+
+            with top10_players_tab:
+                top10_players_button_placeholder = st.empty()
+                if not st.session_state.reveal_top10_players:
+                    if top10_players_button_placeholder.button("Reveal Top-10 Players", key="btn_reveal_top10_players"):
+                        st.session_state.reveal_top10_players = True
+                        top10_players_button_placeholder.empty() # Clear the button immediately
+                        countdown_placeholder = st.empty()
+                        for i in range(3, 0, -1):
+                            countdown_placeholder.metric(label="Revealing in...", value=f"{i} seconds")
+                            time.sleep(1)
+                        countdown_placeholder.empty() # Clear the countdown
+
+                if st.session_state.reveal_top10_players:
+                    top_10_players_df = calculate_player_scores(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(10)
+                    
+                    if not top_10_players_df.empty:
+                        col_left, col_right = st.columns(2)
+                        players_list = list(top_10_players_df.itertuples(index=True, name=None))
+
+                        for i, (name, goals, saved, out, score) in enumerate(players_list):
+                            rank = i + 1
+                            formatted_string = f"{rank:>2}. {name} `({score:.1f} pts)`"
+                            string_stream = stream_data(formatted_string, timeout=0.05)
+                            if i < 5:
+                                with col_left:
+                                    st.write_stream(string_stream)
+                            else:
+                                with col_right:
+                                    st.write_stream(string_stream)
+                    else:
+                        st.info("No top 10 players to display for the selected period.")
 
     # Recent Activity content (full width)
     with st.container(border=True):
