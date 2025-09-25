@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from datetime import date, timedelta
+from datetime import date
 from typing import Optional, List, Tuple, Generator, Iterable, Any
 
 import pandas as pd
@@ -52,6 +52,15 @@ class Constants:
     GOAL_SCORE : float = +1.5
     SAVED_SCORE: float =  0.0
     OUT_SCORE  : float = -1.0
+
+    # Data Paths
+    DATA_PATH_MALE: str = "data/male_penalty.csv"
+    DATA_PATH_FEMALE: str = "data/female_penalty.csv"
+    DATA_PATH_PSEUDO: str = "data/pseudo_penalty.csv"
+
+    # Genders
+    GENDER_MALE: str = "Male"
+    GENDER_FEMALE: str = "Female"
 
     # UI
     LOGO_PATH: str = "data/logo.jpg"
@@ -170,27 +179,40 @@ def stream_data(iterable: Iterable[Any], timeout: float = Constants.TYPING_ANIMA
         time.sleep(timeout)
 
 
-def load_data() -> pd.DataFrame:
+def load_data(gender: str) -> pd.DataFrame:
     """
-    Loads penalty shootout data from a CSV file.
-    It first tries to load 'data/penalty.csv'. If not found, it falls back to 'data/pseudo_penalty.csv'.
+    Loads penalty shootout data for the specified gender.
+    It tries to load 'data/male_penalty.csv' or 'data/female_penalty.csv'.
+    If not found, it falls back to 'data/pseudo_penalty.csv'.
     If neither is found, it displays an error and returns an empty DataFrame.
+
+    Args:
+        gender (str): The gender to load data for ('Male' or 'Female').
 
     Returns:
         pd.DataFrame: A DataFrame containing the penalty shootout data.
     """
-    real_data_path = Path("data/penalty.csv")
-    pseudo_data_path = Path("data/pseudo_penalty.csv")
+    if gender == Constants.GENDER_MALE:
+        data_path = Path(Constants.DATA_PATH_MALE)
+    elif gender == Constants.GENDER_FEMALE:
+        data_path = Path(Constants.DATA_PATH_FEMALE)
+    else:
+        # Fallback for any other case, though selectbox should prevent this.
+        st.error("Invalid gender selected.")
+        return pd.DataFrame()
 
-    with st.spinner("Loading data..."):
-        if real_data_path.exists():
-            data = pd.read_csv(real_data_path)
+    pseudo_data_path = Path(Constants.DATA_PATH_PSEUDO)
+
+    with st.spinner(f"Loading {gender.lower()} team data..."):
+        if data_path.exists():
+            data = pd.read_csv(data_path)
+            st.success(f"Successfully loaded {gender.lower()} team data.")
         elif pseudo_data_path.exists():
-            st.warning("Real data (data/penalty.csv) not found. Loading pseudo data (data/pseudo_penalty.csv) instead.")
+            st.warning(f"{gender} data not found at '{data_path}'. Loading pseudo data instead.")
             data = pd.read_csv(pseudo_data_path)
         else:
-            st.error("No data found! Please generate pseudo data using `generate_pseudo_data.py` or provide real data. 📊")
-            data = pd.DataFrame() # Return empty DataFrame if no data is found
+            st.error(f"Critical error: Neither {gender} data nor pseudo data found.")
+            data = pd.DataFrame()
     return data
 
 def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:
@@ -545,40 +567,29 @@ def get_recent_penalties(data: pd.DataFrame, n: int = 5) -> pd.DataFrame:
 
 @st.cache_data
 def get_longest_goal_streak(data: pd.DataFrame) -> Tuple[List[str], int]:
-    """
-    Calculates the longest consecutive day goal streak and returns all players who achieved it.
-    A streak is defined as the number of consecutive days a player has scored at least one goal.
-    """
+    """Calculates the longest goal streak and returns all players who achieved it."""
     longest_streak = 0
     streaking_players = []
 
     if data.empty or Constants.SHOOTER_NAME_COL not in data.columns:
         return [], 0
 
-    df = data.copy()
-    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
-
-    for player in df[Constants.SHOOTER_NAME_COL].unique():
-        player_goals = df[(df[Constants.SHOOTER_NAME_COL] == player) & (df[Constants.STATUS_COL] == Constants.GOAL_STATUS)]
+    for player in data[Constants.SHOOTER_NAME_COL].unique():
+        player_data = data[data[Constants.SHOOTER_NAME_COL] == player]
+        current_streak = 0
+        max_player_streak = 0
         
-        if player_goals.empty:
-            continue
-
-        goal_dates = sorted(player_goals[Constants.DATE_COL].dt.date.unique())
-
-        if not goal_dates:
-            continue
-
-        max_player_streak = 1
-        current_streak = 1
-        for i in range(1, len(goal_dates)):
-            if goal_dates[i] == goal_dates[i-1] + timedelta(days=1):
+        for status in player_data[Constants.STATUS_COL]:
+            if status == Constants.GOAL_STATUS:
                 current_streak += 1
             else:
-                max_player_streak = max(max_player_streak, current_streak)
-                current_streak = 1
-        max_player_streak = max(max_player_streak, current_streak)
+                max_player_streak = max(current_streak, max_player_streak)
+                current_streak = 0
+        
+        # Final check in case the streak is at the end
+        max_player_streak = max(current_streak, max_player_streak)
 
+        # Compare with the global longest streak
         if max_player_streak > longest_streak:
             longest_streak = max_player_streak
             streaking_players = [player]

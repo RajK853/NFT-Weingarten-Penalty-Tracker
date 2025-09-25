@@ -40,8 +40,15 @@ st.write("")
 
 st.markdown("---")
 
+# --- Sidebar for Gender Selection ---
+st.sidebar.title("Team Selection")
+gender_selection = st.sidebar.radio(
+    "Gender",
+    (Constants.GENDER_MALE, Constants.GENDER_FEMALE)
+)
+
 # --- Load Data ---
-data = load_data()
+data = load_data(gender=gender_selection)
 if not data.empty:
     data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
 
@@ -138,7 +145,7 @@ if not data.empty:
                     st.metric(
                         label="🏆 Longest Goal Streak",
                         value=display_name,
-                        delta=f"{longest_streak} day{'s' if longest_streak > 1 else ''}",
+                        delta=f"{longest_streak} goal{'s' if longest_streak > 1 else ''}",
                         help=help_text
                     )
                 with col2_tab1:
