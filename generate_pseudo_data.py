@@ -18,7 +18,7 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
     """
 
     shooters: List[str] = ["Pelé", "Diego Maradona", "Lionel Messi", "Cristiano Ronaldo", "Johan Cruyff", "Franz Beckenbauer", "Zinedine Zidane", "Ronaldo Nazário", "George Best", "Alfredo Di Stéfano", "Eusébio", "Gerd Müller", "Michel Platini", "Roberto Baggio", "Ronaldinho", "Thierry Henry", "Kaká", "Luka Modrić", "Mohamed Salah", "Kylian Mbappé"]
-    keepers: List[str] = ["Nawaraj", "Prabin"]
+    keepers: List[str] = ["Lev Yashin", "Gianluigi Buffon", "Iker Casillas", "Manuel Neuer", "Peter Schmeichel", "Oliver Kahn", "Dino Zoff", "Gordon Banks", "Edwin van der Sar", "Petr Čech"]
     statuses: List[str] = [Constants.GOAL_STATUS, Constants.SAVED_STATUS, Constants.OUT_STATUS]
     remarks: List[int] = [11, 12, 13, 21, 22, 23, 31, 32, 33]
 
@@ -60,10 +60,16 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
     selected_dates.sort() # Ensure dates are in chronological order
 
     for current_date in selected_dates:
+        # Determine the number of players for this session (10 to 20)
+        num_players_for_session = random.randint(10, 20)
+        
+        # Randomly select players for the session
+        session_shooters = random.sample(shooters, num_players_for_session)
+
         # Randomly select one goalkeeper for the day
         daily_keeper: str = random.choice(keepers)
 
-        for shooter in shooters:
+        for shooter in session_shooters:
             for _ in range(penalties_per_player_per_day):
                 # Use player-specific probabilities for status
                 status: str = random.choices(statuses, weights=player_probabilities[shooter]["status"], k=1)[0]
