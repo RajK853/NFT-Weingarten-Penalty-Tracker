@@ -1,17 +1,12 @@
 import time
 import pandas as pd
 import streamlit as st
-import plotly.express as px
 from streamlit_extras.skeleton import skeleton
 
-
 from utils import (
-    load_data, calculate_player_scores, 
-    calculate_save_percentage, Constants, get_recent_penalties,
-    get_longest_goal_streak, get_most_goals_in_session,
-    get_most_saves_in_session, get_marathon_man, get_busiest_day, 
-    get_biggest_rivalry,
-    stream_data
+    load_data, calculate_player_scores, calculate_save_percentage, Constants,
+    get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
+    get_marathon_man, get_busiest_day, get_biggest_rivalry, stream_data
 )
 
 if "reveal_player" not in st.session_state:
@@ -61,10 +56,10 @@ if not data.empty:
             st.markdown("Discover the most remarkable achievements and milestones in our penalty shootout history. Explore all-time records, single-session heroics, and fun facts across various categories.")
             
             # Get records data
-            longest_streak_player, longest_streak = get_longest_goal_streak(data)
+            longest_streak_players, longest_streak = get_longest_goal_streak(data)
             most_goals_player, most_goals_date, most_goals = get_most_goals_in_session(data)
             most_saves_keeper, most_saves_date, most_saves = get_most_saves_in_session(data)
-            marathon_man, sessions = get_marathon_man(data)
+            marathon_men, sessions = get_marathon_man(data)
             busiest_date, busiest_count = get_busiest_day(data)
             rival_shooter, rival_keeper, encounters = get_biggest_rivalry(data)
 
@@ -128,11 +123,23 @@ if not data.empty:
             with tab3:
                 col1_tab1, col2_tab1 = st.columns(2)
                 with col1_tab1:
+                    if not longest_streak_players:
+                        display_name = "N/A"
+                        help_text = "No goal streaks have been recorded yet."
+                    else:
+                        num_players = len(longest_streak_players)
+                        if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
+                            display_name = f"{num_players} Players"
+                            help_text = f"Players sharing the record: {', '.join(longest_streak_players)}"
+                        else:
+                            display_name = ", ".join(longest_streak_players)
+                            help_text = "Player(s) with the most consecutive goals scored."
+                    
                     st.metric(
                         label="🏆 Longest Goal Streak",
-                        value=longest_streak_player,
-                        delta=f"{longest_streak} goals",
-                        help="The player with the most consecutive goals scored."
+                        value=display_name,
+                        delta=f"{longest_streak} day{'s' if longest_streak > 1 else ''}",
+                        help=help_text
                     )
                 with col2_tab1:
                     st.metric(
@@ -145,11 +152,23 @@ if not data.empty:
             with tab4:
                 col1_tab3, col2_tab3 = st.columns(2)
                 with col1_tab3:
+                    if not marathon_men:
+                        display_name = "N/A"
+                        help_text = "No session data available."
+                    else:
+                        num_players = len(marathon_men)
+                        if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
+                            display_name = f"{num_players} Players"
+                            help_text = f"Players with the most sessions: {', '.join(marathon_men)}"
+                        else:
+                            display_name = ", ".join(marathon_men)
+                            help_text = "Player(s) who participated in the most penalty sessions."
+                    
                     st.metric(
                         label="🏃 Marathon Man (Most Sessions)",
-                        value=marathon_man,
-                        delta=f"{sessions} sessions",
-                        help="The player who has participated in the most penalty sessions."
+                        value=display_name,
+                        delta=f"{sessions} session{'s' if sessions > 1 else ''}",
+                        help=help_text
                     )
                 with col2_tab3:
                     st.metric(

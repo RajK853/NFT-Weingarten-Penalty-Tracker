@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from datetime import date
+from datetime import date, timedelta
 from typing import Optional, List, Tuple, Generator, Iterable, Any
 
 import pandas as pd
@@ -73,6 +73,7 @@ class Constants:
     GRID_SQUARE_SIZE: int = 20
 
     # Home Page UI
+    MAX_NAMES_IN_METRIC_DISPLAY: int = 2
     PIE_CHART_PULL_EFFECT: float = 0.05
     Y_AXIS_RANGE_MIN: int = 0
     Y_AXIS_RANGE_MAX: int = 100
@@ -543,25 +544,48 @@ def get_recent_penalties(data: pd.DataFrame, n: int = 5) -> pd.DataFrame:
     return data.tail(n)
 
 @st.cache_data
-def get_longest_goal_streak(data: pd.DataFrame) -> Tuple[str, int]:
-    """Calculates the longest goal streak for any player."""
+def get_longest_goal_streak(data: pd.DataFrame) -> Tuple[List[str], int]:
+    """
+    Calculates the longest consecutive day goal streak and returns all players who achieved it.
+    A streak is defined as the number of consecutive days a player has scored at least one goal.
+    """
     longest_streak = 0
-    streaking_player = None
-    for player in data[Constants.SHOOTER_NAME_COL].unique():
-        player_data = data[data[Constants.SHOOTER_NAME_COL] == player]
-        current_streak = 0
-        for status in player_data[Constants.STATUS_COL]:
-            if status == Constants.GOAL_STATUS:
+    streaking_players = []
+
+    if data.empty or Constants.SHOOTER_NAME_COL not in data.columns:
+        return [], 0
+
+    df = data.copy()
+    df[Constants.DATE_COL] = pd.to_datetime(df[Constants.DATE_COL])
+
+    for player in df[Constants.SHOOTER_NAME_COL].unique():
+        player_goals = df[(df[Constants.SHOOTER_NAME_COL] == player) & (df[Constants.STATUS_COL] == Constants.GOAL_STATUS)]
+        
+        if player_goals.empty:
+            continue
+
+        goal_dates = sorted(player_goals[Constants.DATE_COL].dt.date.unique())
+
+        if not goal_dates:
+            continue
+
+        max_player_streak = 1
+        current_streak = 1
+        for i in range(1, len(goal_dates)):
+            if goal_dates[i] == goal_dates[i-1] + timedelta(days=1):
                 current_streak += 1
             else:
-                if current_streak > longest_streak:
-                    longest_streak = current_streak
-                    streaking_player = player
-                current_streak = 0
-        if current_streak > longest_streak:
-            longest_streak = current_streak
-            streaking_player = player
-    return streaking_player, longest_streak
+                max_player_streak = max(max_player_streak, current_streak)
+                current_streak = 1
+        max_player_streak = max(max_player_streak, current_streak)
+
+        if max_player_streak > longest_streak:
+            longest_streak = max_player_streak
+            streaking_players = [player]
+        elif max_player_streak == longest_streak and longest_streak > 0:
+            streaking_players.append(player)
+
+    return streaking_players, longest_streak
 
 @st.cache_data
 def get_most_goals_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
@@ -573,13 +597,24 @@ def get_most_goals_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
     return None, None, 0
 
 @st.cache_data
-def get_marathon_man(data: pd.DataFrame) -> Tuple[str, int]:
-    """Finds the player who has participated in the most sessions."""
+def get_marathon_man(data: pd.DataFrame) -> Tuple[List[str], int]:
+    """Finds the player(s) who have participated in the most sessions."""
+    if data.empty or Constants.SHOOTER_NAME_COL not in data.columns:
+        return [], 0
+
     session_counts = data.groupby(Constants.SHOOTER_NAME_COL)[Constants.DATE_COL].nunique()
-    if not session_counts.empty:
-        marathon_man = session_counts.idxmax()
-        return marathon_man, session_counts.max()
-    return None, 0
+    
+    if session_counts.empty:
+        return [], 0
+        
+    max_sessions = session_counts.max()
+    
+    if max_sessions == 0:
+        return [], 0
+        
+    marathon_men = session_counts[session_counts == max_sessions].index.tolist()
+    
+    return marathon_men, int(max_sessions)
 
 @st.cache_data
 def get_busiest_day(data: pd.DataFrame) -> Tuple[date, int]:
