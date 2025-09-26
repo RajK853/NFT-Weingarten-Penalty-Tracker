@@ -6,7 +6,7 @@ from streamlit_extras.skeleton import skeleton
 from utils import (
     load_data, calculate_player_scores, calculate_save_percentage, Constants,
     get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
-    get_marathon_man, get_busiest_day, get_biggest_rivalry, stream_data, gender_selection_ui
+    get_marathon_man, get_mysterious_ninja, get_busiest_day, get_biggest_rivalry, stream_data, gender_selection_ui
 )
 
 if "reveal_player" not in st.session_state:
@@ -148,13 +148,14 @@ if not data.empty:
 
     with st.container(border=True):
         st.subheader("Hall of Fame")
-        st.markdown("Discover the most remarkable achievements and milestones in our penalty shootout history. Explore all-time records, single-session heroics, and fun facts across various categories.")
+        st.markdown("Explore remarkable achievements, historical records, and fun facts about the penalty shootouts.")
         
         # Get records data
         longest_streak_players, longest_streak = get_longest_goal_streak(data)
         most_goals_player, most_goals_date, most_goals = get_most_goals_in_session(data)
         most_saves_keeper, most_saves_date, most_saves = get_most_saves_in_session(data)
         marathon_men, sessions = get_marathon_man(data)
+        mysterious_ninjas, least_sessions = get_mysterious_ninja(data)
         busiest_date, busiest_count = get_busiest_day(data)
         rival_shooter, rival_keeper, encounters = get_biggest_rivalry(data)
 
@@ -266,6 +267,27 @@ if not data.empty:
                     help=help_text
                 )
             with col2_tab3:
+                if not mysterious_ninjas:
+                    display_name = "N/A"
+                    help_text = "No session data available."
+                else:
+                    num_players = len(mysterious_ninjas)
+                    if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
+                        display_name = f"{num_players} Players"
+                        help_text = f"Players with the fewest sessions: {', '.join(mysterious_ninjas)}"
+                    else:
+                        display_name = ", ".join(mysterious_ninjas)
+                        help_text = "Player(s) who participated in the fewest penalty sessions."
+            
+                st.metric(
+                    label="🥷 Mysterious Ninja (Fewest Sessions)",
+                    value=display_name,
+                    delta=f"{least_sessions} session{'s' if least_sessions > 1 else ''}",
+                    help=help_text
+                )
+
+            col1_tab4, col2_tab4 = st.columns(2)
+            with col1_tab4:
                 st.metric(
                     label="🗓️ Busiest Day",
                     value=busiest_date.strftime("%d %B, %Y"),

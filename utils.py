@@ -628,6 +628,26 @@ def get_marathon_man(data: pd.DataFrame) -> Tuple[List[str], int]:
     return marathon_men, int(max_sessions)
 
 @st.cache_data
+def get_mysterious_ninja(data: pd.DataFrame) -> Tuple[List[str], int]:
+    """Finds the player(s) who have participated in the fewest sessions."""
+    if data.empty or Constants.SHOOTER_NAME_COL not in data.columns:
+        return [], 0
+
+    session_counts = data.groupby(Constants.SHOOTER_NAME_COL)[Constants.DATE_COL].nunique()
+    
+    if session_counts.empty:
+        return [], 0
+        
+    min_sessions = session_counts.min()
+    
+    if min_sessions == 0:
+        return [], 0
+        
+    mysterious_ninjas = session_counts[session_counts == min_sessions].index.tolist()
+    
+    return mysterious_ninjas, int(min_sessions)
+
+@st.cache_data
 def get_busiest_day(data: pd.DataFrame) -> Tuple[date, int]:
     """Finds the date with the most penalties taken."""
     day_counts = data.groupby(Constants.DATE_COL).size()
