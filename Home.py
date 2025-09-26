@@ -254,7 +254,7 @@ if not data.empty:
                 else:
                     num_players = len(marathon_men)
                     if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
-                        display_name = f"{num_players} Players"
+                        display_name = f"{', '.join(marathon_men[:Constants.MAX_NAMES_IN_METRIC_DISPLAY])}, +{num_players - Constants.MAX_NAMES_IN_METRIC_DISPLAY} people"
                         help_text = f"Players with the most sessions: {', '.join(marathon_men)}"
                     else:
                         display_name = ", ".join(marathon_men)
@@ -273,7 +273,7 @@ if not data.empty:
                 else:
                     num_players = len(mysterious_ninjas)
                     if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
-                        display_name = f"{num_players} Players"
+                        display_name = f"{', '.join(mysterious_ninjas[:Constants.MAX_NAMES_IN_METRIC_DISPLAY])}, +{num_players - Constants.MAX_NAMES_IN_METRIC_DISPLAY} people"
                         help_text = f"Players with the fewest sessions: {', '.join(mysterious_ninjas)}"
                     else:
                         display_name = ", ".join(mysterious_ninjas)

@@ -85,7 +85,7 @@ class Constants:
     GRID_SQUARE_SIZE: int = 20
 
     # Home Page UI
-    MAX_NAMES_IN_METRIC_DISPLAY: int = 2
+    MAX_NAMES_IN_METRIC_DISPLAY: int = 3
     PIE_CHART_PULL_EFFECT: float = 0.05
     Y_AXIS_RANGE_MIN: int = 0
     Y_AXIS_RANGE_MAX: int = 100
