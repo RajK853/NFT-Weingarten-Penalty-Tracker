@@ -18,7 +18,7 @@ if "reveal_top10_players" not in st.session_state:
 
 st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
-    page_icon=Constants.EMOJI_HOME_PAGE,
+    page_icon=Constants.UI.EMOJI_HOME_PAGE,
     initial_sidebar_state="expanded",
     layout="wide"
 )
@@ -27,7 +27,7 @@ st.set_page_config(
 
 col1, col2, col3 = st.columns([1,0.5,1])
 with col2:
-    st.image(Constants.LOGO_PATH, use_container_width=True)
+    st.image(Constants.Paths.LOGO, use_container_width=True)
 
 st.markdown("<h1 style='text-align: center;'>NFT Weingarten Penalty Tracker</h1>", unsafe_allow_html=True)
 
@@ -46,24 +46,24 @@ st.markdown("---")
 # --- Load Data ---
 data = load_data(gender=gender_selection)
 if not data.empty:
-    data[Constants.DATE_COL] = pd.to_datetime(data[Constants.DATE_COL]).dt.date
+    data[Constants.Columns.DATE] = pd.to_datetime(data[Constants.Columns.DATE]).dt.date
 
     # --- Main Content ---
     with st.container(border=True):
         st.subheader("Top Performers")
-        st.markdown(f"Highlights top-performing players and goalkeepers from the `recent {Constants.RECENT_DAYS_FILTER} days`, showcasing their current form and impact.")
+        st.markdown(f"Highlights top-performing players and goalkeepers from the `recent {Constants.UI.RECENT_DAYS_FILTER} days`, showcasing their current form and impact.")
         
-        current_date = pd.to_datetime(data[Constants.DATE_COL]).max()
-        start_date_top_performers = (current_date - pd.DateOffset(days=Constants.RECENT_DAYS_FILTER)).date()
+        current_date = pd.to_datetime(data[Constants.Columns.DATE]).max()
+        start_date_top_performers = (current_date - pd.DateOffset(days=Constants.UI.RECENT_DAYS_FILTER)).date()
         end_date_top_performers = current_date.date()
 
         top_player_df = calculate_player_scores(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
         top_player_name = top_player_df.index[0]
-        top_player_score = top_player_df[Constants.SCORE_COL].iloc[0]
+        top_player_score = top_player_df[Constants.Columns.SCORE].iloc[0]
 
         top_keeper_df = calculate_save_percentage(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
         top_keeper_name = top_keeper_df.index[0]
-        top_keeper_save_percentage = top_keeper_df[Constants.SAVE_PERCENTAGE_COL].iloc[0]
+        top_keeper_save_percentage = top_keeper_df[Constants.Columns.SAVE_PERCENTAGE].iloc[0]
 
         top10_players_tab, player_tab, keeper_tab = st.tabs(["🔟 Top-10 Players", "🏆 Top Player", "🧤 Top Goalkeeper", ])
 
@@ -123,7 +123,7 @@ if not data.empty:
                     label="Score",
                     value=top_player_name,
                     delta=f"{top_player_score} points",
-                    help=f"The player\'s score is calculated based on the outcome of their shots (goal: {Constants.GOAL_SCORE:.1f}, saved: {Constants.SAVED_SCORE:.1f}, out: {Constants.OUT_SCORE:.1f})."
+                    help=f"The player\'s score is calculated based on the outcome of their shots (goal: {Constants.Scoring.GOAL:.1f}, saved: {Constants.Scoring.SAVED:.1f}, out: {Constants.Scoring.OUT:.1f})."
                 )
 
         with keeper_tab:
@@ -163,7 +163,7 @@ if not data.empty:
 
         with tab1:
             current_year = pd.Timestamp.now().year
-            current_year_data = data[pd.to_datetime(data[Constants.DATE_COL]).dt.year == current_year]
+            current_year_data = data[pd.to_datetime(data[Constants.Columns.DATE]).dt.year == current_year]
 
             col1_tab4, col2_tab4 = st.columns(2)
 
@@ -172,7 +172,7 @@ if not data.empty:
                     top_player_current_year_df = calculate_player_scores(current_year_data).head(1)
                     if not top_player_current_year_df.empty:
                         top_player_current_year_name = top_player_current_year_df.index[0]
-                        top_player_current_year_score = top_player_current_year_df[Constants.SCORE_COL].iloc[0]
+                        top_player_current_year_score = top_player_current_year_df[Constants.Columns.SCORE].iloc[0]
                         st.metric(
                             label="⚽ Top Scorer",
                             value=top_player_current_year_name,
@@ -188,7 +188,7 @@ if not data.empty:
                     top_keeper_current_year_df = calculate_save_percentage(current_year_data).head(1)
                     if not top_keeper_current_year_df.empty:
                         top_keeper_current_year_name = top_keeper_current_year_df.index[0]
-                        top_keeper_current_year_save_percentage = top_keeper_current_year_df[Constants.SAVE_PERCENTAGE_COL].iloc[0]
+                        top_keeper_current_year_save_percentage = top_keeper_current_year_df[Constants.Columns.SAVE_PERCENTAGE].iloc[0]
                         st.metric(
                             label="🧤 Top Goalkeeper",
                             value=top_keeper_current_year_name,
@@ -224,7 +224,7 @@ if not data.empty:
                     help_text = "No goal streaks have been recorded yet."
                 else:
                     num_players = len(longest_streak_players)
-                    if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
+                    if num_players > Constants.UI.MAX_NAMES_IN_METRIC_DISPLAY:
                         display_name = f"{num_players} Players"
                         help_text = f"Players sharing the record: {', '.join(longest_streak_players)}"
                     else:
@@ -253,8 +253,8 @@ if not data.empty:
                     help_text = "No session data available."
                 else:
                     num_players = len(marathon_men)
-                    if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
-                        display_name = f"{', '.join(marathon_men[:Constants.MAX_NAMES_IN_METRIC_DISPLAY])}, +{num_players - Constants.MAX_NAMES_IN_METRIC_DISPLAY} people"
+                    if num_players > Constants.UI.MAX_NAMES_IN_METRIC_DISPLAY:
+                        display_name = f"{', '.join(marathon_men[:Constants.UI.MAX_NAMES_IN_METRIC_DISPLAY])}, +{num_players - Constants.UI.MAX_NAMES_IN_METRIC_DISPLAY} people"
                         help_text = f"Players with the most sessions: {', '.join(marathon_men)}"
                     else:
                         display_name = ", ".join(marathon_men)
@@ -272,8 +272,8 @@ if not data.empty:
                     help_text = "No session data available."
                 else:
                     num_players = len(mysterious_ninjas)
-                    if num_players > Constants.MAX_NAMES_IN_METRIC_DISPLAY:
-                        display_name = f"{', '.join(mysterious_ninjas[:Constants.MAX_NAMES_IN_METRIC_DISPLAY])}, +{num_players - Constants.MAX_NAMES_IN_METRIC_DISPLAY} people"
+                    if num_players > Constants.UI.MAX_NAMES_IN_METRIC_DISPLAY:
+                        display_name = f"{', '.join(mysterious_ninjas[:Constants.UI.MAX_NAMES_IN_METRIC_DISPLAY])}, +{num_players - Constants.UI.MAX_NAMES_IN_METRIC_DISPLAY} people"
                         help_text = f"Players with the fewest sessions: {', '.join(mysterious_ninjas)}"
                     else:
                         display_name = ", ".join(mysterious_ninjas)
@@ -301,18 +301,18 @@ if not data.empty:
         st.markdown("A summary of the latest penalty session, including player and goalkeeper performance. Compare current stats with the previous session for quick insights.")
 
         # Get unique sorted dates
-        unique_dates = sorted(data[Constants.DATE_COL].unique(), reverse=True)
+        unique_dates = sorted(data[Constants.Columns.DATE].unique(), reverse=True)
 
         latest_date = unique_dates[0]
         formatted_latest_date = latest_date.strftime("%d %B, %Y")
         st.markdown(f"Latest session date: `{formatted_latest_date}`")
 
-        latest_session_data = data[data[Constants.DATE_COL] == latest_date]
+        latest_session_data = data[data[Constants.Columns.DATE] == latest_date]
 
         # Calculate aggregated metrics for the latest session
-        total_goals_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
-        total_saves_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
-        total_outs_latest = len(latest_session_data[latest_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
+        total_goals_latest = len(latest_session_data[latest_session_data[Constants.Columns.STATUS] == Constants.Status.GOAL])
+        total_saves_latest = len(latest_session_data[latest_session_data[Constants.Columns.STATUS] == Constants.Status.SAVED])
+        total_outs_latest = len(latest_session_data[latest_session_data[Constants.Columns.STATUS] == Constants.Status.OUT])
 
         # Initialize previous session metrics and deltas
         total_goals_previous = 0
@@ -325,11 +325,11 @@ if not data.empty:
         # Check if there's a previous session
         if len(unique_dates) > 1:
             previous_date = unique_dates[1]
-            previous_session_data = data[data[Constants.DATE_COL] == previous_date]
+            previous_session_data = data[data[Constants.Columns.DATE] == previous_date]
 
-            total_goals_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.GOAL_STATUS])
-            total_saves_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.SAVED_STATUS])
-            total_outs_previous = len(previous_session_data[previous_session_data[Constants.STATUS_COL] == Constants.OUT_STATUS])
+            total_goals_previous = len(previous_session_data[previous_session_data[Constants.Columns.STATUS] == Constants.Status.GOAL])
+            total_saves_previous = len(previous_session_data[previous_session_data[Constants.Columns.STATUS] == Constants.Status.SAVED])
+            total_outs_previous = len(previous_session_data[previous_session_data[Constants.Columns.STATUS] == Constants.Status.OUT])
 
             delta_goals = total_goals_latest - total_goals_previous
             delta_saves = total_saves_latest - total_saves_previous
@@ -364,9 +364,9 @@ if not data.empty:
         tab_players, tab_keepers = st.tabs(["Player Stats", "Keeper Stats"])
 
         with tab_players:
-            player_stats = latest_session_data.groupby([Constants.SHOOTER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
+            player_stats = latest_session_data.groupby([Constants.Columns.SHOOTER_NAME, Constants.Columns.STATUS]).size().unstack(fill_value=0)
             st.dataframe(player_stats, use_container_width=True)
 
         with tab_keepers:
-            keeper_stats = latest_session_data.groupby([Constants.KEEPER_NAME_COL, Constants.STATUS_COL]).size().unstack(fill_value=0)
+            keeper_stats = latest_session_data.groupby([Constants.Columns.KEEPER_NAME, Constants.Columns.STATUS]).size().unstack(fill_value=0)
             st.dataframe(keeper_stats, use_container_width=True)
