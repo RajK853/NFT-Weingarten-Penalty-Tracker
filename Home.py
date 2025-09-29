@@ -356,6 +356,7 @@ if not data.empty:
                 label="Outs",
                 value=total_outs_latest,
                 delta=delta_outs,
+                delta_color="inverse",
                 help="Latest session's outs. Delta: change from previous session."
             )
 
