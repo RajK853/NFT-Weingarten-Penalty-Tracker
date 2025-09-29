@@ -74,7 +74,7 @@ class Constants:
         PIE_CHART_PULL_EFFECT: float = 0.05
         Y_AXIS_RANGE_MIN: int = 0
         Y_AXIS_RANGE_MAX: int = 100
-        RECENT_DAYS_FILTER: int = 30
+        RECENT_DAYS_FILTER: int = 365
         PERIOD_TYPE_DAYS: str = "Days"
         PERIOD_TYPE_MONTHS: str = "Months"
         GOLD_TEXT_STYLE: str = "color: gold; text-shadow: 0 0 2px gold, 0 0 4px gold, 0 0 6px gold;"
