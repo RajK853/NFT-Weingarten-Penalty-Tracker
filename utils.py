@@ -52,11 +52,11 @@ class Constants:
         OUT: float = -1.0
 
     class Paths:
-        DATA_MALE: str = "data/male_penalty.csv"
-        DATA_FEMALE: str = "data/female_penalty.csv"
-        DATA_PSEUDO: str = "data/pseudo_penalty.csv"
         LOGO: str = "data/logo.jpg"
-
+        DATA_PSEUDO: str = "data/pseudo_penalty.csv"
+        GOOGLE_SHEET_URL_MALE: str = "https://docs.google.com/spreadsheets/d/1ehIA2Ea_8wCMy5ICmwFl14FZUPLA8ki6VQBLcGqsVUU/gviz/tq?tqx=out:csv&sheet=RawData"
+        GOOGLE_SHEET_URL_FEMALE: str = "https://docs.google.com/spreadsheets/d/1WdCk7X4HUnJKfaVxnDDtOZ_06l_kSxni22w9kXyQ6yE/gviz/tq?tqx=out:csv&sheet=RawData"
+        
     class Gender:
         MALE: str = "Male"
         FEMALE: str = "Female"
@@ -174,31 +174,25 @@ def load_data(gender: str) -> pd.DataFrame:
     """
     Loads penalty shootout data for the specified gender.
 
+    For males, it loads from a Google Sheet. For females, it loads from a local CSV.
+
     Args:
         gender (str): The gender to load data for ('Male' or 'Female').
 
     Returns:
         pd.DataFrame: A DataFrame containing the penalty shootout data.
     """
-    data_paths = {
-        Constants.Gender.MALE: Constants.Paths.DATA_MALE,
-        Constants.Gender.FEMALE: Constants.Paths.DATA_FEMALE,
-    }
-
-    data_path = Path(data_paths.get(gender, Constants.Paths.DATA_PSEUDO))
-
-    try:
-        with st.spinner(f"Loading {gender.lower()} team data..."):
-            if data_path.exists():
-                data = pd.read_csv(data_path)
-                st.success(f"Successfully loaded {gender.lower()} team data.")
-            else:
-                st.warning(f"{gender} data not found. Loading pseudo data instead.")
-                data = pd.read_csv(Constants.Paths.DATA_PSEUDO)
-    except FileNotFoundError:
-        st.error("No data file found. Please generate pseudo data first.")
-        return pd.DataFrame()
-
+    with st.spinner(f"Loading {gender.lower()} team data..."):
+        sheet_url: str = Constants.Paths.GOOGLE_SHEET_URL_MALE if gender == Constants.Gender.MALE else Constants.Paths.GOOGLE_SHEET_URL_FEMALE
+        try:
+            data = pd.read_csv(sheet_url)
+            if data.empty:
+                raise ValueError("Loaded data is empty.")
+            
+            st.success(f"Successfully loaded {gender.lower()} team data from Google Sheet.")
+        except Exception as e:
+            st.error(f"Failed to load data from Google Sheet: {e}")
+            data = pd.read_csv(Constants.Paths.DATA_PSEUDO)
     return data
 
 def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:
