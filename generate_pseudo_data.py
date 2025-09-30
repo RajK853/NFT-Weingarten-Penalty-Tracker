@@ -1,8 +1,8 @@
-import pandas as pd
-import random
+from typing import List, Dict, Any
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Tuple
-from utils import Constants # Import Constants from utils
+import random
+import pandas as pd
+from src.constants import Columns, Data, Paths, Status
 
 def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-12-31", penalties_per_player_per_day: int = 3) -> pd.DataFrame:
     """
@@ -19,7 +19,7 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
 
     shooters: List[str] = ["Pelé", "Diego Maradona", "Lionel Messi", "Cristiano Ronaldo", "Johan Cruyff", "Franz Beckenbauer", "Zinedine Zidane", "Ronaldo Nazário", "George Best", "Alfredo Di Stéfano", "Eusébio", "Gerd Müller", "Michel Platini", "Roberto Baggio", "Ronaldinho", "Thierry Henry", "Kaká", "Luka Modrić", "Mohamed Salah", "Kylian Mbappé"]
     keepers: List[str] = ["Lev Yashin", "Gianluigi Buffon", "Iker Casillas", "Manuel Neuer", "Peter Schmeichel", "Oliver Kahn", "Dino Zoff", "Gordon Banks", "Edwin van der Sar", "Petr Čech"]
-    statuses: List[str] = [Constants.Status.GOAL, Constants.Status.SAVED, Constants.Status.OUT]
+    statuses: List[str] = [Status.GOAL, Status.SAVED, Status.OUT]
     remarks: List[int] = [11, 12, 13, 21, 22, 23, 31, 32, 33]
 
     # Define a pool of status probability distributions
@@ -54,7 +54,7 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
     selected_dates: List[datetime] = []
     for week_key, days_in_week in dates_by_week.items():
         # Randomly select 3 to 4 days from each week
-        num_days_to_select: int = random.randint(Constants.Data.MIN_DAYS_PER_WEEK, Constants.Data.MAX_DAYS_PER_WEEK)
+        num_days_to_select: int = random.randint(Data.MIN_DAYS_PER_WEEK, Data.MAX_DAYS_PER_WEEK)
         selected_dates.extend(random.sample(days_in_week, min(num_days_to_select, len(days_in_week))))
 
     selected_dates.sort() # Ensure dates are in chronological order
@@ -77,7 +77,7 @@ def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-1
 
                 data_list.append([current_date.strftime("%m/%d/%Y"), shooter, daily_keeper, status, remark])
 
-    df = pd.DataFrame(data_list, columns=[Constants.Columns.DATE, Constants.Columns.SHOOTER_NAME, Constants.Columns.KEEPER_NAME, Constants.Columns.STATUS, Constants.Columns.REMARK])
+    df = pd.DataFrame(data_list, columns=[Columns.DATE, Columns.SHOOTER_NAME, Columns.KEEPER_NAME, Columns.STATUS, Columns.REMARK])
     return df
 
 if __name__ == "__main__":
@@ -86,6 +86,6 @@ if __name__ == "__main__":
     pseudo_df: pd.DataFrame = generate_pseudo_data(start_date="2023-01-01", end_date="2025-12-31", penalties_per_player_per_day=3)
     
     # Save to CSV
-    output_path: str = Constants.Paths.DATA_PSEUDO
+    output_path: str = Paths.DATA_PSEUDO
     pseudo_df.to_csv(output_path, index=False)
     print(f"Generated {len(pseudo_df)} records and saved to {output_path}")
