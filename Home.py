@@ -30,7 +30,7 @@ st.set_page_config(
 
 col1, col2, col3 = st.columns([1,0.5,1])
 with col2:
-    st.image(Paths.LOGO, use_container_width=True)
+    st.image(Paths.LOGO, width='stretch')
 
 st.markdown("<h1 style='text-align: center;'>NFT Weingarten Penalty Tracker</h1>", unsafe_allow_html=True)
 
@@ -369,8 +369,8 @@ if not data.empty:
 
         with tab_players:
             player_stats = latest_session_data.groupby([Columns.SHOOTER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
-            st.dataframe(player_stats, use_container_width=True)
+            st.dataframe(player_stats, width='stretch')
 
         with tab_keepers:
             keeper_stats = latest_session_data.groupby([Columns.KEEPER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
-            st.dataframe(keeper_stats, use_container_width=True)
+            st.dataframe(keeper_stats, width='stretch')

@@ -22,7 +22,7 @@ st.set_page_config(
 
 col1, col2, col3 = st.columns([1,0.5,1])
 with col2:
-    st.image(Paths.LOGO, use_container_width=True)
+    st.image(Paths.LOGO, width='stretch')
 
 st.markdown("<h1 style='text-align: center;'>Player Performance Analysis</h1>", unsafe_allow_html=True)
 
@@ -136,7 +136,7 @@ with st.container(border=True):
                                                   title="Player Monthly Score")
                         fig_score_monthly.update_traces(marker_color=colors_score)
                         fig_score_monthly.update_layout(yaxis_title="Score", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_score_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        st.plotly_chart(fig_score_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
                     with goal_tab:
                         max_goals = monthly_player_status_summary[Status.GOAL].max()
@@ -146,7 +146,7 @@ with st.container(border=True):
                                                   title="Player Monthly Goals")
                         fig_goals_monthly.update_traces(marker_color=colors_goals)
                         fig_goals_monthly.update_layout(yaxis_title="Goals", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_goals_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        st.plotly_chart(fig_goals_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
                     with saved_tab:
                         max_saved = monthly_player_status_summary[Status.SAVED].max()
@@ -156,7 +156,7 @@ with st.container(border=True):
                                                   title="Player Monthly Saved Shots")
                         fig_saved_monthly.update_traces(marker_color=colors_saved)
                         fig_saved_monthly.update_layout(yaxis_title="Saved Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_saved_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        st.plotly_chart(fig_saved_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
                 with out_tab:
                     max_out = monthly_player_status_summary[Status.OUT].max()
@@ -166,7 +166,7 @@ with st.container(border=True):
                                             title="Player Monthly Out Shots")
                     fig_out_monthly.update_traces(marker_color=colors_out)
                     fig_out_monthly.update_layout(yaxis_title="Out Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                    st.plotly_chart(fig_out_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                    st.plotly_chart(fig_out_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
 
             else:
