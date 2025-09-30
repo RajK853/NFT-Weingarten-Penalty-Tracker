@@ -10,7 +10,7 @@ from src.records import (
     get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
     get_marathon_man, get_mysterious_ninja, get_busiest_day, get_biggest_rivalry
 )
-from src.ui import stream_data, gender_selection_ui
+from src.ui import stream_data, gender_selection_ui, data_refresh_button_ui
 
 if "reveal_player" not in st.session_state:
     st.session_state.reveal_player = False
@@ -43,11 +43,12 @@ st.write("")
 
 # --- Sidebar for Gender Selection ---
 gender_selection = gender_selection_ui()
+last_refresh_time = data_refresh_button_ui()
 st.info("You can change the gender from the left sidebar option.")
 st.markdown("---")
 
 # --- Load Data ---
-data = load_data(gender=gender_selection)
+data = load_data(gender=gender_selection, last_refresh_time=last_refresh_time)
 if not data.empty:
     data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
 

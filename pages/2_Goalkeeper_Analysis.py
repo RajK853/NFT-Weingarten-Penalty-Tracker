@@ -7,7 +7,7 @@ import pandas as pd
 from src.data_loader import load_data
 from src.analysis import calculate_save_percentage, get_keeper_outcome_distribution, _get_date_range_from_month_display
 from src.constants import Columns, Data, Paths, Status, UI
-from src.ui import gender_selection_ui
+from src.ui import gender_selection_ui, data_refresh_button_ui
 from typing import List, Optional
 from datetime import date
 
@@ -37,7 +37,8 @@ st.write("")
 st.markdown("---")
 
 gender_selection = gender_selection_ui()
-data: pd.DataFrame = load_data(gender=gender_selection)
+last_refresh_time = data_refresh_button_ui()
+data: pd.DataFrame = load_data(gender=gender_selection, last_refresh_time=last_refresh_time)
 data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
 
 with st.container(border=True):
