@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 from src.data_loader import load_data
 from src.analysis import get_player_status_counts_over_time, calculate_player_scores, _get_date_range_from_month_display
-from src.constants import Columns, Data, Paths, Scoring, Status, UI
-from src.ui import gender_selection_ui, data_refresh_button_ui
+from src.constants import Columns, Data, Scoring, Status, UI
+from src.ui import gender_selection_ui, data_refresh_button_ui, display_page_header
 from typing import List
 from datetime import date
 
@@ -21,21 +21,15 @@ st.set_page_config(
 
 # --- Header ---
 
-col1, col2, col3 = st.columns([1,0.5,1])
-with col2:
-    st.image(Paths.LOGO, width='stretch')
-
-st.markdown("<h1 style='text-align: center;'>Player Performance Analysis</h1>", unsafe_allow_html=True)
-
-st.markdown(
-    """
+display_page_header(
+    page_title="Player Performance Analysis",
+    page_icon=UI.EMOJI_PLAYER_PAGE,
+    page_description="""
     This page is dedicated to in-depth analysis of individual player performance in penalty shootouts. 
     Utilize the interactive tools below to compare players, understand their scoring consistency, 
     and identify top performers based on various metrics over customizable timeframes.
     """
 )
-st.write("")
-st.markdown("---")
 gender_selection = gender_selection_ui()
 last_refresh_time = data_refresh_button_ui()
 data: pd.DataFrame = load_data(gender=gender_selection, last_refresh_time=last_refresh_time)

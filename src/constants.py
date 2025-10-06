@@ -35,7 +35,7 @@ class Status:
     OUT: str = "out"
 
 class Scoring:
-    GOAL: float = +1.5
+    GOAL: float = +3.0
     SAVED: float = 0.0
     OUT: float = -1.0
     PERFORMANCE_HALF_LIFE_DAYS: int = 45 # Days until a performance is worth half its value.
@@ -45,7 +45,6 @@ class Paths:
     LOGO: str = "data/logo.jpg"
     DATA_PSEUDO: str = "data/pseudo_penalty.csv"
     GOOGLE_SHEET_URL_MALE: str = "https://docs.google.com/spreadsheets/d/1ehIA2Ea_8wCMy5ICmwFl14FZUPLA8ki6VQBLcGqsVUU/gviz/tq?tqx=out:csv&sheet=RawData"
-    GOOGLE_SHEET_URL_FEMALE: str = "https://docs.google.com/spreadsheets/d/1WdCk7X4HUnJKfaVxnDDtOZ_06l_kSxni22w9kXyQ6yE/gviz/tq?tqx=out:csv&sheet=RawData"
     
 class Gender:
     MALE: str = "Male"
@@ -55,9 +54,7 @@ class SessionState:
     GENDER: str = "gender"
 
 class UI:
-    LOGO_WIDTH: int = 150
     EMOJI_HOME_PAGE: str = "🏠"
-    HOME_PAGE_COLUMN_RATIO: List[int] = [1, 4]
     MAX_PLAYER_SELECTIONS: int = 10
     SCATTER_POINT_SIZE: int = 4
     MAX_NAMES_IN_METRIC_DISPLAY: int = 3
@@ -78,15 +75,14 @@ class UI:
     COLOR_BLUE: str = "blue"
     PLOTLY_DISPLAY_MODE_BAR: bool = False
     PLOTLY_FIXED_RANGE: bool = True
-    PLOTLY_TEXT_TEMPLATE: str = '%{y}'
     PLOTLY_TEXT_POSITION_OUTSIDE: str = 'outside'
     PLOTLY_SCATTER_MARKER_SIZE: int = 10
     PLOTLY_SCATTER_MARKER_OPACITY: float = 0.7
-    PLOTLY_BG_COLOR_TRANSPARENT: str = 'rgba(0,0,0,0)'
-    PLOTLY_SHOW_LEGEND: bool = True
     PLOTLY_AXIS_SHOWGRID: bool = False
     PLOTLY_AXIS_ZEROLINE: bool = False
     PLOTLY_AXIS_VISIBLE: bool = False
+    PLOTLY_BG_COLOR_TRANSPARENT: str = 'rgba(0,0,0,0)'
+    PLOTLY_SHOW_LEGEND: bool = False
     EMOJI_PLAYER_PAGE: str = "⚽"
     EMOJI_GOALKEEPER_PAGE: str = "🧤"
     EMOJI_INFO_SAD: str = "😔"
@@ -101,10 +97,6 @@ class UI:
     TAB_OUT: str = "Out"
     TAB_OUTCOME_DISTRIBUTION: str = "Outcome Distribution"
     TOP_N_KEEPERS_DISPLAY: int = 5
-    SLIDER_MIN_MONTHS: int = 1
-    SLIDER_MAX_MONTHS: int = 12
-    SLIDER_DEFAULT_MONTHS: int = 12
-    DECIMAL_POINTS_DISPLAY: int = 0
     GOAL_POST_WIDTH_VISUAL: int = 500
     GOAL_POST_HEIGHT_VISUAL: int = 400
     POST_LINE_WIDTH_VISUAL: int = 50

@@ -10,11 +10,24 @@ def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[dat
     Helper function to determine the start and end dates for a given month display string.
     """
     selected_month_period: pd.Period = pd.Period(selected_month_display.replace(" ", "-"), freq='M')
-    year: int = selected_month_period.year
-    month: int = selected_month_period.month
-    start_date_filter: date = pd.Timestamp(year=year, month=month, day=Data.DATE_DAY_ONE).date()
-    end_date_filter: date = (pd.Timestamp(year=year, month=month, day=Data.DATE_DAY_ONE) + pd.DateOffset(months=Data.DATE_OFFSET_MONTHS_ONE) - pd.Timedelta(days=Data.DATE_OFFSET_DAYS_ONE)).date()
+    start_date_filter: date = selected_month_period.start_time.date()
+    end_date_filter: date = selected_month_period.end_time.date()
     return start_date_filter, end_date_filter
+
+def _apply_time_decay(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Applies time-decay logic to the DataFrame, adding 'days_ago' and 'weight' columns.
+    """
+    df[Columns.DATE] = pd.to_datetime(df[Columns.DATE])
+    latest_date = df[Columns.DATE].max()
+    decay_rate = Scoring.DECAY_RATE
+
+    if decay_rate > 0:
+        df['days_ago'] = (latest_date - df[Columns.DATE]).dt.days
+        df['weight'] = np.exp(-decay_rate * df['days_ago'])
+    else:
+        df['weight'] = 1.0 # No decay if decay_rate is zero or negative
+    return df
 
 @st.cache_data
 def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None, period_type: str = "Days") -> Tuple[int, float, pd.DataFrame]:
@@ -55,7 +68,7 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
         overall_goal_percentage = (goals / total_penalties) * Data.PERCENTAGE_MULTIPLIER if total_penalties > Data.DEFAULT_FILL_VALUE else Data.DEFAULT_FILL_VALUE
 
         outcome_distribution: pd.DataFrame = df[Columns.STATUS].value_counts().reset_index() # type: ignore
-        outcome_distribution.columns = [Columns.STATUS, Columns.GOAL_PERCENTAGE]
+        outcome_distribution.columns = [Columns.STATUS, Columns.COUNT]
 
         return total_penalties, overall_goal_percentage, outcome_distribution
 
@@ -84,15 +97,8 @@ def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = Non
         if df.empty:
             return pd.DataFrame(columns=[Columns.SHOOTER_NAME, Columns.SCORE, Status.GOAL, Status.SAVED, Status.OUT]).set_index(Columns.SHOOTER_NAME)
 
-        # Time-decay logic
-        latest_date = df[Columns.DATE].max()
-        decay_rate = Scoring.DECAY_RATE
-        
-        if decay_rate > 0:
-            df['days_ago'] = (latest_date - df[Columns.DATE]).dt.days
-            df['weight'] = np.exp(-decay_rate * df['days_ago'])
-        else:
-            df['weight'] = 1.0 # No decay if decay_rate is zero or negative
+        # Apply time-decay logic
+        df = _apply_time_decay(df)
 
         # Map status to score
         score_map = {
@@ -144,15 +150,8 @@ def calculate_time_weighted_save_percentage(data: pd.DataFrame, start_date: Opti
         if df.empty:
             return pd.DataFrame(columns=[Columns.KEEPER_NAME, Columns.SAVE_PERCENTAGE, Columns.TOTAL_SAVES, Columns.TOTAL_FACED]).set_index(Columns.KEEPER_NAME)
 
-        # Time-decay logic
-        latest_date = df[Columns.DATE].max()
-        decay_rate = Scoring.DECAY_RATE
-
-        if decay_rate > 0:
-            df['days_ago'] = (latest_date - df[Columns.DATE]).dt.days
-            df['weight'] = np.exp(-decay_rate * df['days_ago'])
-        else:
-            df['weight'] = 1.0
+        # Apply time-decay logic
+        df = _apply_time_decay(df)
 
         df['is_save'] = (df[Columns.STATUS] == Status.SAVED).astype(int)
         df['weighted_save'] = df['is_save'] * df['weight']

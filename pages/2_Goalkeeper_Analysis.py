@@ -6,8 +6,8 @@ import plotly.express as px
 import pandas as pd
 from src.data_loader import load_data
 from src.analysis import calculate_time_weighted_save_percentage, get_keeper_outcome_distribution, _get_date_range_from_month_display
-from src.constants import Columns, Data, Paths, Status, UI, Scoring
-from src.ui import gender_selection_ui, data_refresh_button_ui
+from src.constants import Columns, Data, Status, UI, Scoring
+from src.ui import gender_selection_ui, data_refresh_button_ui, display_page_header
 from typing import List, Optional
 from datetime import date
 
@@ -20,21 +20,15 @@ st.set_page_config(
 
 # --- Header ---
 
-col1, col2, col3 = st.columns([1,0.5,1])
-with col2:
-    st.image(Paths.LOGO, width='stretch')
-
-st.markdown("<h1 style='text-align: center;'>Goalkeeper Performance Analysis</h1>", unsafe_allow_html=True)
-
-st.markdown(
-    """
+display_page_header(
+    page_title="Goalkeeper Performance Analysis",
+    page_icon=UI.EMOJI_GOALKEEPER_PAGE,
+    page_description="""
     This page offers a comprehensive analysis of goalkeeper performance in penalty shootouts. 
     Explore key metrics such as save percentages and detailed outcome distributions 
     to understand how different goalkeepers perform under pressure.
     """
 )
-st.write("")
-st.markdown("---")
 
 gender_selection = gender_selection_ui()
 last_refresh_time = data_refresh_button_ui()

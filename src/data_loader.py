@@ -16,14 +16,18 @@ def load_data(gender: str, last_refresh_time: float) -> pd.DataFrame:
         pd.DataFrame: A DataFrame containing the penalty shootout data.
     """
     with st.spinner(f"Loading {gender.lower()} team data..."):
-        sheet_url: str = Paths.GOOGLE_SHEET_URL_MALE if gender == Gender.MALE else Paths.GOOGLE_SHEET_URL_FEMALE
-        try:
-            data = pd.read_csv(sheet_url)
-            if data.empty:
-                raise ValueError("Loaded data is empty.")
-            
-            st.success(f"Successfully loaded {gender.lower()} team data from Google Sheet.")
-        except Exception as e:
-            st.error(f"Failed to load data from Google Sheet: {e}")
+        if gender == Gender.MALE:
+            sheet_url: str = Paths.GOOGLE_SHEET_URL_MALE
+            try:
+                data = pd.read_csv(sheet_url)
+                if data.empty:
+                    raise ValueError("Loaded data is empty.")
+                
+                st.success(f"Successfully loaded {gender.lower()} team data from Google Sheet.")
+            except Exception as e:
+                st.error(f"Failed to load data from Google Sheet: {e}")
+                data = pd.read_csv(Paths.DATA_PSEUDO)
+        else: # gender == Gender.FEMALE
             data = pd.read_csv(Paths.DATA_PSEUDO)
+            st.info(f"Loading {gender.lower()} team data from local pseudo data as per project specification.")
     return data

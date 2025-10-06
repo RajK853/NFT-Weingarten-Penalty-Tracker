@@ -1,7 +1,7 @@
 import time
 import streamlit as st
-from typing import Generator, Iterable, Any, Tuple
-from src.constants import Data, Gender, SessionState
+from typing import Generator, Iterable, Any
+from src.constants import Data, Gender, SessionState, Paths
 
 def stream_data(iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_TIMEOUT) -> Generator[Any, None, None]:
     """
@@ -76,3 +76,24 @@ def data_refresh_button_ui() -> float:
         st.rerun()
 
     return st.session_state.last_refresh_time
+
+def display_page_header(page_title: str, page_icon: str, page_description: str):
+    """
+    Displays a standardized page header with a logo, title, and description.
+
+    Args:
+        page_title (str): The main title of the page.
+        page_icon (str): The emoji icon for the page.
+        page_description (str): A brief description of the page's content.
+    """
+    col1, col2, col3 = st.columns([1,0.5,1])
+    with col2:
+        st.image(Paths.LOGO, width='stretch')
+
+    st.markdown(f"<h1 style='text-align: center;'>{page_title}</h1>", unsafe_allow_html=True)
+
+    st.markdown(f"""
+    {page_description}
+    """)
+    st.write("")
+    st.markdown("---")

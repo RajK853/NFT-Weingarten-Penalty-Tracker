@@ -5,12 +5,12 @@ from streamlit_extras.skeleton import skeleton
 
 from src.data_loader import load_data
 from src.analysis import calculate_player_scores, calculate_time_weighted_save_percentage
-from src.constants import Columns, Data, Paths, Scoring, Status, UI
+from src.constants import Columns, Data, Scoring, Status, UI
 from src.records import (
     get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
     get_marathon_man, get_mysterious_ninja, get_busiest_day, get_biggest_rivalry
 )
-from src.ui import stream_data, gender_selection_ui, data_refresh_button_ui
+from src.ui import stream_data, gender_selection_ui, data_refresh_button_ui, display_page_header
 
 if "reveal_player" not in st.session_state:
     st.session_state.reveal_player = False
@@ -28,18 +28,13 @@ st.set_page_config(
 
 # --- Header ---
 
-col1, col2, col3 = st.columns([1,0.5,1])
-with col2:
-    st.image(Paths.LOGO, width='stretch')
-
-st.markdown("<h1 style='text-align: center;'>NFT Weingarten Penalty Tracker</h1>", unsafe_allow_html=True)
-
-st.markdown(
-    """
+display_page_header(
+    page_title="NFT Weingarten Penalty Tracker",
+    page_icon=UI.EMOJI_HOME_PAGE,
+    page_description="""
     This interactive dashboard provides a comprehensive overview of penalty shootout data. Explore player performances, goalkeeper statistics, and historical trends to gain insights into the game.  
     """
 )
-st.write("")
 
 # --- Sidebar for Gender Selection ---
 gender_selection = gender_selection_ui()
