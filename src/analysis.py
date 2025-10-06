@@ -3,6 +3,7 @@ from typing import Optional, List, Tuple
 import pandas as pd
 import streamlit as st
 from src.constants import Columns, Data, Status, Scoring
+import numpy as np
 
 def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:
     """
@@ -58,10 +59,11 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
 
         return total_penalties, overall_goal_percentage, outcome_distribution
 
-@st.cache_data
+
 def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
     """
-    Calculates the total score for each shooter based on the outcome of their shots.
+    Calculates the time-weighted total score for each shooter based on the outcome of their shots.
+    More recent shots are weighted more heavily based on an exponential decay model.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
@@ -69,7 +71,7 @@ def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = Non
         end_date (Optional[date]): The end date for filtering the data.
 
     Returns:
-        pd.DataFrame: A DataFrame with shooter names and their total scores,
+        pd.DataFrame: A DataFrame with shooter names and their total time-weighted scores,
                       sorted by score in descending order.
     """
     with st.spinner("Calculating player scores..."):
@@ -79,19 +81,99 @@ def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = Non
         if start_date and end_date:
             df = df[(df[Columns.DATE] >= pd.Timestamp(start_date)) & (df[Columns.DATE] <= pd.Timestamp(end_date))]
 
-        goals = df[df[Columns.STATUS] == Status.GOAL].groupby(Columns.SHOOTER_NAME).size().fillna(0)
-        saved = df[df[Columns.STATUS] == Status.SAVED].groupby(Columns.SHOOTER_NAME).size().fillna(0)
-        out = df[df[Columns.STATUS] == Status.OUT].groupby(Columns.SHOOTER_NAME).size().fillna(0)
+        if df.empty:
+            return pd.DataFrame(columns=[Columns.SHOOTER_NAME, Columns.SCORE, Status.GOAL, Status.SAVED, Status.OUT]).set_index(Columns.SHOOTER_NAME)
 
-        score_df = pd.DataFrame({
-            Status.GOAL : goals,
-            Status.SAVED: saved,
-            Status.OUT  : out,
-        }).fillna(Data.DEFAULT_FILL_VALUE)
+        # Time-decay logic
+        latest_date = df[Columns.DATE].max()
+        decay_rate = Scoring.DECAY_RATE
+        
+        if decay_rate > 0:
+            df['days_ago'] = (latest_date - df[Columns.DATE]).dt.days
+            df['weight'] = np.exp(-decay_rate * df['days_ago'])
+        else:
+            df['weight'] = 1.0 # No decay if decay_rate is zero or negative
 
-        score_df[Columns.SCORE] = (score_df[Status.GOAL] * Scoring.GOAL) + (score_df[Status.SAVED] * Scoring.SAVED) + (score_df[Status.OUT] * Scoring.OUT)
+        # Map status to score
+        score_map = {
+            Status.GOAL: Scoring.GOAL,
+            Status.SAVED: Scoring.SAVED,
+            Status.OUT: Scoring.OUT
+        }
+        df['base_score'] = df[Columns.STATUS].map(score_map)
+        df[Columns.SCORE] = df['base_score'] * df['weight']
+
+        # Aggregate scores and counts
+        player_scores = df.groupby(Columns.SHOOTER_NAME)[Columns.SCORE].sum()
+        
+        # Count outcomes for display
+        outcome_counts = df.groupby([Columns.SHOOTER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
+        
+        # Combine scores and counts
+        score_df = pd.DataFrame(player_scores).join(outcome_counts)
+        
+        # Ensure all status columns exist
+        for status in [Status.GOAL, Status.SAVED, Status.OUT]:
+            if status not in score_df:
+                score_df[status] = 0
 
         return score_df.sort_values(by=Columns.SCORE, ascending=False)
+
+
+@st.cache_data
+def calculate_time_weighted_save_percentage(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
+    """
+    Calculates the time-weighted save percentage for each goalkeeper.
+
+    Args:
+        data (pd.DataFrame): The input DataFrame containing penalty shootout data.
+        start_date (Optional[date]): The start date for filtering the data.
+        end_date (Optional[date]): The end date for filtering the data.
+
+    Returns:
+        pd.DataFrame: A DataFrame with goalkeeper names, total penalties faced, total saves, 
+                      and their time-weighted save percentage, sorted by the weighted percentage.
+    """
+    with st.spinner("Calculating time-weighted save percentages..."):
+        df = data.copy()
+        df[Columns.DATE] = pd.to_datetime(df[Columns.DATE])
+
+        if start_date and end_date:
+            df = df[(df[Columns.DATE] >= pd.Timestamp(start_date)) & (df[Columns.DATE] <= pd.Timestamp(end_date))]
+
+        if df.empty:
+            return pd.DataFrame(columns=[Columns.KEEPER_NAME, Columns.SAVE_PERCENTAGE, Columns.TOTAL_SAVES, Columns.TOTAL_FACED]).set_index(Columns.KEEPER_NAME)
+
+        # Time-decay logic
+        latest_date = df[Columns.DATE].max()
+        decay_rate = Scoring.DECAY_RATE
+
+        if decay_rate > 0:
+            df['days_ago'] = (latest_date - df[Columns.DATE]).dt.days
+            df['weight'] = np.exp(-decay_rate * df['days_ago'])
+        else:
+            df['weight'] = 1.0
+
+        df['is_save'] = (df[Columns.STATUS] == Status.SAVED).astype(int)
+        df['weighted_save'] = df['is_save'] * df['weight']
+
+        # Aggregate weighted saves and weights
+        keeper_stats = df.groupby(Columns.KEEPER_NAME).agg(
+            weighted_saves_sum=('weighted_save', 'sum'),
+            total_weight_sum=('weight', 'sum'),
+            total_saves=(Columns.STATUS, lambda x: (x == Status.SAVED).sum()),
+            total_faced=(Columns.STATUS, 'count')
+        )
+
+        # Calculate time-weighted save percentage
+        keeper_stats[Columns.SAVE_PERCENTAGE] = (keeper_stats['weighted_saves_sum'] / keeper_stats['total_weight_sum']) * Data.PERCENTAGE_MULTIPLIER
+        keeper_stats = keeper_stats.fillna(0)
+
+        return keeper_stats.sort_values(by=Columns.SAVE_PERCENTAGE, ascending=False).rename(columns={
+            'total_saves': Columns.TOTAL_SAVES,
+            'total_faced': Columns.TOTAL_FACED
+        })
+
 
 
 @st.cache_data

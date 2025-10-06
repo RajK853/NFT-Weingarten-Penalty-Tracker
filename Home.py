@@ -4,8 +4,8 @@ import streamlit as st
 from streamlit_extras.skeleton import skeleton
 
 from src.data_loader import load_data
-from src.analysis import calculate_player_scores, calculate_save_percentage
-from src.constants import Columns, Paths, Scoring, Status, UI
+from src.analysis import calculate_player_scores, calculate_time_weighted_save_percentage
+from src.constants import Columns, Data, Paths, Scoring, Status, UI
 from src.records import (
     get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
     get_marathon_man, get_mysterious_ninja, get_busiest_day, get_biggest_rivalry
@@ -36,7 +36,7 @@ st.markdown("<h1 style='text-align: center;'>NFT Weingarten Penalty Tracker</h1>
 
 st.markdown(
     """
-    Welcome to the **NFT Weingarten Penalty Tracker**! This interactive dashboard provides a comprehensive overview of penalty shootout data. Explore player performances, goalkeeper statistics, and historical trends to gain insights into the game.
+    This interactive dashboard provides a comprehensive overview of penalty shootout data. Explore player performances, goalkeeper statistics, and historical trends to gain insights into the game.  
     """
 )
 st.write("")
@@ -56,7 +56,8 @@ if not data.empty:
     with st.container(border=True):
         st.subheader("Top Performers")
         st.markdown(f"Highlights top-performing players and goalkeepers from the `recent {UI.RECENT_DAYS_FILTER} days`, showcasing their current form and impact.")
-        
+        st.markdown("> Player and goalkeeper rankings use a time-weighted scoring system. [Learn more about it.](/Player_Performance)")
+
         current_date = pd.to_datetime(data[Columns.DATE]).max()
         start_date_top_performers = (current_date - pd.DateOffset(days=UI.RECENT_DAYS_FILTER)).date()
         end_date_top_performers = current_date.date()
@@ -65,7 +66,7 @@ if not data.empty:
         top_player_name = top_player_df.index[0]
         top_player_score = top_player_df[Columns.SCORE].iloc[0]
 
-        top_keeper_df = calculate_save_percentage(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
+        top_keeper_df = calculate_time_weighted_save_percentage(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
         top_keeper_name = top_keeper_df.index[0]
         top_keeper_save_percentage = top_keeper_df[Columns.SAVE_PERCENTAGE].iloc[0]
 
@@ -94,9 +95,9 @@ if not data.empty:
                     col_left_items = []
                     col_right_items = []
 
-                    for i, (name, goals, saved, out, score) in enumerate(players_list):
+                    for i, (name, score, goals, saved, out) in enumerate(players_list):
                         rank = i + 1
-                        formatted_string = f"{rank:>2}. {name} `({score:.1f} pts)`\n"
+                        formatted_string = f"{rank:>2}. {name} `({score:.{Data.SCORE_DECIMAL_PLACES}f} pts)`\n"
                         if i < middle_index:
                             col_left_items.append(formatted_string)
                         else:
@@ -126,7 +127,7 @@ if not data.empty:
                 st.metric(
                     label="Score",
                     value=top_player_name,
-                    delta=f"{top_player_score} points",
+                    delta=f"{top_player_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
                     help=f"The player\'s score is calculated based on the outcome of their shots (goal: {Scoring.GOAL:.1f}, saved: {Scoring.SAVED:.1f}, out: {Scoring.OUT:.1f})."
                 )
 
@@ -180,7 +181,7 @@ if not data.empty:
                         st.metric(
                             label="⚽ Top Scorer",
                             value=top_player_current_year_name,
-                            delta=f"{top_player_current_year_score} points"
+                            delta=f"{top_player_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points"
                         )
                     else:
                         skeleton(height=80)
@@ -189,7 +190,7 @@ if not data.empty:
 
             with col2_tab4:
                 if not current_year_data.empty:
-                    top_keeper_current_year_df = calculate_save_percentage(current_year_data).head(1)
+                    top_keeper_current_year_df = calculate_time_weighted_save_percentage(current_year_data).head(1)
                     if not top_keeper_current_year_df.empty:
                         top_keeper_current_year_name = top_keeper_current_year_df.index[0]
                         top_keeper_current_year_save_percentage = top_keeper_current_year_df[Columns.SAVE_PERCENTAGE].iloc[0]

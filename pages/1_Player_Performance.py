@@ -4,6 +4,7 @@ Streamlit page for analyzing player performance in penalties.
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+import numpy as np
 from src.data_loader import load_data
 from src.analysis import get_player_status_counts_over_time, calculate_player_scores, _get_date_range_from_month_display
 from src.constants import Columns, Data, Paths, Scoring, Status, UI
@@ -42,7 +43,8 @@ data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
 
 with st.container(border=True):
     st.subheader("Player Score Leaderboard")
-    st.markdown("This leaderboard ranks players based on a comprehensive scoring system that assigns points for each shot outcome (Goal, Saved, Out). A higher score indicates superior overall performance in penalty shootouts. Use the date range selector to analyze performance during specific periods.")
+    st.markdown("This leaderboard ranks players based on a comprehensive scoring system that assigns points for each shot outcome (Goal, Saved, Out). A higher score indicates superior overall performance in penalty shootouts.")
+    st.info(f"Scores are weighted by recency. The current performance half-life is {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days.")
 
     # Scoring system explanation
     scoring_data = {
@@ -52,6 +54,74 @@ with st.container(border=True):
     scoring_df = pd.DataFrame(scoring_data)
     st.dataframe(scoring_df, hide_index=True)
 
+    with st.expander("How is the Time-Weighted Score Calculated?"):
+            st.markdown("""
+            To better reflect a player's current form, scores are weighted based on how recently they occurred. This is done using an **exponential decay** model, where the weight of a score decreases as it gets older.
+
+            The formula used is:
+            ```
+            Weighted Score = Original Score * e^(-decay_rate * days_ago)
+            ```
+            The `decay_rate` is what controls how quickly the score value decreases. For simplicity, we configure this using a "half-life" value (currently **{Scoring.PERFORMANCE_HALF_LIFE_DAYS} days**), which is then converted to a decay rate for the actual leaderboard calculations.
+            """)
+            st.markdown("--- ")
+            st.subheader("Decay Curve Comparison")
+            st.markdown("Adjust the parameters for the **Simulation** curve (solid line) and compare it to the application's **Current Setting** (dashed line).")
+
+            # --- Interactive Inputs ---
+            col1, col2 = st.columns(2)
+            with col1:
+                original_score_input = st.number_input("Original Score", value=1.5, step=0.5, key="sim_score")
+            with col2:
+                decay_rate_input = st.number_input("Simulation Decay Rate", value=0.020, min_value=0.0, step=0.005, format="%.3f", key="sim_decay")
+
+            # --- Plot Generation ---
+            days_range = np.arange(0, 366)
+
+            # --- Current Setting Data ---
+            setting_scores = original_score_input * np.exp(-Scoring.DECAY_RATE * days_range)
+            setting_df = pd.DataFrame({
+                'Days Ago': days_range,
+                'Weighted Score': setting_scores,
+                'Curve': "Current Setting"
+            })
+
+            # --- Simulation Data ---
+            simulation_scores = original_score_input * np.exp(-decay_rate_input * days_range)
+            simulation_df = pd.DataFrame({
+                'Days Ago': days_range,
+                'Weighted Score': simulation_scores,
+                'Curve': 'Simulation'
+            })
+
+            # --- Combine and Plot ---
+            combined_df = pd.concat([setting_df, simulation_df])
+            fig = px.line(
+                combined_df, 
+                x='Days Ago', 
+                y='Weighted Score', 
+                color='Curve', 
+                line_dash='Curve', 
+                title='Decay Curve Comparison',
+                line_dash_map={"Current Setting": "dash", "Simulation": "solid"}
+            )
+
+            # --- Add Half-Life Markers ---
+            # Current Setting Half-Life
+            if Scoring.DECAY_RATE > 0:
+                setting_half_life = np.log(2) / Scoring.DECAY_RATE
+                fig.add_scatter(x=[setting_half_life], y=[original_score_input/2], mode='markers', marker=dict(size=10, color='blue'), name=f"Current Setting Half-Life ({setting_half_life:.1f} days)")
+
+            # Simulation Half-Life
+            if decay_rate_input > 0:
+                sim_half_life = np.log(2) / decay_rate_input
+                fig.add_scatter(x=[sim_half_life], y=[original_score_input/2], mode='markers', marker=dict(size=10, color='red'), name=f"Simulation Half-Life ({sim_half_life:.1f} days)")
+
+            st.plotly_chart(fig, use_container_width=True)
+
+
+    st.markdown("Use the date range selector to analyze performance during specific periods.")
+    
     min_date_leaderboard = data[Columns.DATE].min()
     max_date_leaderboard = data[Columns.DATE].max()
 
@@ -74,6 +144,7 @@ with st.container(border=True):
         leaderboard_end_date = selected_date_range[0]
 
     if leaderboard_start_date and leaderboard_end_date:
+        score_format_specifier = f".{Data.SCORE_DECIMAL_PLACES}f"
         top_players: pd.DataFrame = calculate_player_scores(data, start_date=leaderboard_start_date, end_date=leaderboard_end_date).head(UI.TOP_N_PLAYERS_LEADERBOARD)
         fig_top_players = px.bar(top_players, x=top_players.index, y=Columns.SCORE,
                                  title=f"Top {UI.TOP_N_PLAYERS_LEADERBOARD} Players by Score",
@@ -84,9 +155,10 @@ with st.container(border=True):
         y_range_min = min_score_val - buffer
         y_range_max = max_score_val + buffer
         fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(range=[y_range_min, y_range_max]))
-        fig_top_players.update_traces(texttemplate=UI.PLOTLY_TEXT_TEMPLATE, textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE)
+        fig_top_players.update_traces(texttemplate=f'%{{y:{score_format_specifier}}}', textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE)
         st.plotly_chart(fig_top_players, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
-        st.dataframe(top_players)
+        st.dataframe(top_players, column_config={Columns.SCORE: st.column_config.NumberColumn(format=f"%.{Data.SCORE_DECIMAL_PLACES}f")})
+        
     else:
         st.info(UI.INFO_SELECT_DATE_RANGE)
 
@@ -135,9 +207,9 @@ with st.container(border=True):
                         colors_score = [UI.COLOR_GREEN if score == max_score else UI.COLOR_RED if score == min_score else UI.COLOR_LIGHTGRAY for score in monthly_player_status_summary[Columns.SCORE]]
                         fig_score_monthly = px.bar(monthly_player_status_summary, x=Columns.SHOOTER_NAME, y=Columns.SCORE,
                                                   title="Player Monthly Score")
-                        fig_score_monthly.update_traces(marker_color=colors_score)
+                        fig_score_monthly.update_traces(texttemplate=f'%{{y:{score_format_specifier}}}')
                         fig_score_monthly.update_layout(yaxis_title="Score", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_score_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        st.plotly_chart(fig_score_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
                     with goal_tab:
                         max_goals = monthly_player_status_summary[Status.GOAL].max()
@@ -147,7 +219,7 @@ with st.container(border=True):
                                                   title="Player Monthly Goals")
                         fig_goals_monthly.update_traces(marker_color=colors_goals)
                         fig_goals_monthly.update_layout(yaxis_title="Goals", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_goals_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        st.plotly_chart(fig_goals_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
                     with saved_tab:
                         max_saved = monthly_player_status_summary[Status.SAVED].max()
@@ -157,7 +229,7 @@ with st.container(border=True):
                                                   title="Player Monthly Saved Shots")
                         fig_saved_monthly.update_traces(marker_color=colors_saved)
                         fig_saved_monthly.update_layout(yaxis_title="Saved Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_saved_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        st.plotly_chart(fig_saved_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
                 with out_tab:
                     max_out = monthly_player_status_summary[Status.OUT].max()
@@ -167,7 +239,7 @@ with st.container(border=True):
                                             title="Player Monthly Out Shots")
                     fig_out_monthly.update_traces(marker_color=colors_out)
                     fig_out_monthly.update_layout(yaxis_title="Out Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                    st.plotly_chart(fig_out_monthly, width='stretch', config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                    st.plotly_chart(fig_out_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
 
 
             else:

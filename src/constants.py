@@ -1,4 +1,5 @@
 from typing import List
+import numpy as np
 
 class Columns:
     DATE: str = "Date"
@@ -37,6 +38,8 @@ class Scoring:
     GOAL: float = +1.5
     SAVED: float = 0.0
     OUT: float = -1.0
+    PERFORMANCE_HALF_LIFE_DAYS: int = 45 # Days until a performance is worth half its value.
+    DECAY_RATE: float = np.log(2) / PERFORMANCE_HALF_LIFE_DAYS if PERFORMANCE_HALF_LIFE_DAYS > 0 else 0.0
 
 class Paths:
     LOGO: str = "data/logo.jpg"
@@ -124,6 +127,7 @@ class Data:
     MIN_DAYS_PER_WEEK: int = 3
     MAX_DAYS_PER_WEEK: int = 4
     PSEUDO_DATA_OUTPUT_PATH: str = "data/pseudo_penalty.csv"
+    SCORE_DECIMAL_PLACES: int = 2
 
 class GoalVisual:
     GOAL_WIDTH: int = 400
