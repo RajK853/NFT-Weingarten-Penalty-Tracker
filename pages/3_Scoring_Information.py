@@ -40,7 +40,7 @@ The weight of each performance decreases exponentially over time, with a half-li
 """)
 
 with st.expander("How is the Time-Weighted Score Calculated?"):
-        st.markdown("""
+        st.markdown(f"""
         To better reflect a player's current form, scores are weighted based on how recently they occurred. This is done using an **exponential decay** model, where the weight of a score decreases as it gets older.
 
         The formula used is:
