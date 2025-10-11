@@ -13,7 +13,6 @@ class Columns:
     SCORE: str = "Score"
     GOAL_PERCENTAGE: str = "Goal Percentage"
     COUNT: str = "Count"
-    SAVE_PERCENTAGE: str = "Save Percentage"
     TOTAL_SAVES: str = "Total Saves"
     TOTAL_FACED: str = "Total Faced"
     SHOT_X: str = "Shot_X"
@@ -24,7 +23,6 @@ class Columns:
     SAVED_TREND: str = "Saved"
     OUT_TREND: str = "Out"
     GOAL_PERCENTAGE_TREND: str = "Goal Percentage"
-    SAVED_PERCENTAGE_TREND: str = "Saved Percentage"
     OUT_PERCENTAGE_TREND: str = "Out Percentage"
     OUTCOME_TYPE: str = "Outcome Type"
     PERCENTAGE: str = "Percentage"
@@ -38,6 +36,9 @@ class Scoring:
     GOAL: float = +3.0
     SAVED: float = 0.0
     OUT: float = -1.0
+    KEEPER_GOAL: float = -1.0
+    KEEPER_SAVED: float = +1.5
+    KEEPER_OUT: float = 0.0
     PERFORMANCE_HALF_LIFE_DAYS: int = 45 # Days until a performance is worth half its value.
     DECAY_RATE: float = np.log(2) / PERFORMANCE_HALF_LIFE_DAYS if PERFORMANCE_HALF_LIFE_DAYS > 0 else 0.0
 

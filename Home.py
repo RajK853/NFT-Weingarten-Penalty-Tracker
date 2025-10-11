@@ -4,7 +4,7 @@ import streamlit as st
 from streamlit_extras.skeleton import skeleton
 
 from src.data_loader import load_data
-from src.analysis import calculate_player_scores, calculate_time_weighted_save_percentage
+from src.analysis import calculate_player_scores, calculate_keeper_scores
 from src.constants import Columns, Data, Scoring, Status, UI
 from src.records import (
     get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
@@ -61,9 +61,9 @@ if not data.empty:
         top_player_name = top_player_df.index[0]
         top_player_score = top_player_df[Columns.SCORE].iloc[0]
 
-        top_keeper_df = calculate_time_weighted_save_percentage(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
+        top_keeper_df = calculate_keeper_scores(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
         top_keeper_name = top_keeper_df.index[0]
-        top_keeper_save_percentage = top_keeper_df[Columns.SAVE_PERCENTAGE].iloc[0]
+        top_keeper_score = top_keeper_df[Columns.SCORE].iloc[0]
 
         top10_players_tab, player_tab, keeper_tab = st.tabs(["🔟 Top-10 Players", "🏆 Top Player", "🧤 Top Goalkeeper", ])
 
@@ -123,7 +123,7 @@ if not data.empty:
                     label="Score",
                     value=top_player_name,
                     delta=f"{top_player_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
-                    help=f"The player\'s score is calculated based on the outcome of their shots (goal: {Scoring.GOAL:.1f}, saved: {Scoring.SAVED:.1f}, out: {Scoring.OUT:.1f})."
+                    help=f"The player's score is calculated based on the outcome of their shots (goal: {Scoring.GOAL:.1f}, saved: {Scoring.SAVED:.1f}, out: {Scoring.OUT:.1f})."
                 )
 
         with keeper_tab:
@@ -140,10 +140,10 @@ if not data.empty:
 
             if st.session_state.reveal_keeper:
                 st.metric(
-                    label="Save Percentage",
+                    label="Score",
                     value=top_keeper_name,
-                    delta=f"{top_keeper_save_percentage:.1f}% saves",
-                    help="The percentage of penalties faced by the goalkeeper that were saved."
+                    delta=f"{top_keeper_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
+                    help=f"The goalkeeper's score is calculated based on the outcome of the shots they faced (goal: {Scoring.KEEPER_GOAL:.1f}, saved: {Scoring.KEEPER_SAVED:.1f}, out: {Scoring.KEEPER_OUT:.1f})."
                 )
 
     with st.container(border=True):
@@ -185,14 +185,14 @@ if not data.empty:
 
             with col2_tab4:
                 if not current_year_data.empty:
-                    top_keeper_current_year_df = calculate_time_weighted_save_percentage(current_year_data).head(1)
+                    top_keeper_current_year_df = calculate_keeper_scores(current_year_data).head(1)
                     if not top_keeper_current_year_df.empty:
                         top_keeper_current_year_name = top_keeper_current_year_df.index[0]
-                        top_keeper_current_year_save_percentage = top_keeper_current_year_df[Columns.SAVE_PERCENTAGE].iloc[0]
+                        top_keeper_current_year_score = top_keeper_current_year_df[Columns.SCORE].iloc[0]
                         st.metric(
                             label="🧤 Top Goalkeeper",
                             value=top_keeper_current_year_name,
-                            delta=f"{top_keeper_current_year_save_percentage:.1f}% saves"
+                            delta=f"{top_keeper_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points"
                         )
                     else:
                         skeleton(height=80)

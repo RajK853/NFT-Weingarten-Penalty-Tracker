@@ -5,6 +5,7 @@ import streamlit as st
 from src.constants import Columns, Data, Status, Scoring
 import numpy as np
 
+
 def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:
     """
     Helper function to determine the start and end dates for a given month display string.
@@ -13,6 +14,7 @@ def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[dat
     start_date_filter: date = selected_month_period.start_time.date()
     end_date_filter: date = selected_month_period.end_time.date()
     return start_date_filter, end_date_filter
+
 
 def _apply_time_decay(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -127,9 +129,9 @@ def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = Non
 
 
 @st.cache_data
-def calculate_time_weighted_save_percentage(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
+def calculate_keeper_scores(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
     """
-    Calculates the time-weighted save percentage for each goalkeeper.
+    Calculates the time-weighted total score for each goalkeeper based on the outcome of the shots they faced.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
@@ -137,10 +139,10 @@ def calculate_time_weighted_save_percentage(data: pd.DataFrame, start_date: Opti
         end_date (Optional[date]): The end date for filtering the data.
 
     Returns:
-        pd.DataFrame: A DataFrame with goalkeeper names, total penalties faced, total saves, 
-                      and their time-weighted save percentage, sorted by the weighted percentage.
+        pd.DataFrame: A DataFrame with keeper names and their total time-weighted scores,
+                      sorted by score in descending order.
     """
-    with st.spinner("Calculating time-weighted save percentages..."):
+    with st.spinner("Calculating keeper scores..."):
         df = data.copy()
         df[Columns.DATE] = pd.to_datetime(df[Columns.DATE])
 
@@ -148,31 +150,35 @@ def calculate_time_weighted_save_percentage(data: pd.DataFrame, start_date: Opti
             df = df[(df[Columns.DATE] >= pd.Timestamp(start_date)) & (df[Columns.DATE] <= pd.Timestamp(end_date))]
 
         if df.empty:
-            return pd.DataFrame(columns=[Columns.KEEPER_NAME, Columns.SAVE_PERCENTAGE, Columns.TOTAL_SAVES, Columns.TOTAL_FACED]).set_index(Columns.KEEPER_NAME)
+            return pd.DataFrame(columns=[Columns.KEEPER_NAME, Columns.SCORE, Status.GOAL, Status.SAVED, Status.OUT]).set_index(Columns.KEEPER_NAME)
 
         # Apply time-decay logic
         df = _apply_time_decay(df)
 
-        df['is_save'] = (df[Columns.STATUS] == Status.SAVED).astype(int)
-        df['weighted_save'] = df['is_save'] * df['weight']
+        # Map status to score
+        score_map = {
+            Status.GOAL: Scoring.KEEPER_GOAL,
+            Status.SAVED: Scoring.KEEPER_SAVED,
+            Status.OUT: Scoring.KEEPER_OUT
+        }
+        df['base_score'] = df[Columns.STATUS].map(score_map)
+        df[Columns.SCORE] = df['base_score'] * df['weight']
 
-        # Aggregate weighted saves and weights
-        keeper_stats = df.groupby(Columns.KEEPER_NAME).agg(
-            weighted_saves_sum=('weighted_save', 'sum'),
-            total_weight_sum=('weight', 'sum'),
-            total_saves=(Columns.STATUS, lambda x: (x == Status.SAVED).sum()),
-            total_faced=(Columns.STATUS, 'count')
-        )
+        # Aggregate scores and counts
+        keeper_scores = df.groupby(Columns.KEEPER_NAME)[Columns.SCORE].sum()
+        
+        # Count outcomes for display
+        outcome_counts = df.groupby([Columns.KEEPER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
+        
+        # Combine scores and counts
+        score_df = pd.DataFrame(keeper_scores).join(outcome_counts)
+        
+        # Ensure all status columns exist
+        for status in [Status.GOAL, Status.SAVED, Status.OUT]:
+            if status not in score_df:
+                score_df[status] = 0
 
-        # Calculate time-weighted save percentage
-        keeper_stats[Columns.SAVE_PERCENTAGE] = (keeper_stats['weighted_saves_sum'] / keeper_stats['total_weight_sum']) * Data.PERCENTAGE_MULTIPLIER
-        keeper_stats = keeper_stats.fillna(0)
-
-        return keeper_stats.sort_values(by=Columns.SAVE_PERCENTAGE, ascending=False).rename(columns={
-            'total_saves': Columns.TOTAL_SAVES,
-            'total_faced': Columns.TOTAL_FACED
-        })
-
+        return score_df.sort_values(by=Columns.SCORE, ascending=False)
 
 
 @st.cache_data
@@ -216,45 +222,6 @@ def get_player_status_counts_over_time(data: pd.DataFrame, selected_players: Lis
 
         return status_counts_full.sort_values(by=[Columns.DATE, Columns.SHOOTER_NAME, Columns.STATUS])
 
-
-@st.cache_data
-def calculate_save_percentage(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
-    """
-    Calculates the save percentage for each goalkeeper within a specified date range.
-
-    Args:
-        data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        start_date (Optional[date]): The start date for filtering the data.
-        end_date (Optional[date]): The end date for filtering the data.
-
-    Returns:
-        pd.DataFrame: A DataFrame with goalkeeper names, total penalties faced, total saves, and save percentage,
-                      sorted by save percentage in descending order.
-    """
-    with st.spinner("Calculating save percentages..."):
-        df = data.copy()
-        df[Columns.DATE] = pd.to_datetime(df[Columns.DATE])
-
-        if start_date and end_date:
-            df = df[(df[Columns.DATE] >= pd.Timestamp(start_date)) & (df[Columns.DATE] <= pd.Timestamp(end_date))]
-
-        # Penalties faced by each keeper
-        penalties_faced = df.groupby(Columns.KEEPER_NAME).size()
-
-        # Saves by each keeper
-        saves = df[df[Columns.STATUS] == Status.SAVED].groupby(Columns.KEEPER_NAME).size()
-
-        # Create a DataFrame for save percentages
-        keeper_stats = pd.DataFrame({
-            Columns.TOTAL_FACED: penalties_faced,
-            Columns.TOTAL_SAVES: saves
-        }).fillna(Data.DEFAULT_FILL_VALUE)
-
-        keeper_stats[Columns.TOTAL_SAVES] = keeper_stats[Columns.TOTAL_SAVES].astype(int)
-        keeper_stats[Columns.SAVE_PERCENTAGE] = (keeper_stats[Columns.TOTAL_SAVES] / keeper_stats[Columns.TOTAL_FACED]) * Data.PERCENTAGE_MULTIPLIER
-        keeper_stats[Columns.SAVE_PERCENTAGE] = keeper_stats[Columns.SAVE_PERCENTAGE].fillna(Data.DEFAULT_FILL_VALUE) # Handle division by zero
-
-        return keeper_stats.sort_values(by=Columns.SAVE_PERCENTAGE, ascending=False)
 
 @st.cache_data
 def get_overall_trend_data(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
