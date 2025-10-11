@@ -8,6 +8,7 @@ The dashboard is organized into several pages, each offering a unique perspectiv
 *   **Home (Overview)**: Displays overall shootout statistics, including total penalties and overall goal percentage. It also highlights top-performing players and goalkeepers based on recent data and shows the outcome distribution (goals, saves, outs).
 *   **Player Performance Analysis**: Provides an in-depth look at individual player performance. It features a player leaderboard based on a custom scoring system (3 points for a goal, 0 for a save, -1 for an out) and allows for comparing multiple players' performance over customizable timeframes, showing their monthly scores, goals, saves, and out shots.
 *   **Goalkeeper Performance Analysis**: Focuses on goalkeeper effectiveness, showcasing a time-weighted score based on the outcome of shots faced (goal: -1.0, saved: +1.5, out: 0.0) and detailed outcome distributions for top goalkeepers over selected periods.
+*   **Scoring Information**: Provides a detailed explanation of the scoring system for both players and goalkeepers, including the time-weighted scoring method.
 
 ## Data
 

@@ -33,7 +33,7 @@ class Status:
     OUT: str = "out"
 
 class Scoring:
-    GOAL: float = +3.0
+    GOAL: float = +1.5
     SAVED: float = 0.0
     OUT: float = -1.0
     KEEPER_GOAL: float = -1.0
