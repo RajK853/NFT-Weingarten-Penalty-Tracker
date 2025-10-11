@@ -2,6 +2,7 @@ import time
 import pandas as pd
 import streamlit as st
 from streamlit_extras.skeleton import skeleton
+import plotly.express as px
 
 from src.data_loader import load_data
 from src.analysis import calculate_player_scores, calculate_keeper_scores
@@ -366,8 +367,18 @@ if not data.empty:
 
         with tab_players:
             player_stats = latest_session_data.groupby([Columns.SHOOTER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
+            player_scores = calculate_player_scores(latest_session_data)
+            player_stats = player_stats.join(player_scores[Columns.SCORE])
+            player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
+            fig = px.bar(player_stats, x=player_stats.index, y=Columns.SCORE)
+            st.plotly_chart(fig, use_container_width=True)
             st.dataframe(player_stats, width='stretch')
 
         with tab_keepers:
             keeper_stats = latest_session_data.groupby([Columns.KEEPER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
+            keeper_scores = calculate_keeper_scores(latest_session_data)
+            keeper_stats = keeper_stats.join(keeper_scores[Columns.SCORE])
+            keeper_stats = keeper_stats.sort_values(by=Columns.SCORE, ascending=False)
+            fig = px.bar(keeper_stats, x=keeper_stats.index, y=Columns.SCORE)
+            st.plotly_chart(fig, use_container_width=True)
             st.dataframe(keeper_stats, width='stretch')
