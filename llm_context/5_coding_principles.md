@@ -98,6 +98,7 @@ PEP 8 provides clear guidelines for organizing imports to enhance readability an
     1.  Standard library imports (e.g., `os`, `sys`, `math`).
     2.  Related third-party imports (e.g., `numpy`, `pandas`, `requests`).
     3.  Local application/library-specific imports.
+    Within each group, imports should be sorted in ascending order of their statement length (character count).
 *   **Absolute vs. Relative Imports**: Absolute imports are generally recommended for readability and better error messages.
 *   **Avoid Wildcard Imports**: Do not use `from <module> import *`. This makes it unclear which names are present in the namespace.
 *   **One Import Per Line**: It is generally recommended to use one import statement per module.
