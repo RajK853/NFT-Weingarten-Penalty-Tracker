@@ -112,11 +112,11 @@ with st.expander("See the Math: The Half-Life Formula"):
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-0.4,
+            y=-0.8, # Even more negative
             xanchor="center",
             x=0.5
         ),
-        margin=dict(b=100) # Add bottom margin
+        margin=dict(b=200) # Even more increased bottom margin
     )
 
     st.plotly_chart(fig, use_container_width=True)
