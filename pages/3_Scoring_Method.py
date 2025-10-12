@@ -4,27 +4,21 @@ Streamlit page for explaining the scoring system.
 
 import numpy as np
 import pandas as pd
-import streamlit as st
 import plotly.express as px
+import streamlit as st
 
 from src.constants import Scoring, UI
-from src.ui import display_page_header, render_plotly_chart
+from src.ui import render_plotly_chart
 
-st.set_page_config(
+ui.setup_page(
     page_title="NFT Weingarten - Scoring Method",
-    page_icon="ℹ️",
-    initial_sidebar_state="expanded",
-    layout="wide",
-)
-
-ui.display_page_header(
-    page_title="Scoring Method",
     page_icon="ℹ️",
     page_description="""
     This page explains how we score players and goalkeepers.
     We want a fair system that shows who is playing well right now.
     """,
 )
+
 
 st.header("Base Points System")
 
@@ -159,7 +153,7 @@ with st.expander("See the Math: The Half-Life Formula"):
         ),
         margin=dict(b=200),  # Even more increased bottom margin
     )
-    ui.render_plotly_chart(fig)
+    ui.render_plotly_chart(fig, fixed_range=False)
 
 st.info(
     """

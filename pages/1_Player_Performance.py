@@ -2,42 +2,28 @@
 Streamlit page for analyzing player performance in penalties.
 """
 
-from typing import List
 from datetime import date
+from typing import List
 
 import numpy as np
 import pandas as pd
-import streamlit as st
 import plotly.express as px
+import streamlit as st
 
-from src import ui
 from src import analysis
-from src.data_loader import load_data
+from src import ui
 from src.constants import Columns, Data, Scoring, Status, UI
 
-st.set_page_config(
+ui.setup_page(
     page_title="NFT Weingarten - Player Performance",
-    page_icon=UI.EMOJI_PLAYER_PAGE,
-    initial_sidebar_state="expanded",
-    layout="wide",
-)
-
-# --- Header ---
-
-ui.display_page_header(
-    page_title="Player Performance Analysis",
     page_icon=UI.EMOJI_PLAYER_PAGE,
     page_description="""
     Here you can analyze how well individual players are doing. 
     Use the tools below to compare players and see who is performing best over time.
     """,
 )
-gender_selection = ui.gender_selection_ui()
-last_refresh_time = ui.data_refresh_button_ui()
-data: pd.DataFrame = load_data(
-    gender=gender_selection, last_refresh_time=last_refresh_time
-)
-data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
+
+data: pd.DataFrame = ui.load_and_process_data()
 
 with st.container(border=True):
     st.subheader("Player Score Leaderboard")
@@ -106,7 +92,7 @@ with st.container(border=True):
             texttemplate=f"%{{y:{score_format_specifier}}}",
             textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE,
         )
-        ui.render_plotly_chart(fig_top_players)
+        ui.render_plotly_chart(fig_top_players, fixed_range=False)
         st.dataframe(
             top_players,
             column_config={
@@ -228,7 +214,7 @@ with st.container(border=True):
                             ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        ui.render_plotly_chart(fig_score_monthly)
+                        ui.render_plotly_chart(fig_score_monthly, fixed_range=False)
 
                     with goal_tab:
                         max_goals = monthly_player_status_summary[Status.GOAL].max()
@@ -264,7 +250,7 @@ with st.container(border=True):
                             ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        ui.render_plotly_chart(fig_goals_monthly)
+                        ui.render_plotly_chart(fig_goals_monthly, fixed_range=False)
 
                     with saved_tab:
                         max_saved = monthly_player_status_summary[Status.SAVED].max()
@@ -300,7 +286,7 @@ with st.container(border=True):
                             ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        ui.render_plotly_chart(fig_saved_monthly)
+                        ui.render_plotly_chart(fig_saved_monthly, fixed_range=False)
 
                 with out_tab:
                     max_out = monthly_player_status_summary[Status.OUT].max()
@@ -336,7 +322,7 @@ with st.container(border=True):
                         ),
                         margin=dict(b=200),
                     )  # fixedrange will be applied by render_plotly_chart
-                    ui.render_plotly_chart(fig_out_monthly)
+                    ui.render_plotly_chart(fig_out_monthly, fixed_range=False)
 
             else:
                 st.info(

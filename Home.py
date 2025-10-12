@@ -7,7 +7,6 @@ from streamlit_extras.skeleton import skeleton
 
 from src import ui
 from src import records
-from src.data_loader import load_data
 from src.constants import Columns, Data, Scoring, Status, UI
 from src.analysis import calculate_keeper_scores, calculate_player_scores
 
@@ -18,16 +17,7 @@ if "reveal_keeper" not in st.session_state:
 if "reveal_top10_players" not in st.session_state:
     st.session_state.reveal_top10_players = False
 
-st.set_page_config(
-    page_title="NFT Weingarten - Penalty Tracker",
-    page_icon=UI.EMOJI_HOME_PAGE,
-    initial_sidebar_state="expanded",
-    layout="wide",
-)
-
-# --- Header ---
-
-ui.display_page_header(
+ui.setup_page(
     page_title="NFT Weingarten Penalty Tracker",
     page_icon=UI.EMOJI_HOME_PAGE,
     page_description="""
@@ -35,149 +25,142 @@ ui.display_page_header(
     """,
 )
 
+
 # --- Sidebar for Gender Selection ---
-gender_selection = ui.gender_selection_ui()
-last_refresh_time = ui.data_refresh_button_ui()
-st.info("You can change the gender from the left sidebar option.")
-st.markdown("---")
+data = ui.load_and_process_data()
 
-# --- Load Data ---
-data = load_data(gender=gender_selection, last_refresh_time=last_refresh_time)
-if not data.empty:
-    data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
+# --- Main Content ---
+with st.container(border=True):
+    st.subheader("Top Performers")
+    st.markdown(
+        f"This section shows the top players and goalkeepers from the last {UI.RECENT_DAYS_FILTER} days. Rankings use a time-weighted score, meaning recent games have a bigger impact."
+    )
+    st.page_link(
+        "pages/3_Scoring_Method.py", label="ℹ️ Learn more about our scoring system"
+    )
 
-    # --- Main Content ---
-    with st.container(border=True):
-        st.subheader("Top Performers")
-        st.markdown(
-            f"This section shows the top players and goalkeepers from the last {UI.RECENT_DAYS_FILTER} days. Rankings use a time-weighted score, meaning recent games have a bigger impact."
-        )
-        st.page_link(
-            "pages/3_Scoring_Method.py", label="ℹ️ Learn more about our scoring system"
-        )
+    current_date = pd.to_datetime(data[Columns.DATE]).max()
+    start_date_top_performers = (
+        current_date - pd.DateOffset(days=UI.RECENT_DAYS_FILTER)
+    ).date()
+    end_date_top_performers = current_date.date()
 
-        current_date = pd.to_datetime(data[Columns.DATE]).max()
-        start_date_top_performers = (
-            current_date - pd.DateOffset(days=UI.RECENT_DAYS_FILTER)
-        ).date()
-        end_date_top_performers = current_date.date()
+    top_player_df = calculate_player_scores(
+        data, start_date=start_date_top_performers, end_date=end_date_top_performers
+    ).head(1)
+    top_player_name = top_player_df.index[0]
+    top_player_score = top_player_df[Columns.SCORE].iloc[0]
 
-        top_player_df = calculate_player_scores(
-            data, start_date=start_date_top_performers, end_date=end_date_top_performers
-        ).head(1)
-        top_player_name = top_player_df.index[0]
-        top_player_score = top_player_df[Columns.SCORE].iloc[0]
+    top_keeper_df = calculate_keeper_scores(
+        data, start_date=start_date_top_performers, end_date=end_date_top_performers
+    ).head(1)
+    top_keeper_name = top_keeper_df.index[0]
+    top_keeper_score = top_keeper_df[Columns.SCORE].iloc[0]
 
-        top_keeper_df = calculate_keeper_scores(
-            data, start_date=start_date_top_performers, end_date=end_date_top_performers
-        ).head(1)
-        top_keeper_name = top_keeper_df.index[0]
-        top_keeper_score = top_keeper_df[Columns.SCORE].iloc[0]
+    top10_players_tab, player_tab, keeper_tab = st.tabs(
+        [
+            "🔟 Top-10 Players",
+            "🏆 Top Player",
+            "🧤 Top Goalkeeper",
+        ]
+    )
 
-        top10_players_tab, player_tab, keeper_tab = st.tabs(
-            [
-                "🔟 Top-10 Players",
-                "🏆 Top Player",
-                "🧤 Top Goalkeeper",
-            ]
-        )
-
-        with top10_players_tab:
-            top10_players_button_placeholder = st.empty()
-            if not st.session_state.reveal_top10_players:
-                if top10_players_button_placeholder.button(
-                    "Reveal Top-10 Players", key="btn_reveal_top10_players"
-                ):
-                    st.session_state.reveal_top10_players = True
-                    top10_players_button_placeholder.empty()  # Clear the button immediately
-                    countdown_placeholder = st.empty()
-                    for i in range(3, 0, -1):
-                        countdown_placeholder.metric(
-                            label="Revealing in...", value=f"{i} seconds"
-                        )
-                        time.sleep(1)
-                    countdown_placeholder.empty()  # Clear the countdown
-
-            if st.session_state.reveal_top10_players:
-                top_10_players_df = calculate_player_scores(
-                    data,
-                    start_date=start_date_top_performers,
-                    end_date=end_date_top_performers,
-                ).head(10)
-
-                if not top_10_players_df.empty:
-                    col_left, col_right = st.columns(2)
-                    players_list = list(
-                        top_10_players_df.itertuples(index=True, name=None)
+    with top10_players_tab:
+        top10_players_button_placeholder = st.empty()
+        if not st.session_state.reveal_top10_players:
+            if top10_players_button_placeholder.button(
+                "Reveal Top-10 Players", key="btn_reveal_top10_players"
+            ):
+                st.session_state.reveal_top10_players = True
+                top10_players_button_placeholder.empty()  # Clear the button immediately
+                countdown_placeholder = st.empty()
+                for i in range(3, 0, -1):
+                    countdown_placeholder.metric(
+                        label="Revealing in...", value=f"{i} seconds"
                     )
-                    middle_index = round(len(players_list) / 2)
+                    time.sleep(1)
+                countdown_placeholder.empty()  # Clear the countdown
 
-                    col_left_items = []
-                    col_right_items = []
+        if st.session_state.reveal_top10_players:
+            top_10_players_df = calculate_player_scores(
+                data,
+                start_date=start_date_top_performers,
+                end_date=end_date_top_performers,
+            ).head(10)
 
-                    for i, (name, score, goals, saved, out) in enumerate(players_list):
-                        rank = i + 1
-                        formatted_string = f"{rank:>2}. {name} `({score:.{Data.SCORE_DECIMAL_PLACES}f} pts)`\n"
-                        if i < middle_index:
-                            col_left_items.append(formatted_string)
-                        else:
-                            col_right_items.append(formatted_string)
-
-                    with col_left:
-                        st.write_stream(ui.stream_data(col_left_items))
-
-                    with col_right:
-                        st.write_stream(ui.stream_data(col_right_items))
-                else:
-                    st.info("No top 10 players to display for the selected period.")
-
-        with player_tab:
-            player_button_placeholder = st.empty()
-            if not st.session_state.reveal_player:
-                if player_button_placeholder.button(
-                    "Reveal Top Player", key="btn_reveal_player"
-                ):
-                    st.session_state.reveal_player = True
-                    player_button_placeholder.empty()  # Clear the button immediately
-                    countdown_placeholder = st.empty()
-                    for i in range(3, 0, -1):
-                        countdown_placeholder.metric(
-                            label="Revealing in...", value=f"{i} seconds"
-                        )
-                        time.sleep(1)
-                    countdown_placeholder.empty()  # Clear the countdown
-
-            if st.session_state.reveal_player:
-                st.metric(
-                    label="Score",
-                    value=top_player_name,
-                    delta=f"{top_player_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
-                    help=f"The player's score is calculated based on the outcome of their shots (goal: {Scoring.GOAL:.1f}, saved: {Scoring.SAVED:.1f}, out: {Scoring.OUT:.1f}).",
+            if not top_10_players_df.empty:
+                col_left, col_right = st.columns(2)
+                players_list = list(
+                    top_10_players_df.itertuples(index=True, name=None)
                 )
+                middle_index = round(len(players_list) / 2)
 
-        with keeper_tab:
-            keeper_button_placeholder = st.empty()
-            if not st.session_state.reveal_keeper:
-                if keeper_button_placeholder.button(
-                    "Reveal Top Goalkeeper", key="btn_reveal_keeper"
-                ):
-                    st.session_state.reveal_keeper = True
-                    keeper_button_placeholder.empty()  # Clear the button immediately
-                    countdown_placeholder = st.empty()
-                    for i in range(3, 0, -1):
-                        countdown_placeholder.metric(
-                            label="Revealing in...", value=f"{i} seconds"
-                        )
-                        time.sleep(1)
-                    countdown_placeholder.empty()  # Clear the countdown
+                col_left_items = []
+                col_right_items = []
 
-            if st.session_state.reveal_keeper:
-                st.metric(
-                    label="Score",
-                    value=top_keeper_name,
-                    delta=f"{top_keeper_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
-                    help=f"The goalkeeper's score is calculated based on the outcome of the shots they faced (goal: {Scoring.KEEPER_GOAL:.1f}, saved: {Scoring.KEEPER_SAVED:.1f}, out: {Scoring.KEEPER_OUT:.1f}).",
-                )
+                for i, (name, score, goals, saved, out) in enumerate(players_list):
+                    rank = i + 1
+                    formatted_string = f"{rank:>2}. {name} `({score:.{Data.SCORE_DECIMAL_PLACES}f} pts)`\n"
+                    if i < middle_index:
+                        col_left_items.append(formatted_string)
+                    else:
+                        col_right_items.append(formatted_string)
+
+                with col_left:
+                    st.write_stream(ui.stream_data(col_left_items))
+
+                with col_right:
+                    st.write_stream(ui.stream_data(col_right_items))
+            else:
+                st.info("No top 10 players to display for the selected period.")
+
+    with player_tab:
+        player_button_placeholder = st.empty()
+        if not st.session_state.reveal_player:
+            if player_button_placeholder.button(
+                "Reveal Top Player", key="btn_reveal_player"
+            ):
+                st.session_state.reveal_player = True
+                player_button_placeholder.empty()  # Clear the button immediately
+                countdown_placeholder = st.empty()
+                for i in range(3, 0, -1):
+                    countdown_placeholder.metric(
+                        label="Revealing in...", value=f"{i} seconds"
+                    )
+                    time.sleep(1)
+                countdown_placeholder.empty()  # Clear the countdown
+
+        if st.session_state.reveal_player:
+            st.metric(
+                label="Score",
+                value=top_player_name,
+                delta=f"{top_player_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
+                help=f"The player's score is calculated based on the outcome of their shots (goal: {Scoring.GOAL:.1f}, saved: {Scoring.SAVED:.1f}, out: {Scoring.OUT:.1f}).",
+            )
+
+    with keeper_tab:
+        keeper_button_placeholder = st.empty()
+        if not st.session_state.reveal_keeper:
+            if keeper_button_placeholder.button(
+                "Reveal Top Goalkeeper", key="btn_reveal_keeper"
+            ):
+                st.session_state.reveal_keeper = True
+                keeper_button_placeholder.empty()  # Clear the button immediately
+                countdown_placeholder = st.empty()
+                for i in range(3, 0, -1):
+                    countdown_placeholder.metric(
+                        label="Revealing in...", value=f"{i} seconds"
+                    )
+                    time.sleep(1)
+                countdown_placeholder.empty()  # Clear the countdown
+
+        if st.session_state.reveal_keeper:
+            st.metric(
+                label="Score",
+                value=top_keeper_name,
+                delta=f"{top_keeper_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
+                help=f"The goalkeeper's score is calculated based on the outcome of the shots they faced (goal: {Scoring.KEEPER_GOAL:.1f}, saved: {Scoring.KEEPER_SAVED:.1f}, out: {Scoring.KEEPER_OUT:.1f}).",
+            )
 
     with st.container(border=True):
         st.subheader("Hall of Fame")
@@ -353,6 +336,7 @@ if not data.empty:
                     help="The date with the most penalties.",
                 )
 
+
     # Recent Activity content (full width)
     with st.container(border=True):
         st.subheader("Recent Activity")
@@ -450,7 +434,7 @@ if not data.empty:
             player_scores = calculate_player_scores(latest_session_data)
             player_stats = player_stats.join(player_scores[Columns.SCORE])
             player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
-            ui.render_plotly_chart(fig)
+            ui.render_plotly_chart(fig, fixed_range=False)
             st.dataframe(player_stats, width="stretch")
 
         with tab_keepers:
@@ -469,5 +453,5 @@ if not data.empty:
                 ),
                 margin=dict(b=200),
             )
-            ui.render_plotly_chart(fig)
+            ui.render_plotly_chart(fig, fixed_range=False)
             st.dataframe(keeper_stats, width="stretch")

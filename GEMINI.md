@@ -19,3 +19,13 @@ This document provides a map to the detailed context files located in the `llm_c
 *   **`8_git_practices.md`**: Guidelines for Git interactions by the Gemini LLM.
 
 ---
+
+## Rigorously Adhere to Style Guides
+
+When applying any coding style or formatting guidelines (e.g., `from llm_context/5_coding_principles.md`), always perform an explicit, step-by-step verification. This includes:
+    1.  **Re-reading the specific rule** immediately before and after applying the change.
+    2.  **Performing a character-by-character or line-by-line comparison** to ensure exact adherence.
+    3.  **Providing a brief, explicit confirmation** of how the change adheres to the rule, especially for nuanced rules like sorting by length.
+    4.  **If a tool operation fails due to a mismatch, immediately re-read the relevant file content and the style guide rule to identify the exact discrepancy.**
+
+---

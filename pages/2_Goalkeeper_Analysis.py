@@ -6,25 +6,15 @@ from datetime import date
 from typing import List, Optional
 
 import pandas as pd
-import streamlit as st
 import plotly.express as px
+import streamlit as st
 
-from src import ui
 from src import analysis
-from src.data_loader import load_data
+from src import ui
 from src.constants import Columns, Data, Scoring, Status, UI
 
-st.set_page_config(
+ui.setup_page(
     page_title="NFT Weingarten - Goalkeeper Analysis",
-    page_icon=UI.EMOJI_GOALKEEPER_PAGE,
-    initial_sidebar_state="expanded",
-    layout="wide",
-)
-
-# --- Header ---
-
-ui.display_page_header(
-    page_title="Goalkeeper Performance Analysis",
     page_icon=UI.EMOJI_GOALKEEPER_PAGE,
     page_description="""
     This page analyzes goalkeeper performance. 
@@ -32,12 +22,8 @@ ui.display_page_header(
     """,
 )
 
-gender_selection = ui.gender_selection_ui()
-last_refresh_time = ui.data_refresh_button_ui()
-data: pd.DataFrame = load_data(
-    gender=gender_selection, last_refresh_time=last_refresh_time
-)
-data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
+
+data: pd.DataFrame = ui.load_and_process_data()
 
 with st.container(border=True):
     st.subheader("Goalkeeper Performance Analysis")

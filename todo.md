@@ -12,7 +12,7 @@ This document lists the key areas for improvement to make the project more robus
     - [ ] Add comprehensive docstrings to all functions in the `src/` directory (`analysis.py`, `records.py`, `ui.py`, etc.). Each docstring should explain the function's purpose, its parameters, and what it returns.
     - [ ] Add inline comments for any complex or non-obvious lines of code.
 
-- [ ] **3. Refactor UI for Reusability (DRY)**
+- [x] **3. Refactor UI for Reusability (DRY)**
     - [ ] Identify repeated UI-generation code across `Home.py` and the files in `pages/`.
     - [ ] Abstract common UI elements (e.g., page setup, sidebar configuration, date selectors) into reusable functions in `src/ui.py`.
 

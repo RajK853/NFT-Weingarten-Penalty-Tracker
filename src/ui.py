@@ -1,12 +1,12 @@
 import time
 from typing import Any, Generator, Iterable
 
-import streamlit as st
+import pandas as pd
 import plotly.graph_objects as go
+import streamlit as st
 
-from src.constants import Data, Gender, Paths, SessionState, UI
-
-
+from src.constants import Columns, Data, Gender, Paths, SessionState, UI
+from src.data_loader import load_data
 def stream_data(
     iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_TIMEOUT
 ) -> Generator[Any, None, None]:
@@ -103,6 +103,58 @@ def data_refresh_button_ui() -> float:
     return st.session_state.last_refresh_time
 
 
+import pandas as pd
+from src.data_loader import load_data
+from src.constants import Columns
+
+def load_and_process_data() -> pd.DataFrame:
+    """
+    Handles gender selection, data refresh, data loading, and date conversion.
+
+    Returns:
+        pd.DataFrame: The processed DataFrame with the 'DATE' column converted to datetime objects.
+    """
+    gender_selection = gender_selection_ui()
+    last_refresh_time = data_refresh_button_ui()
+    st.info("You can change the gender from the left sidebar option.")
+    st.markdown("---")
+
+    data = load_data(gender=gender_selection, last_refresh_time=last_refresh_time)
+    if not data.empty:
+        data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
+    return data
+
+
+def setup_page(
+    page_title: str,
+    page_icon: str,
+    page_description: str,
+    initial_sidebar_state: str = "expanded",
+    layout: str = "wide",
+):
+    """
+    Sets up the Streamlit page configuration and displays a standardized page header.
+
+    This function combines `st.set_page_config` and `display_page_header` to ensure
+    consistent page setup across the application.
+
+    Args:
+        page_title (str): The main title of the page.
+        page_icon (str): An emoji or short string representing an icon for the page.
+        page_description (str): A brief textual description of the page's content or purpose.
+        initial_sidebar_state (str): Initial state of the sidebar ("auto", "expanded", or "collapsed").
+                                     Defaults to "expanded".
+        layout (str): Layout of the page ("centered" or "wide"). Defaults to "wide".
+    """
+    st.set_page_config(
+        page_title=page_title,
+        page_icon=page_icon,
+        initial_sidebar_state=initial_sidebar_state,
+        layout=layout,
+    )
+    display_page_header(page_title, page_icon, page_description)
+
+
 def display_page_header(page_title: str, page_icon: str, page_description: str):
     """
     Displays a standardized page header including a logo, a centered title, and a description.
@@ -133,7 +185,7 @@ def display_page_header(page_title: str, page_icon: str, page_description: str):
 
 
 def render_plotly_chart(
-    fig: go.Figure, use_container_width: bool = True, hide_mode_bar: bool = True
+    fig: go.Figure, use_container_width: bool = True, hide_mode_bar: bool = True, fixed_range: bool = True
 ):
     """
     Renders a Plotly figure within a Streamlit application with common configurations.
@@ -148,9 +200,11 @@ def render_plotly_chart(
                                     of its container. Defaults to True.
         hide_mode_bar (bool): If True, the Plotly mode bar (which includes tools like zoom,
                               pan, download) will be hidden. Defaults to True.
+        fixed_range (bool): If True, disables zooming/panning on both x and y axes. Defaults to True.
     """
     # Apply fixedrange to axes to disable zooming/panning (general requirement)
-    fig.update_layout(xaxis_fixedrange=True, yaxis_fixedrange=True)
+    if fixed_range:
+        fig.update_layout(xaxis_fixedrange=True, yaxis_fixedrange=True)
 
     # Configure st.plotly_chart
     config = {}
