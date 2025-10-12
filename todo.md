@@ -8,7 +8,7 @@ This document lists the key areas for improvement to make the project more robus
     - [ ] Add unit tests for the record-finding logic in `src/records.py`.
     - [ ] Add unit tests for the data loading and fallback logic in `src/data_loader.py`.
 
-- [ ] **2. Add Docstrings and Improve Documentation**
+- [x] **2. Add Docstrings and Improve Documentation**
     - [ ] Add comprehensive docstrings to all functions in the `src/` directory (`analysis.py`, `records.py`, `ui.py`, etc.). Each docstring should explain the function's purpose, its parameters, and what it returns.
     - [ ] Add inline comments for any complex or non-obvious lines of code.
 

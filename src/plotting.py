@@ -4,14 +4,22 @@ from src.constants import Columns, Data, GoalVisual, Status, UI
 
 def create_shot_distribution_chart(data: pd.DataFrame) -> go.Figure:
     """
-    Creates a scatter plot of shot distribution on a goalpost visual.
+    Creates a scatter plot of shot distribution on a visual representation of a goalpost.
+
+    This function generates a Plotly figure that displays individual penalty shots as points
+    on a goal. The goal is represented as a rectangle, and each shot's outcome (goal, saved, out)
+    is color-coded for easy interpretation. Hovering over a point reveals details about the shooter
+    and the outcome.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data
-                             with 'Shot_X', 'Shot_Y', and 'Status' columns.
+                             with `Columns.SHOT_X`, `Columns.SHOT_Y` (coordinates of the shot),
+                             `Columns.STATUS` (outcome of the shot), and `Columns.SHOOTER_NAME`.
 
     Returns:
         go.Figure: A Plotly Graph Object figure displaying the shot distribution.
+                   The figure includes a rectangular goalpost, color-coded scatter points for shots,
+                   and custom layout settings for aesthetics.
     """
     fig = go.Figure()
 

@@ -8,7 +8,18 @@ import numpy as np
 
 def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:
     """
-    Helper function to determine the start and end dates for a given month display string.
+    Determines the start and end dates for a given month display string.
+
+    This helper function parses a string representing a month (e.g., "January 2023")
+    and converts it into a `pd.Period` object to extract the first and last days
+    of that month as `datetime.date` objects.
+
+    Args:
+        selected_month_display (str): A string representing the month and year (e.g., "January 2023").
+
+    Returns:
+        Tuple[date, date]: A tuple containing two `datetime.date` objects:
+                           the start date (first day) and the end date (last day) of the month.
     """
     selected_month_period: pd.Period = pd.Period(selected_month_display.replace(" ", "-"), freq='M')
     start_date_filter: date = selected_month_period.start_time.date()
@@ -18,7 +29,20 @@ def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[dat
 
 def _apply_time_decay(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Applies time-decay logic to the DataFrame, adding 'days_ago' and 'weight' columns.
+    Applies time-decay logic to the input DataFrame, adding 'days_ago' and 'weight' columns.
+
+    This function calculates a weight for each entry based on its age relative to the latest date
+    in the dataset. The weighting uses an exponential decay model, where the `PERFORMANCE_HALF_LIFE_DAYS`
+    constant from `Scoring` determines how quickly the weight diminishes over time.
+    If `half_life` is zero or negative, no decay is applied, and all weights are 1.0.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing a `Columns.DATE` column.
+
+    Returns:
+        pd.DataFrame: The DataFrame with two new columns added:
+                      - 'days_ago': The number of days since the latest date in the DataFrame.
+                      - 'weight': The calculated time-decay weight for each entry.
     """
     df[Columns.DATE] = pd.to_datetime(df[Columns.DATE])
     latest_date = df[Columns.DATE].max()
@@ -35,18 +59,24 @@ def _apply_time_decay(df: pd.DataFrame) -> pd.DataFrame:
 def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None, period_type: str = "Days") -> Tuple[int, float, pd.DataFrame]:
     """
     Calculates overall penalty shootout statistics, including total penalties, overall goal percentage,
-    and outcome distribution.
+    and outcome distribution, with optional time-based filtering.
+
+    This function provides a high-level overview of penalty performance. It can filter the data
+    to include only the most recent penalties based on a specified number of periods (days, months, or years).
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        num_periods (Optional[int]): If provided, filters data for the most recent N periods (Days, Months, Years).
-        period_type (str): The type of period to filter by ("Days", "Months", "Years"). Defaults to "Days".
+        num_periods (Optional[int]): If provided, filters data for the most recent N periods.
+                                     E.g., if `period_type` is "Days" and `num_periods` is 30, it considers
+                                     penalties from the last 30 days.
+        period_type (str): The unit of time for `num_periods`. Must be "Days", "Months", or "Years".
+                           Defaults to "Days".
 
     Returns:
         Tuple[int, float, pd.DataFrame]: A tuple containing:
-            - total_penalties (int): The total number of penalties.
-            - overall_goal_percentage (float): The overall goal percentage.
-            - outcome_distribution (pd.DataFrame): A DataFrame with the distribution of outcomes (goal, saved, out).
+            - total_penalties (int): The total number of penalties considered after filtering.
+            - overall_goal_percentage (float): The percentage of penalties that resulted in a goal.
+            - outcome_distribution (pd.DataFrame): A DataFrame with the count of each outcome (goal, saved, out).
     """
     with st.spinner("Calculating overall statistics..."):
         df = data.copy()
@@ -78,16 +108,23 @@ def get_overall_statistics(data: pd.DataFrame, num_periods: Optional[int] = None
 def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
     """
     Calculates the time-weighted total score for each shooter based on the outcome of their shots.
-    More recent shots are weighted more heavily based on an exponential decay model.
+    More recent shots are weighted more heavily based on an exponential decay model defined in `_apply_time_decay`.
+
+    The function aggregates individual shot outcomes (goal, saved, out) and applies a score based on `Scoring`
+    constants, then multiplies by a time-decay weight. The results are grouped by shooter.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        start_date (Optional[date]): The start date for filtering the data.
-        end_date (Optional[date]): The end date for filtering the data.
+        start_date (Optional[date]): The start date for filtering the data (inclusive).
+        end_date (Optional[date]): The end date for filtering the data (inclusive).
 
     Returns:
-        pd.DataFrame: A DataFrame with shooter names and their total time-weighted scores,
-                      sorted by score in descending order.
+        pd.DataFrame: A DataFrame indexed by `Columns.SHOOTER_NAME` with the following columns:
+                      - `Columns.SCORE`: The total time-weighted score for each player.
+                      - `Status.GOAL`: Count of goals scored.
+                      - `Status.SAVED`: Count of shots saved by the goalkeeper.
+                      - `Status.OUT`: Count of shots that went out.
+                      The DataFrame is sorted by `Columns.SCORE` in descending order.
     """
     with st.spinner("Calculating player scores..."):
         df = data.copy()
@@ -132,15 +169,23 @@ def calculate_player_scores(data: pd.DataFrame, start_date: Optional[date] = Non
 def calculate_keeper_scores(data: pd.DataFrame, start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
     """
     Calculates the time-weighted total score for each goalkeeper based on the outcome of the shots they faced.
+    More recent shots are weighted more heavily based on an exponential decay model defined in `_apply_time_decay`.
+
+    The function aggregates individual shot outcomes (goal conceded, saved, out) and applies a score based on `Scoring`
+    constants (from the goalkeeper's perspective), then multiplies by a time-decay weight. The results are grouped by keeper.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        start_date (Optional[date]): The start date for filtering the data.
-        end_date (Optional[date]): The end date for filtering the data.
+        start_date (Optional[date]): The start date for filtering the data (inclusive).
+        end_date (Optional[date]): The end date for filtering the data (inclusive).
 
     Returns:
-        pd.DataFrame: A DataFrame with keeper names and their total time-weighted scores,
-                      sorted by score in descending order.
+        pd.DataFrame: A DataFrame indexed by `Columns.KEEPER_NAME` with the following columns:
+                      - `Columns.SCORE`: The total time-weighted score for each goalkeeper.
+                      - `Status.GOAL`: Count of goals conceded.
+                      - `Status.SAVED`: Count of saves made.
+                      - `Status.OUT`: Count of shots that went out (not saved, not a goal).
+                      The DataFrame is sorted by `Columns.SCORE` in descending order.
     """
     with st.spinner("Calculating keeper scores..."):
         df = data.copy()
@@ -184,16 +229,22 @@ def calculate_keeper_scores(data: pd.DataFrame, start_date: Optional[date] = Non
 @st.cache_data
 def get_player_status_counts_over_time(data: pd.DataFrame, selected_players: List[str], start_date: Optional[date] = None, end_date: Optional[date] = None) -> pd.DataFrame:
     """
-    Calculates the status counts (goals, saved, out) for selected players over a specified time period.
+    Calculates the daily status counts (goals, saved, out) for selected players over a specified time period.
+
+    This function filters the penalty data for the specified players and date range, then groups it
+    by date, player, and status to count occurrences. It ensures that all possible statuses (goal, saved, out)
+    are represented for each player on each day, filling missing counts with zeros for consistent plotting.
 
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
         selected_players (List[str]): A list of player names to analyze.
-        start_date (Optional[date]): The start date for filtering the data.
-        end_date (Optional[date]): The end date for filtering the data.
+        start_date (Optional[date]): The start date for filtering the data (inclusive).
+        end_date (Optional[date]): The end date for filtering the data (inclusive).
 
     Returns:
-        pd.DataFrame: A DataFrame with status counts for each player per day, ensuring all statuses are present.
+        pd.DataFrame: A DataFrame with daily status counts for each selected player.
+                      It includes columns for `Columns.DATE`, `Columns.SHOOTER_NAME`,
+                      `Columns.STATUS`, and `Columns.COUNT`. Missing status counts are filled with 0.
     """
     with st.spinner("Calculating player status counts..."):
         if not selected_players:
@@ -228,13 +279,22 @@ def get_overall_trend_data(data: pd.DataFrame, start_date: Optional[date] = None
     """
     Calculates monthly trends for total shots, goals, saves, and outs, along with their percentages.
 
+    This function processes the penalty shootout data to aggregate statistics on a monthly basis.
+    It calculates the total shots, goals, saves, and outs for each month within the specified date range,
+    and then computes the percentage of goals, saves, and outs relative to the total shots for that month.
+    The resulting DataFrame is then "melted" into a long format, making it suitable for plotting time series trends
+    with libraries like Plotly Express.
+
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        start_date (Optional[date]): The start date for filtering the data.
-        end_date (Optional[date]): The end date for filtering the data.
+        start_date (Optional[date]): The start date for filtering the data (inclusive).
+        end_date (Optional[date]): The end date for filtering the data (inclusive).
 
     Returns:
         pd.DataFrame: A melted DataFrame suitable for plotting, showing monthly percentages of goals, saves, and outs.
+                      It includes columns for `Columns.MONTH`, `Columns.TOTAL_SHOTS_TREND`,
+                      `Columns.OUTCOME_TYPE` (e.g., 'Goal Percentage', 'Saved Percentage'),
+                      and `Columns.PERCENTAGE` (the corresponding percentage value).
     """
     with st.spinner("Calculating overall trend data..."):
         df = data.copy()
@@ -274,13 +334,20 @@ def get_monthly_outcome_distribution(data: pd.DataFrame, start_date: Optional[da
     """
     Calculates the monthly distribution of penalty outcomes (goal, saved, out) as percentages.
 
+    This function groups the penalty shootout data by month and status, then calculates the
+    percentage of each outcome type (goal, saved, out) for each month. The resulting DataFrame
+    is then "melted" into a long format, making it suitable for plotting monthly outcome distributions
+    (e.g., as a stacked bar chart).
+
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        start_date (Optional[date]): The start date for filtering the data.
-        end_date (Optional[date]): The end date for filtering the data.
+        start_date (Optional[date]): The start date for filtering the data (inclusive).
+        end_date (Optional[date]): The end date for filtering the data (inclusive).
 
     Returns:
         pd.DataFrame: A melted DataFrame showing monthly percentages for each outcome type.
+                      It includes columns for `Columns.MONTH`, `Columns.STATUS` (e.g., 'goal', 'saved', 'out'),
+                      and `Columns.GOAL_PERCENTAGE` (the corresponding percentage value).
     """
     with st.spinner("Calculating monthly outcome distribution..."):
         df = data.copy()
@@ -305,14 +372,23 @@ def get_keeper_outcome_distribution(data: pd.DataFrame, keeper_name: str, start_
     """
     Calculates the distribution of outcomes (goals conceded, saves, outs) for a specific goalkeeper.
 
+    This function filters the penalty shootout data for a given goalkeeper and date range.
+    It then counts the number of goals conceded, saves made, and shots that went out (neither goal nor save)
+    when that goalkeeper was in goal. It also calculates the percentage of each outcome relative to the
+    total shots faced by the goalkeeper.
+
     Args:
         data (pd.DataFrame): The input DataFrame containing penalty shootout data.
-        keeper_name (str): The name of the goalkeeper.
-        start_date (Optional[date]): The start date for filtering the data.
-        end_date (Optional[date]): The end date for filtering the data.
+        keeper_name (str): The name of the goalkeeper to analyze.
+        start_date (Optional[date]): The start date for filtering the data (inclusive).
+        end_date (Optional[date]): The end date for filtering the data (inclusive).
 
     Returns:
-        pd.DataFrame: A DataFrame with outcome statuses and their counts and percentages for the given goalkeeper.
+        pd.DataFrame: A DataFrame with the following columns:
+                      - `Columns.STATUS`: The outcome status (e.g., 'goal', 'saved', 'out').
+                      - `Columns.COUNT`: The number of occurrences for each status.
+                      - `Columns.GOAL_PERCENTAGE`: The percentage of each status relative to total shots faced.
+                      Returns an empty DataFrame if the goalkeeper has faced no penalties within the specified period.
     """
     with st.spinner("Calculating keeper outcome distribution..."):
         keeper_data = data[data[Columns.KEEPER_NAME] == keeper_name].copy()

@@ -7,13 +7,18 @@ def load_data(gender: str, last_refresh_time: float) -> pd.DataFrame:
     """
     Loads penalty shootout data for the specified gender.
 
-    For males, it loads from a Google Sheet. For females, it loads from a local CSV.
+    For males, it attempts to load data from a Google Sheet. If that fails or returns empty data,
+    it falls back to loading from a local pseudo CSV file. For females, it always loads from
+    the local pseudo CSV file as per project specifications.
 
     Args:
         gender (str): The gender to load data for ('Male' or 'Female').
+        last_refresh_time (float): A timestamp used to bust the Streamlit cache.
+                                   When this value changes, the data will be reloaded.
 
     Returns:
         pd.DataFrame: A DataFrame containing the penalty shootout data.
+                      Includes error handling and fallback to local pseudo data if Google Sheet loading fails.
     """
     with st.spinner(f"Loading {gender.lower()} team data..."):
         if gender == Gender.MALE:
