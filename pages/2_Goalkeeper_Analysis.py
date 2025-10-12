@@ -100,7 +100,7 @@ with st.container(border=True):
                         ),
                         margin=dict(b=200),  # Even more increased bottom margin
                     )
-                    ui.render_plotly_chart(fig_keeper_outcome)
+                    ui.render_plotly_chart(fig_keeper_outcome, fixed_range=True)
                 else:
                     st.info(
                         UI.INFO_NO_KEEPER_DATA.format(

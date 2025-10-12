@@ -83,16 +83,13 @@ with st.container(border=True):
         fig_top_players.update_layout(
             yaxis_title="Score",
             yaxis=dict(range=[y_range_min, y_range_max]),
-            legend=dict(
-                orientation="h", yanchor="bottom", y=-0.8, xanchor="center", x=0.5
-            ),
             margin=dict(b=200),
         )  # fixedrange will be applied by render_plotly_chart
         fig_top_players.update_traces(
             texttemplate=f"%{{y:{score_format_specifier}}}",
             textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE,
         )
-        ui.render_plotly_chart(fig_top_players, fixed_range=False)
+        ui.render_plotly_chart(fig_top_players, fixed_range=True)
         st.dataframe(
             top_players,
             column_config={
@@ -205,16 +202,9 @@ with st.container(border=True):
                         fig_score_monthly.update_layout(
                             yaxis_title="Score",
                             xaxis_title="Player Name",
-                            legend=dict(
-                                orientation="h",
-                                yanchor="bottom",
-                                y=-0.8,
-                                xanchor="center",
-                                x=0.5,
-                            ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        ui.render_plotly_chart(fig_score_monthly, fixed_range=False)
+                        ui.render_plotly_chart(fig_score_monthly, fixed_range=True)
 
                     with goal_tab:
                         max_goals = monthly_player_status_summary[Status.GOAL].max()
@@ -241,16 +231,9 @@ with st.container(border=True):
                         fig_goals_monthly.update_layout(
                             yaxis_title="Goals",
                             xaxis_title="Player Name",
-                            legend=dict(
-                                orientation="h",
-                                yanchor="bottom",
-                                y=-0.8,
-                                xanchor="center",
-                                x=0.5,
-                            ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        ui.render_plotly_chart(fig_goals_monthly, fixed_range=False)
+                        ui.render_plotly_chart(fig_goals_monthly, fixed_range=True)
 
                     with saved_tab:
                         max_saved = monthly_player_status_summary[Status.SAVED].max()
@@ -277,16 +260,9 @@ with st.container(border=True):
                         fig_saved_monthly.update_layout(
                             yaxis_title="Saved Shots",
                             xaxis_title="Player Name",
-                            legend=dict(
-                                orientation="h",
-                                yanchor="bottom",
-                                y=-0.8,
-                                xanchor="center",
-                                x=0.5,
-                            ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        ui.render_plotly_chart(fig_saved_monthly, fixed_range=False)
+                        ui.render_plotly_chart(fig_saved_monthly, fixed_range=True)
 
                 with out_tab:
                     max_out = monthly_player_status_summary[Status.OUT].max()
@@ -313,16 +289,9 @@ with st.container(border=True):
                     fig_out_monthly.update_layout(
                         yaxis_title="Out Shots",
                         xaxis_title="Player Name",
-                        legend=dict(
-                            orientation="h",
-                            yanchor="bottom",
-                            y=-0.8,
-                            xanchor="center",
-                            x=0.5,
-                        ),
                         margin=dict(b=200),
                     )  # fixedrange will be applied by render_plotly_chart
-                    ui.render_plotly_chart(fig_out_monthly, fixed_range=False)
+                    ui.render_plotly_chart(fig_out_monthly, fixed_range=True)
 
             else:
                 st.info(

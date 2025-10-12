@@ -153,7 +153,7 @@ with st.expander("See the Math: The Half-Life Formula"):
         ),
         margin=dict(b=200),  # Even more increased bottom margin
     )
-    ui.render_plotly_chart(fig, fixed_range=False)
+    ui.render_plotly_chart(fig, fixed_range=True)
 
 st.info(
     """

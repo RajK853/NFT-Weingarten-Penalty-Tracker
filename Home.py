@@ -434,7 +434,11 @@ with st.container(border=True):
             player_scores = calculate_player_scores(latest_session_data)
             player_stats = player_stats.join(player_scores[Columns.SCORE])
             player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
-            ui.render_plotly_chart(fig, fixed_range=False)
+            fig = px.bar(player_stats, x=player_stats.index, y=Columns.SCORE)
+            fig.update_layout(
+                margin=dict(b=200),
+            )
+            ui.render_plotly_chart(fig, fixed_range=True)
             st.dataframe(player_stats, width="stretch")
 
         with tab_keepers:
@@ -448,10 +452,7 @@ with st.container(border=True):
             keeper_stats = keeper_stats.sort_values(by=Columns.SCORE, ascending=False)
             fig = px.bar(keeper_stats, x=keeper_stats.index, y=Columns.SCORE)
             fig.update_layout(
-                legend=dict(
-                    orientation="h", yanchor="bottom", y=-0.8, xanchor="center", x=0.5
-                ),
                 margin=dict(b=200),
             )
-            ui.render_plotly_chart(fig, fixed_range=False)
+            ui.render_plotly_chart(fig, fixed_range=True)
             st.dataframe(keeper_stats, width="stretch")
