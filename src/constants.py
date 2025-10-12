@@ -40,7 +40,7 @@ class Scoring:
     KEEPER_SAVED: float = +1.5
     KEEPER_OUT: float = 0.0
     PERFORMANCE_HALF_LIFE_DAYS: int = 45 # Days until a performance is worth half its value.
-    DECAY_RATE: float = np.log(2) / PERFORMANCE_HALF_LIFE_DAYS if PERFORMANCE_HALF_LIFE_DAYS > 0 else 0.0
+
 
 class Paths:
     LOGO: str = "data/logo.jpg"

@@ -22,13 +22,13 @@ def _apply_time_decay(df: pd.DataFrame) -> pd.DataFrame:
     """
     df[Columns.DATE] = pd.to_datetime(df[Columns.DATE])
     latest_date = df[Columns.DATE].max()
-    decay_rate = Scoring.DECAY_RATE
+    half_life = Scoring.PERFORMANCE_HALF_LIFE_DAYS
 
-    if decay_rate > 0:
+    if half_life > 0:
         df['days_ago'] = (latest_date - df[Columns.DATE]).dt.days
-        df['weight'] = np.exp(-decay_rate * df['days_ago'])
+        df['weight'] = 2 ** (-df['days_ago'] / half_life)
     else:
-        df['weight'] = 1.0 # No decay if decay_rate is zero or negative
+        df['weight'] = 1.0  # No decay if half_life is zero or negative
     return df
 
 @st.cache_data

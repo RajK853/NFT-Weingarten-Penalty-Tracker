@@ -25,9 +25,8 @@ display_page_header(
     page_title="Player Performance Analysis",
     page_icon=UI.EMOJI_PLAYER_PAGE,
     page_description="""
-    This page is dedicated to in-depth analysis of individual player performance in penalty shootouts. 
-    Utilize the interactive tools below to compare players, understand their scoring consistency, 
-    and identify top performers based on various metrics over customizable timeframes.
+    Here you can analyze how well individual players are doing. 
+    Use the tools below to compare players and see who is performing best over time.
     """
 )
 gender_selection = gender_selection_ui()
@@ -37,8 +36,8 @@ data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
 
 with st.container(border=True):
     st.subheader("Player Score Leaderboard")
-    st.markdown("This leaderboard ranks players based on a comprehensive scoring system that assigns points for each shot outcome (Goal, Saved, Out). A higher score indicates superior overall performance in penalty shootouts.")
-    st.info(f"Scores are weighted by recency. The current performance half-life is {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days.")
+    st.markdown("This leaderboard ranks players by score. A higher score means better performance.")
+    st.info(f"Scores are weighted by how recent they are. The current half-life is {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days. This means recent scores are more important.")
 
     st.markdown("For a detailed explanation of the scoring system, please visit the [Scoring Information](/Scoring_Information) page.")
 
@@ -86,7 +85,7 @@ with st.container(border=True):
         st.info(UI.INFO_SELECT_DATE_RANGE)
 
     st.subheader("Compare Player Performance Over Time")
-    st.markdown("Select multiple players and a specific month to analyze their aggregated performance across different outcome categories (Score, Goals, Saved, Out). This section provides a detailed breakdown of how selected players performed within the chosen timeframe.")
+    st.markdown("Choose players and a month to see how they performed. You can see their score, goals, saved shots, and missed shots.")
     player_names: List[str] = list(sorted(data[Columns.SHOOTER_NAME].unique()))
     selected_players: List[str] = st.multiselect(
         f"Select up to {UI.MAX_PLAYER_SELECTIONS} Players to Compare",

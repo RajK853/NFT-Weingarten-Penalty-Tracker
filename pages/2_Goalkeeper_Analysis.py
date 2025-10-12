@@ -24,9 +24,8 @@ display_page_header(
     page_title="Goalkeeper Performance Analysis",
     page_icon=UI.EMOJI_GOALKEEPER_PAGE,
     page_description="""
-    This page offers a comprehensive analysis of goalkeeper performance in penalty shootouts. 
-    Explore key metrics such as scores and detailed outcome distributions 
-    to understand how different goalkeepers perform under pressure.
+    This page analyzes goalkeeper performance. 
+    You can see scores and how many goals were saved or missed.
     """
 )
 
@@ -37,8 +36,8 @@ data[Columns.DATE] = pd.to_datetime(data[Columns.DATE]).dt.date
 
 with st.container(border=True):
     st.subheader("Goalkeeper Performance Analysis")
-    st.markdown("Utilize the month selector to analyze goalkeeper performance over specific periods. This section provides insights into their overall effectiveness in saving penalties and the distribution of outcomes they face.")
-    st.info(f"Rankings are based on a time-weighted score to reflect current form. The current performance half-life is {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days.")
+    st.markdown("Use the month selector to see how goalkeepers performed in a specific month. You can see how good they are at saving penalties.")
+    st.info(f"Rankings use a time-weighted score to show who is in good form now. The current half-life is {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days.")
 
     # Generate unique months for the dropdown
     data[Columns.MONTH] = pd.to_datetime(data[Columns.DATE]).dt.to_period('M')

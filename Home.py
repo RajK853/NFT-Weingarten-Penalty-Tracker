@@ -33,7 +33,7 @@ display_page_header(
     page_title="NFT Weingarten Penalty Tracker",
     page_icon=UI.EMOJI_HOME_PAGE,
     page_description="""
-    This interactive dashboard provides a comprehensive overview of penalty shootout data. Explore player performances, goalkeeper statistics, and historical trends to gain insights into the game.  
+    This dashboard shows an overview of penalty shootout data. You can explore player and goalkeeper stats and see historical trends.
     """
 )
 
@@ -51,8 +51,7 @@ if not data.empty:
     # --- Main Content ---
     with st.container(border=True):
         st.subheader("Top Performers")
-        st.markdown(f"Highlights top-performing players and goalkeepers from the `recent {UI.RECENT_DAYS_FILTER} days`, showcasing their current form and impact.")
-        st.markdown("Player and goalkeeper rankings use a time-weighted scoring system.")
+        st.markdown(f"This section shows the top players and goalkeepers from the last {UI.RECENT_DAYS_FILTER} days. Rankings use a time-weighted score, meaning recent games have a bigger impact.")
         st.page_link("pages/3_Scoring_Information.py", label="ℹ️ Learn more about our scoring system")
 
         current_date = pd.to_datetime(data[Columns.DATE]).max()
@@ -150,7 +149,7 @@ if not data.empty:
 
     with st.container(border=True):
         st.subheader("Hall of Fame")
-        st.markdown("Explore remarkable achievements, historical records, and fun facts about the penalty shootouts.")
+        st.markdown("See cool achievements, records, and fun facts about the penalty shootouts.")
         
         # Get records data
         longest_streak_players, longest_streak = get_longest_goal_streak(data)
@@ -208,14 +207,14 @@ if not data.empty:
                     label="⚽ Most Goals in a Session",
                     value=most_goals_player,
                     delta=f"{most_goals} goals on {most_goals_date.strftime('%d-%m-%Y')}",
-                    help="The player who scored the most goals in a single session."
+                    help="Most goals scored by a player in a single game."
                 )
             with col2_tab2:
                 st.metric(
                     label="🧤 Most Saves in a Session",
                     value=most_saves_keeper,
                     delta=f"{most_saves} saves on {most_saves_date.strftime('%d-%m-%Y')}",
-                    help="The goalkeeper who made the most saves in a single session."
+                    help="Most saves made by a goalkeeper in a single game."
                 )
 
         with tab3:
@@ -231,7 +230,7 @@ if not data.empty:
                         help_text = f"Players sharing the record: {', '.join(longest_streak_players)}"
                     else:
                         display_name = ", ".join(longest_streak_players)
-                        help_text = "Player(s) with the most consecutive goals scored."
+                        help_text = "Player(s) who scored the most goals in a row."
                 
                 st.metric(
                     label="🏆 Longest Goal Streak",
@@ -244,7 +243,7 @@ if not data.empty:
                     label="⚔️ Biggest Rivalry",
                     value=f"{rival_shooter} vs {rival_keeper}",
                     delta=f"{encounters} encounters",
-                    help="The most frequent matchup between a shooter and a goalkeeper."
+                    help="The shooter and goalkeeper who played against each other the most."
                 )
 
         with tab4:
@@ -260,7 +259,7 @@ if not data.empty:
                         help_text = f"Players with the most sessions: {', '.join(marathon_men)}"
                     else:
                         display_name = ", ".join(marathon_men)
-                        help_text = "Player(s) who participated in the most penalty sessions."
+                        help_text = "Player(s) who played in the most games."
                 
                 st.metric(
                     label="🏃 Marathon Man (Most Sessions)",
@@ -279,7 +278,7 @@ if not data.empty:
                         help_text = f"Players with the fewest sessions: {', '.join(mysterious_ninjas)}"
                     else:
                         display_name = ", ".join(mysterious_ninjas)
-                        help_text = "Player(s) who participated in the fewest penalty sessions."
+                        help_text = "Player(s) who played in the fewest games."
             
                 st.metric(
                     label="🥷 Mysterious Ninja (Fewest Sessions)",
@@ -294,13 +293,13 @@ if not data.empty:
                     label="🗓️ Busiest Day",
                     value=busiest_date.strftime("%d %B, %Y"),
                     delta=f"{busiest_count} penalties",
-                    help="The date with the highest number of penalties taken."
+                    help="The date with the most penalties."
                 )
 
     # Recent Activity content (full width)
     with st.container(border=True):
         st.subheader("Recent Activity")
-        st.markdown("A summary of the latest penalty session, including player and goalkeeper performance. Compare current stats with the previous session for quick insights.")
+        st.markdown("A summary of the last game, including player and goalkeeper performance. You can compare the latest stats with the game before.")
 
         # Get unique sorted dates
         unique_dates = sorted(data[Columns.DATE].unique(), reverse=True)
@@ -344,14 +343,14 @@ if not data.empty:
                 label="Goals",
                 value=total_goals_latest,
                 delta=delta_goals,
-                help="Latest session's goals. Delta: change from previous session."
+                help="Goals in the last game. The change from the game before is also shown."
             )
         with col_metrics2:
             st.metric(
                 label="Saves",
                 value=total_saves_latest,
                 delta=delta_saves,
-                help="Latest session's saves. Delta: change from previous session."
+                help="Saves in the last game. The change from the game before is also shown."
             )
         with col_metrics3:
             st.metric(
@@ -359,7 +358,7 @@ if not data.empty:
                 value=total_outs_latest,
                 delta=delta_outs,
                 delta_color="inverse",
-                help="Latest session's outs. Delta: change from previous session."
+                help="Shots that went out in the last game. The change from the game before is also shown."
             )
 
 
