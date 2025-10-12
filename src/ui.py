@@ -6,7 +6,10 @@ import streamlit as st
 
 from src.constants import Data, Gender, Paths, SessionState, UI
 
-def stream_data(iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_TIMEOUT) -> Generator[Any, None, None]:
+
+def stream_data(
+    iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_TIMEOUT
+) -> Generator[Any, None, None]:
     """
     Streams an iterable with a delay between each item, simulating a typing effect.
 
@@ -27,6 +30,7 @@ def stream_data(iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_
         yield item
         time.sleep(timeout)
 
+
 def gender_selection_ui() -> str:
     """
     Creates a gender selection UI widget in the Streamlit sidebar.
@@ -44,7 +48,7 @@ def gender_selection_ui() -> str:
     # Gender Selection
     gender_map = {
         Gender.MALE: f"👨 {Gender.MALE}",
-        Gender.FEMALE: f"👩 {Gender.FEMALE}"
+        Gender.FEMALE: f"👩 {Gender.FEMALE}",
     }
 
     # Initialize the main gender state if it doesn't exist
@@ -57,15 +61,16 @@ def gender_selection_ui() -> str:
         format_func=lambda option: gender_map[option],
         key="gender_selector_widget",
         default=st.session_state[SessionState.GENDER],
-        width="stretch"
+        width="stretch",
     )
 
     if selected_gender is None:
-        selected_gender = Gender.MALE # Default to male if None
+        selected_gender = Gender.MALE  # Default to male if None
 
     st.session_state[SessionState.GENDER] = selected_gender
 
     return st.session_state[SessionState.GENDER]
+
 
 def data_refresh_button_ui() -> float:
     """
@@ -80,7 +85,7 @@ def data_refresh_button_ui() -> float:
         float: The Unix timestamp of the last data refresh. This value is primarily used
                as a cache-busting mechanism for `@st.cache_data` decorated functions.
     """
-    st.sidebar.markdown("--- ") # Add a separator
+    st.sidebar.markdown("--- ")  # Add a separator
     st.sidebar.subheader("Data Update")
     st.sidebar.markdown("Update the lastest data from the Google Sheet.")
 
@@ -88,12 +93,15 @@ def data_refresh_button_ui() -> float:
     if "last_refresh_time" not in st.session_state:
         st.session_state.last_refresh_time = time.time()
 
-    if st.sidebar.button("Fetch Latest Data", use_container_width=True): # Changed button label for clarity
+    if st.sidebar.button(
+        "Fetch Latest Data", use_container_width=True
+    ):  # Changed button label for clarity
         st.session_state.last_refresh_time = time.time()
-        st.toast("✅ Latest data loaded from Google Sheet!") # Add toast message
+        st.toast("✅ Latest data loaded from Google Sheet!")  # Add toast message
         st.rerun()
 
     return st.session_state.last_refresh_time
+
 
 def display_page_header(page_title: str, page_icon: str, page_description: str):
     """
@@ -107,19 +115,26 @@ def display_page_header(page_title: str, page_icon: str, page_description: str):
         page_icon (str): An emoji or short string representing an icon for the page (currently unused in implementation but kept for potential future use).
         page_description (str): A brief textual description of the page's content or purpose.
     """
-    col1, col2, col3 = st.columns([1,0.3,1])
+    col1, col2, col3 = st.columns([1, 0.3, 1])
     with col2:
-        st.image(Paths.LOGO, width='stretch')
+        st.image(Paths.LOGO, width="stretch")
 
-    st.markdown(f"<h1 style='text-align: center;'>{page_title}</h1>", unsafe_allow_html=True)
+    st.markdown(
+        f"<h1 style='text-align: center;'>{page_title}</h1>", unsafe_allow_html=True
+    )
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     {page_description}
-    """)
+    """
+    )
     st.write("")
     st.markdown("---")
 
-def render_plotly_chart(fig: go.Figure, use_container_width: bool = True, hide_mode_bar: bool = True):
+
+def render_plotly_chart(
+    fig: go.Figure, use_container_width: bool = True, hide_mode_bar: bool = True
+):
     """
     Renders a Plotly figure within a Streamlit application with common configurations.
 
@@ -140,6 +155,6 @@ def render_plotly_chart(fig: go.Figure, use_container_width: bool = True, hide_m
     # Configure st.plotly_chart
     config = {}
     if hide_mode_bar:
-        config['displayModeBar'] = UI.PLOTLY_DISPLAY_MODE_BAR
+        config["displayModeBar"] = UI.PLOTLY_DISPLAY_MODE_BAR
 
     st.plotly_chart(fig, use_container_width=use_container_width, config=config)

@@ -6,6 +6,7 @@ import streamlit as st
 
 from src.constants import Columns, Status
 
+
 @st.cache_data
 def get_recent_penalties(data: pd.DataFrame, n: int = 5) -> pd.DataFrame:
     """
@@ -22,6 +23,7 @@ def get_recent_penalties(data: pd.DataFrame, n: int = 5) -> pd.DataFrame:
                       If the DataFrame has fewer than `n` records, all records are returned.
     """
     return data.tail(n)
+
 
 @st.cache_data
 def get_longest_goal_streak(data: pd.DataFrame) -> Tuple[List[str], int]:
@@ -52,14 +54,14 @@ def get_longest_goal_streak(data: pd.DataFrame) -> Tuple[List[str], int]:
         player_data = data[data[Columns.SHOOTER_NAME] == player]
         current_streak = 0
         max_player_streak = 0
-        
+
         for status in player_data[Columns.STATUS]:
             if status == Status.GOAL:
                 current_streak += 1
             else:
                 max_player_streak = max(current_streak, max_player_streak)
                 current_streak = 0
-        
+
         # Final check in case the streak is at the end
         max_player_streak = max(current_streak, max_player_streak)
 
@@ -71,6 +73,7 @@ def get_longest_goal_streak(data: pd.DataFrame) -> Tuple[List[str], int]:
             streaking_players.append(player)
 
     return streaking_players, longest_streak
+
 
 @st.cache_data
 def get_most_goals_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
@@ -91,12 +94,22 @@ def get_most_goals_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
             - goal_count (int): The number of goals scored in that session.
                                 Returns (None, None, 0) if no goals are found in the data.
     """
-    goals_in_session = data[data[Columns.STATUS] == Status.GOAL].groupby([Columns.DATE, Columns.SHOOTER_NAME]).size().reset_index(name='goals')
+    goals_in_session = (
+        data[data[Columns.STATUS] == Status.GOAL]
+        .groupby([Columns.DATE, Columns.SHOOTER_NAME])
+        .size()
+        .reset_index(name="goals")
+    )
     if not goals_in_session.empty:
-        most_goals = goals_in_session.loc[goals_in_session['goals'].idxmax()]
-        return most_goals[Columns.SHOOTER_NAME], most_goals[Columns.DATE], most_goals['goals']
-    
+        most_goals = goals_in_session.loc[goals_in_session["goals"].idxmax()]
+        return (
+            most_goals[Columns.SHOOTER_NAME],
+            most_goals[Columns.DATE],
+            most_goals["goals"],
+        )
+
     return None, None, 0
+
 
 @st.cache_data
 def get_marathon_man(data: pd.DataFrame) -> Tuple[List[str], int]:
@@ -120,18 +133,19 @@ def get_marathon_man(data: pd.DataFrame) -> Tuple[List[str], int]:
         return [], 0
 
     session_counts = data.groupby(Columns.SHOOTER_NAME)[Columns.DATE].nunique()
-    
+
     if session_counts.empty:
         return [], 0
-        
+
     max_sessions = session_counts.max()
-    
+
     if max_sessions == 0:
         return [], 0
-        
+
     marathon_men = session_counts[session_counts == max_sessions].index.tolist()
-    
+
     return marathon_men, int(max_sessions)
+
 
 @st.cache_data
 def get_mysterious_ninja(data: pd.DataFrame) -> Tuple[List[str], int]:
@@ -155,18 +169,19 @@ def get_mysterious_ninja(data: pd.DataFrame) -> Tuple[List[str], int]:
         return [], 0
 
     session_counts = data.groupby(Columns.SHOOTER_NAME)[Columns.DATE].nunique()
-    
+
     if session_counts.empty:
         return [], 0
-        
+
     min_sessions = session_counts.min()
-    
+
     if min_sessions == 0:
         return [], 0
-        
+
     mysterious_ninjas = session_counts[session_counts == min_sessions].index.tolist()
-    
+
     return mysterious_ninjas, int(min_sessions)
+
 
 @st.cache_data
 def get_busiest_day(data: pd.DataFrame) -> Tuple[date, int]:
@@ -191,6 +206,7 @@ def get_busiest_day(data: pd.DataFrame) -> Tuple[date, int]:
         return busiest_day, day_counts.max()
     return None, 0
 
+
 @st.cache_data
 def get_biggest_rivalry(data: pd.DataFrame) -> Tuple[str, str, int]:
     """
@@ -210,12 +226,21 @@ def get_biggest_rivalry(data: pd.DataFrame) -> Tuple[str, str, int]:
             - encounters (int): The number of times this shooter-keeper pair has faced each other.
                                 Returns (None, None, 0) if the input DataFrame is empty or lacks necessary columns.
     """
-    rivalry_counts = data.groupby([Columns.SHOOTER_NAME, Columns.KEEPER_NAME]).size().reset_index(name='encounters')
+    rivalry_counts = (
+        data.groupby([Columns.SHOOTER_NAME, Columns.KEEPER_NAME])
+        .size()
+        .reset_index(name="encounters")
+    )
     if not rivalry_counts.empty:
-        biggest_rivalry = rivalry_counts.loc[rivalry_counts['encounters'].idxmax()]
-        return biggest_rivalry[Columns.SHOOTER_NAME], biggest_rivalry[Columns.KEEPER_NAME], biggest_rivalry['encounters']
-    
+        biggest_rivalry = rivalry_counts.loc[rivalry_counts["encounters"].idxmax()]
+        return (
+            biggest_rivalry[Columns.SHOOTER_NAME],
+            biggest_rivalry[Columns.KEEPER_NAME],
+            biggest_rivalry["encounters"],
+        )
+
     return None, None, 0
+
 
 @st.cache_data
 def get_most_saves_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
@@ -236,9 +261,18 @@ def get_most_saves_in_session(data: pd.DataFrame) -> Tuple[str, date, int]:
             - save_count (int): The number of saves made in that session.
                                 Returns (None, None, 0) if no saves are found in the data.
     """
-    saves_in_session = data[data[Columns.STATUS] == Status.SAVED].groupby([Columns.DATE, Columns.KEEPER_NAME]).size().reset_index(name='saves')
+    saves_in_session = (
+        data[data[Columns.STATUS] == Status.SAVED]
+        .groupby([Columns.DATE, Columns.KEEPER_NAME])
+        .size()
+        .reset_index(name="saves")
+    )
     if not saves_in_session.empty:
-        most_saves = saves_in_session.loc[saves_in_session['saves'].idxmax()]
-        return most_saves[Columns.KEEPER_NAME], most_saves[Columns.DATE], most_saves['saves']
-    
+        most_saves = saves_in_session.loc[saves_in_session["saves"].idxmax()]
+        return (
+            most_saves[Columns.KEEPER_NAME],
+            most_saves[Columns.DATE],
+            most_saves["saves"],
+        )
+
     return None, None, 0

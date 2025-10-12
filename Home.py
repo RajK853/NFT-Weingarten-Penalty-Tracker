@@ -36,7 +36,7 @@ st.set_page_config(
     page_title="NFT Weingarten - Penalty Tracker",
     page_icon=UI.EMOJI_HOME_PAGE,
     initial_sidebar_state="expanded",
-    layout="wide"
+    layout="wide",
 )
 
 # --- Header ---
@@ -46,7 +46,7 @@ display_page_header(
     page_icon=UI.EMOJI_HOME_PAGE,
     page_description="""
     This dashboard shows an overview of penalty shootout data. You can explore player and goalkeeper stats and see historical trends.
-    """
+    """,
 )
 
 # --- Sidebar for Gender Selection ---
@@ -63,42 +63,68 @@ if not data.empty:
     # --- Main Content ---
     with st.container(border=True):
         st.subheader("Top Performers")
-        st.markdown(f"This section shows the top players and goalkeepers from the last {UI.RECENT_DAYS_FILTER} days. Rankings use a time-weighted score, meaning recent games have a bigger impact.")
-        st.page_link("pages/3_Scoring_Method.py", label="ℹ️ Learn more about our scoring system")
+        st.markdown(
+            f"This section shows the top players and goalkeepers from the last {UI.RECENT_DAYS_FILTER} days. Rankings use a time-weighted score, meaning recent games have a bigger impact."
+        )
+        st.page_link(
+            "pages/3_Scoring_Method.py", label="ℹ️ Learn more about our scoring system"
+        )
 
         current_date = pd.to_datetime(data[Columns.DATE]).max()
-        start_date_top_performers = (current_date - pd.DateOffset(days=UI.RECENT_DAYS_FILTER)).date()
+        start_date_top_performers = (
+            current_date - pd.DateOffset(days=UI.RECENT_DAYS_FILTER)
+        ).date()
         end_date_top_performers = current_date.date()
 
-        top_player_df = calculate_player_scores(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
+        top_player_df = calculate_player_scores(
+            data, start_date=start_date_top_performers, end_date=end_date_top_performers
+        ).head(1)
         top_player_name = top_player_df.index[0]
         top_player_score = top_player_df[Columns.SCORE].iloc[0]
 
-        top_keeper_df = calculate_keeper_scores(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(1)
+        top_keeper_df = calculate_keeper_scores(
+            data, start_date=start_date_top_performers, end_date=end_date_top_performers
+        ).head(1)
         top_keeper_name = top_keeper_df.index[0]
         top_keeper_score = top_keeper_df[Columns.SCORE].iloc[0]
 
-        top10_players_tab, player_tab, keeper_tab = st.tabs(["🔟 Top-10 Players", "🏆 Top Player", "🧤 Top Goalkeeper", ])
+        top10_players_tab, player_tab, keeper_tab = st.tabs(
+            [
+                "🔟 Top-10 Players",
+                "🏆 Top Player",
+                "🧤 Top Goalkeeper",
+            ]
+        )
 
         with top10_players_tab:
             top10_players_button_placeholder = st.empty()
             if not st.session_state.reveal_top10_players:
-                if top10_players_button_placeholder.button("Reveal Top-10 Players", key="btn_reveal_top10_players"):
+                if top10_players_button_placeholder.button(
+                    "Reveal Top-10 Players", key="btn_reveal_top10_players"
+                ):
                     st.session_state.reveal_top10_players = True
-                    top10_players_button_placeholder.empty() # Clear the button immediately
+                    top10_players_button_placeholder.empty()  # Clear the button immediately
                     countdown_placeholder = st.empty()
                     for i in range(3, 0, -1):
-                        countdown_placeholder.metric(label="Revealing in...", value=f"{i} seconds")
+                        countdown_placeholder.metric(
+                            label="Revealing in...", value=f"{i} seconds"
+                        )
                         time.sleep(1)
-                    countdown_placeholder.empty() # Clear the countdown
+                    countdown_placeholder.empty()  # Clear the countdown
 
             if st.session_state.reveal_top10_players:
-                top_10_players_df = calculate_player_scores(data, start_date=start_date_top_performers, end_date=end_date_top_performers).head(10)
-                
+                top_10_players_df = calculate_player_scores(
+                    data,
+                    start_date=start_date_top_performers,
+                    end_date=end_date_top_performers,
+                ).head(10)
+
                 if not top_10_players_df.empty:
                     col_left, col_right = st.columns(2)
-                    players_list = list(top_10_players_df.itertuples(index=True, name=None))
-                    middle_index = round(len(players_list)/2)
+                    players_list = list(
+                        top_10_players_df.itertuples(index=True, name=None)
+                    )
+                    middle_index = round(len(players_list) / 2)
 
                     col_left_items = []
                     col_right_items = []
@@ -122,47 +148,57 @@ if not data.empty:
         with player_tab:
             player_button_placeholder = st.empty()
             if not st.session_state.reveal_player:
-                if player_button_placeholder.button("Reveal Top Player", key="btn_reveal_player"):
+                if player_button_placeholder.button(
+                    "Reveal Top Player", key="btn_reveal_player"
+                ):
                     st.session_state.reveal_player = True
-                    player_button_placeholder.empty() # Clear the button immediately
+                    player_button_placeholder.empty()  # Clear the button immediately
                     countdown_placeholder = st.empty()
                     for i in range(3, 0, -1):
-                        countdown_placeholder.metric(label="Revealing in...", value=f"{i} seconds")
+                        countdown_placeholder.metric(
+                            label="Revealing in...", value=f"{i} seconds"
+                        )
                         time.sleep(1)
-                    countdown_placeholder.empty() # Clear the countdown
+                    countdown_placeholder.empty()  # Clear the countdown
 
             if st.session_state.reveal_player:
                 st.metric(
                     label="Score",
                     value=top_player_name,
                     delta=f"{top_player_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
-                    help=f"The player's score is calculated based on the outcome of their shots (goal: {Scoring.GOAL:.1f}, saved: {Scoring.SAVED:.1f}, out: {Scoring.OUT:.1f})."
+                    help=f"The player's score is calculated based on the outcome of their shots (goal: {Scoring.GOAL:.1f}, saved: {Scoring.SAVED:.1f}, out: {Scoring.OUT:.1f}).",
                 )
 
         with keeper_tab:
             keeper_button_placeholder = st.empty()
             if not st.session_state.reveal_keeper:
-                if keeper_button_placeholder.button("Reveal Top Goalkeeper", key="btn_reveal_keeper"):
+                if keeper_button_placeholder.button(
+                    "Reveal Top Goalkeeper", key="btn_reveal_keeper"
+                ):
                     st.session_state.reveal_keeper = True
-                    keeper_button_placeholder.empty() # Clear the button immediately
+                    keeper_button_placeholder.empty()  # Clear the button immediately
                     countdown_placeholder = st.empty()
                     for i in range(3, 0, -1):
-                        countdown_placeholder.metric(label="Revealing in...", value=f"{i} seconds")
+                        countdown_placeholder.metric(
+                            label="Revealing in...", value=f"{i} seconds"
+                        )
                         time.sleep(1)
-                    countdown_placeholder.empty() # Clear the countdown
+                    countdown_placeholder.empty()  # Clear the countdown
 
             if st.session_state.reveal_keeper:
                 st.metric(
                     label="Score",
                     value=top_keeper_name,
                     delta=f"{top_keeper_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
-                    help=f"The goalkeeper's score is calculated based on the outcome of the shots they faced (goal: {Scoring.KEEPER_GOAL:.1f}, saved: {Scoring.KEEPER_SAVED:.1f}, out: {Scoring.KEEPER_OUT:.1f})."
+                    help=f"The goalkeeper's score is calculated based on the outcome of the shots they faced (goal: {Scoring.KEEPER_GOAL:.1f}, saved: {Scoring.KEEPER_SAVED:.1f}, out: {Scoring.KEEPER_OUT:.1f}).",
                 )
 
     with st.container(border=True):
         st.subheader("Hall of Fame")
-        st.markdown("See cool achievements, records, and fun facts about the penalty shootouts.")
-        
+        st.markdown(
+            "See cool achievements, records, and fun facts about the penalty shootouts."
+        )
+
         # Get records data
         longest_streak_players, longest_streak = get_longest_goal_streak(data)
         most_goals_player, most_goals_date, most_goals = get_most_goals_in_session(data)
@@ -172,24 +208,39 @@ if not data.empty:
         busiest_date, busiest_count = get_busiest_day(data)
         rival_shooter, rival_keeper, encounters = get_biggest_rivalry(data)
 
-        tab1, tab2, tab3, tab4 = st.tabs(["🗓️ Current Year Records", "📅 Single Session Records", "🏆 All-Time Records", "✨ Fun Facts"])
+        tab1, tab2, tab3, tab4 = st.tabs(
+            [
+                "🗓️ Current Year Records",
+                "📅 Single Session Records",
+                "🏆 All-Time Records",
+                "✨ Fun Facts",
+            ]
+        )
 
         with tab1:
             current_year = pd.Timestamp.now().year
-            current_year_data = data[pd.to_datetime(data[Columns.DATE]).dt.year == current_year]
+            current_year_data = data[
+                pd.to_datetime(data[Columns.DATE]).dt.year == current_year
+            ]
 
             col1_tab4, col2_tab4 = st.columns(2)
 
             with col1_tab4:
                 if not current_year_data.empty:
-                    top_player_current_year_df = calculate_player_scores(current_year_data).head(1)
+                    top_player_current_year_df = calculate_player_scores(
+                        current_year_data
+                    ).head(1)
                     if not top_player_current_year_df.empty:
-                        top_player_current_year_name = top_player_current_year_df.index[0]
-                        top_player_current_year_score = top_player_current_year_df[Columns.SCORE].iloc[0]
+                        top_player_current_year_name = top_player_current_year_df.index[
+                            0
+                        ]
+                        top_player_current_year_score = top_player_current_year_df[
+                            Columns.SCORE
+                        ].iloc[0]
                         st.metric(
                             label="⚽ Top Scorer",
                             value=top_player_current_year_name,
-                            delta=f"{top_player_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points"
+                            delta=f"{top_player_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
                         )
                     else:
                         skeleton(height=80)
@@ -198,14 +249,20 @@ if not data.empty:
 
             with col2_tab4:
                 if not current_year_data.empty:
-                    top_keeper_current_year_df = calculate_keeper_scores(current_year_data).head(1)
+                    top_keeper_current_year_df = calculate_keeper_scores(
+                        current_year_data
+                    ).head(1)
                     if not top_keeper_current_year_df.empty:
-                        top_keeper_current_year_name = top_keeper_current_year_df.index[0]
-                        top_keeper_current_year_score = top_keeper_current_year_df[Columns.SCORE].iloc[0]
+                        top_keeper_current_year_name = top_keeper_current_year_df.index[
+                            0
+                        ]
+                        top_keeper_current_year_score = top_keeper_current_year_df[
+                            Columns.SCORE
+                        ].iloc[0]
                         st.metric(
                             label="🧤 Top Goalkeeper",
                             value=top_keeper_current_year_name,
-                            delta=f"{top_keeper_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points"
+                            delta=f"{top_keeper_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
                         )
                     else:
                         skeleton(height=80)
@@ -219,14 +276,14 @@ if not data.empty:
                     label="⚽ Most Goals in a Session",
                     value=most_goals_player,
                     delta=f"{most_goals} goals on {most_goals_date.strftime('%d-%m-%Y')}",
-                    help="Most goals scored by a player in a single game."
+                    help="Most goals scored by a player in a single game.",
                 )
             with col2_tab2:
                 st.metric(
                     label="🧤 Most Saves in a Session",
                     value=most_saves_keeper,
                     delta=f"{most_saves} saves on {most_saves_date.strftime('%d-%m-%Y')}",
-                    help="Most saves made by a goalkeeper in a single game."
+                    help="Most saves made by a goalkeeper in a single game.",
                 )
 
         with tab3:
@@ -243,19 +300,19 @@ if not data.empty:
                     else:
                         display_name = ", ".join(longest_streak_players)
                         help_text = "Player(s) who scored the most goals in a row."
-                
+
                 st.metric(
                     label="🏆 Longest Goal Streak",
                     value=display_name,
                     delta=f"{longest_streak} goal{'s' if longest_streak > 1 else ''}",
-                    help=help_text
+                    help=help_text,
                 )
             with col2_tab1:
                 st.metric(
                     label="⚔️ Biggest Rivalry",
                     value=f"{rival_shooter} vs {rival_keeper}",
                     delta=f"{encounters} encounters",
-                    help="The shooter and goalkeeper who played against each other the most."
+                    help="The shooter and goalkeeper who played against each other the most.",
                 )
 
         with tab4:
@@ -268,16 +325,18 @@ if not data.empty:
                     num_players = len(marathon_men)
                     if num_players > UI.MAX_NAMES_IN_METRIC_DISPLAY:
                         display_name = f"{', '.join(marathon_men[:UI.MAX_NAMES_IN_METRIC_DISPLAY])}, +{num_players - UI.MAX_NAMES_IN_METRIC_DISPLAY} people"
-                        help_text = f"Players with the most sessions: {', '.join(marathon_men)}"
+                        help_text = (
+                            f"Players with the most sessions: {', '.join(marathon_men)}"
+                        )
                     else:
                         display_name = ", ".join(marathon_men)
                         help_text = "Player(s) who played in the most games."
-                
+
                 st.metric(
                     label="🏃 Marathon Man (Most Sessions)",
                     value=display_name,
                     delta=f"{sessions} session{'s' if sessions > 1 else ''}",
-                    help=help_text
+                    help=help_text,
                 )
             with col2_tab3:
                 if not mysterious_ninjas:
@@ -291,12 +350,12 @@ if not data.empty:
                     else:
                         display_name = ", ".join(mysterious_ninjas)
                         help_text = "Player(s) who played in the fewest games."
-            
+
                 st.metric(
                     label="🥷 Mysterious Ninja (Fewest Sessions)",
                     value=display_name,
                     delta=f"{least_sessions} session{'s' if least_sessions > 1 else ''}",
-                    help=help_text
+                    help=help_text,
                 )
 
             col1_tab4, col2_tab4 = st.columns(2)
@@ -305,13 +364,15 @@ if not data.empty:
                     label="🗓️ Busiest Day",
                     value=busiest_date.strftime("%d %B, %Y"),
                     delta=f"{busiest_count} penalties",
-                    help="The date with the most penalties."
+                    help="The date with the most penalties.",
                 )
 
     # Recent Activity content (full width)
     with st.container(border=True):
         st.subheader("Recent Activity")
-        st.markdown("A summary of the last game, including player and goalkeeper performance. You can compare the latest stats with the game before.")
+        st.markdown(
+            "A summary of the last game, including player and goalkeeper performance. You can compare the latest stats with the game before."
+        )
 
         # Get unique sorted dates
         unique_dates = sorted(data[Columns.DATE].unique(), reverse=True)
@@ -323,9 +384,15 @@ if not data.empty:
         latest_session_data = data[data[Columns.DATE] == latest_date]
 
         # Calculate aggregated metrics for the latest session
-        total_goals_latest = len(latest_session_data[latest_session_data[Columns.STATUS] == Status.GOAL])
-        total_saves_latest = len(latest_session_data[latest_session_data[Columns.STATUS] == Status.SAVED])
-        total_outs_latest = len(latest_session_data[latest_session_data[Columns.STATUS] == Status.OUT])
+        total_goals_latest = len(
+            latest_session_data[latest_session_data[Columns.STATUS] == Status.GOAL]
+        )
+        total_saves_latest = len(
+            latest_session_data[latest_session_data[Columns.STATUS] == Status.SAVED]
+        )
+        total_outs_latest = len(
+            latest_session_data[latest_session_data[Columns.STATUS] == Status.OUT]
+        )
 
         # Initialize previous session metrics and deltas
         total_goals_previous = 0
@@ -340,9 +407,21 @@ if not data.empty:
             previous_date = unique_dates[1]
             previous_session_data = data[data[Columns.DATE] == previous_date]
 
-            total_goals_previous = len(previous_session_data[previous_session_data[Columns.STATUS] == Status.GOAL])
-            total_saves_previous = len(previous_session_data[previous_session_data[Columns.STATUS] == Status.SAVED])
-            total_outs_previous = len(previous_session_data[previous_session_data[Columns.STATUS] == Status.OUT])
+            total_goals_previous = len(
+                previous_session_data[
+                    previous_session_data[Columns.STATUS] == Status.GOAL
+                ]
+            )
+            total_saves_previous = len(
+                previous_session_data[
+                    previous_session_data[Columns.STATUS] == Status.SAVED
+                ]
+            )
+            total_outs_previous = len(
+                previous_session_data[
+                    previous_session_data[Columns.STATUS] == Status.OUT
+                ]
+            )
 
             delta_goals = total_goals_latest - total_goals_previous
             delta_saves = total_saves_latest - total_saves_previous
@@ -355,14 +434,14 @@ if not data.empty:
                 label="Goals",
                 value=total_goals_latest,
                 delta=delta_goals,
-                help="Goals in the last game. The change from the game before is also shown."
+                help="Goals in the last game. The change from the game before is also shown.",
             )
         with col_metrics2:
             st.metric(
                 label="Saves",
                 value=total_saves_latest,
                 delta=delta_saves,
-                help="Saves in the last game. The change from the game before is also shown."
+                help="Saves in the last game. The change from the game before is also shown.",
             )
         with col_metrics3:
             st.metric(
@@ -370,26 +449,33 @@ if not data.empty:
                 value=total_outs_latest,
                 delta=delta_outs,
                 delta_color="inverse",
-                help="Shots that went out in the last game. The change from the game before is also shown."
+                help="Shots that went out in the last game. The change from the game before is also shown.",
             )
-
 
         # Use tabs for Player and Keeper Stats
         tab_players, tab_keepers = st.tabs(["Player Stats", "Keeper Stats"])
 
         with tab_players:
-            player_stats = latest_session_data.groupby([Columns.SHOOTER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
+            player_stats = (
+                latest_session_data.groupby([Columns.SHOOTER_NAME, Columns.STATUS])
+                .size()
+                .unstack(fill_value=0)
+            )
             player_scores = calculate_player_scores(latest_session_data)
             player_stats = player_stats.join(player_scores[Columns.SCORE])
             player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
             render_plotly_chart(fig)
-            st.dataframe(player_stats, width='stretch')
+            st.dataframe(player_stats, width="stretch")
 
         with tab_keepers:
-            keeper_stats = latest_session_data.groupby([Columns.KEEPER_NAME, Columns.STATUS]).size().unstack(fill_value=0)
+            keeper_stats = (
+                latest_session_data.groupby([Columns.KEEPER_NAME, Columns.STATUS])
+                .size()
+                .unstack(fill_value=0)
+            )
             keeper_scores = calculate_keeper_scores(latest_session_data)
             keeper_stats = keeper_stats.join(keeper_scores[Columns.SCORE])
             keeper_stats = keeper_stats.sort_values(by=Columns.SCORE, ascending=False)
             fig = px.bar(keeper_stats, x=keeper_stats.index, y=Columns.SCORE)
             render_plotly_chart(fig)
-            st.dataframe(keeper_stats, width='stretch')
+            st.dataframe(keeper_stats, width="stretch")

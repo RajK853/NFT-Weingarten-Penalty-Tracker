@@ -3,6 +3,7 @@ import streamlit as st
 
 from src.constants import Gender, Paths
 
+
 @st.cache_data
 def load_data(gender: str, last_refresh_time: float) -> pd.DataFrame:
     """
@@ -28,12 +29,16 @@ def load_data(gender: str, last_refresh_time: float) -> pd.DataFrame:
                 data = pd.read_csv(sheet_url)
                 if data.empty:
                     raise ValueError("Loaded data is empty.")
-                
-                st.success(f"Successfully loaded {gender.lower()} team data from Google Sheet.")
+
+                st.success(
+                    f"Successfully loaded {gender.lower()} team data from Google Sheet."
+                )
             except Exception as e:
                 st.error(f"Failed to load data from Google Sheet: {e}")
                 data = pd.read_csv(Paths.DATA_PSEUDO)
-        else: # gender == Gender.FEMALE
+        else:  # gender == Gender.FEMALE
             data = pd.read_csv(Paths.DATA_PSEUDO)
-            st.info(f"Loading {gender.lower()} team data from local pseudo data as per project specification.")
+            st.info(
+                f"Loading {gender.lower()} team data from local pseudo data as per project specification."
+            )
     return data
