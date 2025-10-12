@@ -104,7 +104,12 @@ with st.container(border=True):
         y_range_min = min_score_val - buffer
         y_range_max = max_score_val + buffer
         fig_top_players.update_layout(
-            yaxis_title="Score", yaxis=dict(range=[y_range_min, y_range_max])
+            yaxis_title="Score",
+            yaxis=dict(range=[y_range_min, y_range_max]),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=-0.8, xanchor="center", x=0.5
+            ),
+            margin=dict(b=200),
         )  # fixedrange will be applied by render_plotly_chart
         fig_top_players.update_traces(
             texttemplate=f"%{{y:{score_format_specifier}}}",
@@ -221,7 +226,16 @@ with st.container(border=True):
                             texttemplate=f"%{{y:{score_format_specifier}}}"
                         )
                         fig_score_monthly.update_layout(
-                            yaxis_title="Score", xaxis_title="Player Name"
+                            yaxis_title="Score",
+                            xaxis_title="Player Name",
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=-0.8,
+                                xanchor="center",
+                                x=0.5,
+                            ),
+                            margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
                         render_plotly_chart(fig_score_monthly)
 
@@ -248,7 +262,16 @@ with st.container(border=True):
                         )
                         fig_goals_monthly.update_traces(marker_color=colors_goals)
                         fig_goals_monthly.update_layout(
-                            yaxis_title="Goals", xaxis_title="Player Name"
+                            yaxis_title="Goals",
+                            xaxis_title="Player Name",
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=-0.8,
+                                xanchor="center",
+                                x=0.5,
+                            ),
+                            margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
                         render_plotly_chart(fig_goals_monthly)
 
@@ -275,7 +298,16 @@ with st.container(border=True):
                         )
                         fig_saved_monthly.update_traces(marker_color=colors_saved)
                         fig_saved_monthly.update_layout(
-                            yaxis_title="Saved Shots", xaxis_title="Player Name"
+                            yaxis_title="Saved Shots",
+                            xaxis_title="Player Name",
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=-0.8,
+                                xanchor="center",
+                                x=0.5,
+                            ),
+                            margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
                         render_plotly_chart(fig_saved_monthly)
 
@@ -302,7 +334,16 @@ with st.container(border=True):
                     )
                     fig_out_monthly.update_traces(marker_color=colors_out)
                     fig_out_monthly.update_layout(
-                        yaxis_title="Out Shots", xaxis_title="Player Name"
+                        yaxis_title="Out Shots",
+                        xaxis_title="Player Name",
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=-0.8,
+                            xanchor="center",
+                            x=0.5,
+                        ),
+                        margin=dict(b=200),
                     )  # fixedrange will be applied by render_plotly_chart
                     render_plotly_chart(fig_out_monthly)
 

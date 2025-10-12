@@ -23,25 +23,34 @@ The application primarily uses penalty shootout data from `data/penalty.csv`. If
 To set up the environment and run the application locally, follow these steps:
 
 1.  **Clone the repository**:
+
     ```bash
     git clone <your-repository-url>
     cd NFT-Weingarten-Penalty-Tracker
     ```
+
 2.  **Create a virtual environment and install dependencies using `uv`**:
+
     ```bash
     uv venv
     . .venv/bin/activate
     uv pip install -r requirements.txt
     ```
+
 3.  **Generate Pseudo Data (Optional)**: If `data/penalty.csv` is not available, you can generate synthetic data:
+
     ```bash
     uv run python generate_pseudo_data.py
     ```
+
     This will create `data/pseudo_penalty.csv`.
+
 4.  **Run the Streamlit application**:
+
     ```bash
     streamlit run Home.py
     ```
+
     The application will then open in your default web browser.
 
 ## Deployment

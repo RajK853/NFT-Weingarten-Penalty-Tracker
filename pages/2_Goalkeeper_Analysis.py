@@ -113,6 +113,16 @@ with st.container(border=True):
                             for status in keeper_outcome_dist[Columns.STATUS]
                         ],
                     )
+                    fig_keeper_outcome.update_layout(
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=-0.8,  # Even more negative
+                            xanchor="center",
+                            x=0.5,
+                        ),
+                        margin=dict(b=200),  # Even more increased bottom margin
+                    )
                     render_plotly_chart(fig_keeper_outcome)
                 else:
                     st.info(

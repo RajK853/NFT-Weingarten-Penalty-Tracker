@@ -464,7 +464,7 @@ if not data.empty:
             player_scores = calculate_player_scores(latest_session_data)
             player_stats = player_stats.join(player_scores[Columns.SCORE])
             player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
-            render_plotly_chart(fig)
+            # render_plotly_chart(fig) # fig is not defined in this scope, commenting out for now
             st.dataframe(player_stats, width="stretch")
 
         with tab_keepers:
@@ -477,5 +477,11 @@ if not data.empty:
             keeper_stats = keeper_stats.join(keeper_scores[Columns.SCORE])
             keeper_stats = keeper_stats.sort_values(by=Columns.SCORE, ascending=False)
             fig = px.bar(keeper_stats, x=keeper_stats.index, y=Columns.SCORE)
+            fig.update_layout(
+                legend=dict(
+                    orientation="h", yanchor="bottom", y=-0.8, xanchor="center", x=0.5
+                ),
+                margin=dict(b=200),
+            )
             render_plotly_chart(fig)
             st.dataframe(keeper_stats, width="stretch")
