@@ -112,9 +112,10 @@ PEP 8 provides clear guidelines for organizing imports to enhance readability an
         import os, sys
         ```
 *   **Specific Imports**:
-    *   If a module is used extensively throughout the file, or its name is short and clear, prefer `import module` (Option 2).
-    *   If the module name is very long, prefer `import module as alias` (Option 4).
-    *   If only a few specific items are needed from a module:
+    *   For local modules (e.g., within `src/` directory), prefer `from src import module_name`. This allows direct access to `module_name.item`.
+    *   If a third-party module is used extensively throughout the file, or its name is short and clear, prefer `import module` (Option 2).
+    *   If a third-party module name is very long, prefer `import module as alias` (Option 4).
+    *   If only a few specific items are needed from a module (local or third-party):
         *   If the single-line `from module import item1, item2, ...` statement fits within 79 characters, use it.
         *   If the single-line `from module import item1, item2, ...` statement would exceed 79 characters, then import each item on a separate line (e.g., `from module import item1`, `from module import item2`).
 *   **Avoid Brackets in Imports**: Do not use parentheses `()` for multiline import statements.

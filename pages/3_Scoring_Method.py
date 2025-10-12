@@ -17,7 +17,7 @@ st.set_page_config(
     layout="wide",
 )
 
-display_page_header(
+ui.display_page_header(
     page_title="Scoring Method",
     page_icon="ℹ️",
     page_description="""
@@ -159,7 +159,7 @@ with st.expander("See the Math: The Half-Life Formula"):
         ),
         margin=dict(b=200),  # Even more increased bottom margin
     )
-    render_plotly_chart(fig)
+    ui.render_plotly_chart(fig)
 
 st.info(
     """

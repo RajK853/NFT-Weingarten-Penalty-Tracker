@@ -12,17 +12,8 @@ import plotly.express as px
 
 from src.data_loader import load_data
 from src.constants import Columns, Data, Scoring, Status, UI
-from src.ui import (
-    data_refresh_button_ui,
-    display_page_header,
-    gender_selection_ui,
-    render_plotly_chart,
-)
-from src.analysis import (
-    _get_date_range_from_month_display,
-    calculate_player_scores,
-    get_player_status_counts_over_time,
-)
+import src.ui as ui
+import src.analysis as analysis
 
 st.set_page_config(
     page_title="NFT Weingarten - Player Performance",
@@ -33,7 +24,7 @@ st.set_page_config(
 
 # --- Header ---
 
-display_page_header(
+ui.display_page_header(
     page_title="Player Performance Analysis",
     page_icon=UI.EMOJI_PLAYER_PAGE,
     page_description="""
@@ -41,8 +32,8 @@ display_page_header(
     Use the tools below to compare players and see who is performing best over time.
     """,
 )
-gender_selection = gender_selection_ui()
-last_refresh_time = data_refresh_button_ui()
+gender_selection = ui.gender_selection_ui()
+last_refresh_time = ui.data_refresh_button_ui()
 data: pd.DataFrame = load_data(
     gender=gender_selection, last_refresh_time=last_refresh_time
 )
@@ -88,7 +79,7 @@ with st.container(border=True):
 
     if leaderboard_start_date and leaderboard_end_date:
         score_format_specifier = f".{Data.SCORE_DECIMAL_PLACES}f"
-        top_players: pd.DataFrame = calculate_player_scores(
+        top_players: pd.DataFrame = analysis.calculate_player_scores(
             data, start_date=leaderboard_start_date, end_date=leaderboard_end_date
         ).head(UI.TOP_N_PLAYERS_LEADERBOARD)
         fig_top_players = px.bar(
@@ -115,7 +106,7 @@ with st.container(border=True):
             texttemplate=f"%{{y:{score_format_specifier}}}",
             textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE,
         )
-        render_plotly_chart(fig_top_players)
+        ui.render_plotly_chart(fig_top_players)
         st.dataframe(
             top_players,
             column_config={
@@ -153,14 +144,14 @@ with st.container(border=True):
 
     # Determine start and end dates for the selected month
     if selected_month_display:
-        start_date_filter, end_date_filter = _get_date_range_from_month_display(
+        start_date_filter, end_date_filter = analysis._get_date_range_from_month_display(
             selected_month_display
         )
 
         if selected_players:
             st.subheader("Performance Over Time")
 
-            player_status_data: pd.DataFrame = get_player_status_counts_over_time(
+            player_status_data: pd.DataFrame = analysis.get_player_status_counts_over_time(
                 data,
                 selected_players,
                 start_date=start_date_filter,
@@ -237,7 +228,7 @@ with st.container(border=True):
                             ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        render_plotly_chart(fig_score_monthly)
+                        ui.render_plotly_chart(fig_score_monthly)
 
                     with goal_tab:
                         max_goals = monthly_player_status_summary[Status.GOAL].max()
@@ -273,7 +264,7 @@ with st.container(border=True):
                             ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        render_plotly_chart(fig_goals_monthly)
+                        ui.render_plotly_chart(fig_goals_monthly)
 
                     with saved_tab:
                         max_saved = monthly_player_status_summary[Status.SAVED].max()
@@ -309,7 +300,7 @@ with st.container(border=True):
                             ),
                             margin=dict(b=200),
                         )  # fixedrange will be applied by render_plotly_chart
-                        render_plotly_chart(fig_saved_monthly)
+                        ui.render_plotly_chart(fig_saved_monthly)
 
                 with out_tab:
                     max_out = monthly_player_status_summary[Status.OUT].max()
@@ -345,7 +336,7 @@ with st.container(border=True):
                         ),
                         margin=dict(b=200),
                     )  # fixedrange will be applied by render_plotly_chart
-                    render_plotly_chart(fig_out_monthly)
+                    ui.render_plotly_chart(fig_out_monthly)
 
             else:
                 st.info(

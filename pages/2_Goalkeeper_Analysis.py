@@ -11,17 +11,8 @@ import plotly.express as px
 
 from src.data_loader import load_data
 from src.constants import Columns, Data, Scoring, Status, UI
-from src.ui import (
-    data_refresh_button_ui,
-    display_page_header,
-    gender_selection_ui,
-    render_plotly_chart,
-)
-from src.analysis import (
-    _get_date_range_from_month_display,
-    calculate_keeper_scores,
-    get_keeper_outcome_distribution,
-)
+import src.ui as ui
+import src.analysis as analysis
 
 st.set_page_config(
     page_title="NFT Weingarten - Goalkeeper Analysis",
@@ -32,7 +23,7 @@ st.set_page_config(
 
 # --- Header ---
 
-display_page_header(
+ui.display_page_header(
     page_title="Goalkeeper Performance Analysis",
     page_icon=UI.EMOJI_GOALKEEPER_PAGE,
     page_description="""
@@ -41,8 +32,8 @@ display_page_header(
     """,
 )
 
-gender_selection = gender_selection_ui()
-last_refresh_time = data_refresh_button_ui()
+gender_selection = ui.gender_selection_ui()
+last_refresh_time = ui.data_refresh_button_ui()
 data: pd.DataFrame = load_data(
     gender=gender_selection, last_refresh_time=last_refresh_time
 )
@@ -72,11 +63,11 @@ with st.container(border=True):
 
     # Determine start and end dates for the selected month
     if selected_month_display:
-        start_date_filter, end_date_filter = _get_date_range_from_month_display(
+        start_date_filter, end_date_filter = analysis._get_date_range_from_month_display(
             selected_month_display
         )
 
-        keeper_performance_all: pd.DataFrame = calculate_keeper_scores(
+        keeper_performance_all: pd.DataFrame = analysis.calculate_keeper_scores(
             data, start_date=start_date_filter, end_date=end_date_filter
         )
 
@@ -91,7 +82,7 @@ with st.container(border=True):
             with cols[i]:
                 keeper_score = keeper_performance_all.loc[keeper][Columns.SCORE]
                 st.metric(label=f"{keeper}", value=f"{keeper_score:.2f} pts")
-                keeper_outcome_dist: pd.DataFrame = get_keeper_outcome_distribution(
+                keeper_outcome_dist: pd.DataFrame = analysis.get_keeper_outcome_distribution(
                     data, keeper, start_date=start_date_filter, end_date=end_date_filter
                 )
                 if not keeper_outcome_dist.empty:
@@ -123,7 +114,7 @@ with st.container(border=True):
                         ),
                         margin=dict(b=200),  # Even more increased bottom margin
                     )
-                    render_plotly_chart(fig_keeper_outcome)
+                    ui.render_plotly_chart(fig_keeper_outcome)
                 else:
                     st.info(
                         UI.INFO_NO_KEEPER_DATA.format(

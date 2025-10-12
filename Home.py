@@ -1,29 +1,15 @@
 import time
 
 import pandas as pd
-import streamlit as st
 import plotly.express as px
+import streamlit as st
 from streamlit_extras.skeleton import skeleton
 
 from src.data_loader import load_data
 from src.constants import Columns, Data, Scoring, Status, UI
 from src.analysis import calculate_keeper_scores, calculate_player_scores
-from src.ui import (
-    data_refresh_button_ui,
-    display_page_header,
-    gender_selection_ui,
-    render_plotly_chart,
-    stream_data,
-)
-from src.records import (
-    get_biggest_rivalry,
-    get_busiest_day,
-    get_longest_goal_streak,
-    get_marathon_man,
-    get_most_goals_in_session,
-    get_most_saves_in_session,
-    get_mysterious_ninja,
-)
+import src.ui as ui
+import src.records as records
 
 if "reveal_player" not in st.session_state:
     st.session_state.reveal_player = False
@@ -41,7 +27,7 @@ st.set_page_config(
 
 # --- Header ---
 
-display_page_header(
+ui.display_page_header(
     page_title="NFT Weingarten Penalty Tracker",
     page_icon=UI.EMOJI_HOME_PAGE,
     page_description="""
@@ -50,8 +36,8 @@ display_page_header(
 )
 
 # --- Sidebar for Gender Selection ---
-gender_selection = gender_selection_ui()
-last_refresh_time = data_refresh_button_ui()
+gender_selection = ui.gender_selection_ui()
+last_refresh_time = ui.data_refresh_button_ui()
 st.info("You can change the gender from the left sidebar option.")
 st.markdown("---")
 
@@ -138,10 +124,10 @@ if not data.empty:
                             col_right_items.append(formatted_string)
 
                     with col_left:
-                        st.write_stream(stream_data(col_left_items))
+                        st.write_stream(ui.stream_data(col_left_items))
 
                     with col_right:
-                        st.write_stream(stream_data(col_right_items))
+                        st.write_stream(ui.stream_data(col_right_items))
                 else:
                     st.info("No top 10 players to display for the selected period.")
 
@@ -200,13 +186,13 @@ if not data.empty:
         )
 
         # Get records data
-        longest_streak_players, longest_streak = get_longest_goal_streak(data)
-        most_goals_player, most_goals_date, most_goals = get_most_goals_in_session(data)
-        most_saves_keeper, most_saves_date, most_saves = get_most_saves_in_session(data)
-        marathon_men, sessions = get_marathon_man(data)
-        mysterious_ninjas, least_sessions = get_mysterious_ninja(data)
-        busiest_date, busiest_count = get_busiest_day(data)
-        rival_shooter, rival_keeper, encounters = get_biggest_rivalry(data)
+        longest_streak_players, longest_streak = records.get_longest_goal_streak(data)
+        most_goals_player, most_goals_date, most_goals = records.get_most_goals_in_session(data)
+        most_saves_keeper, most_saves_date, most_saves = records.get_most_saves_in_session(data)
+        marathon_men, sessions = records.get_marathon_man(data)
+        mysterious_ninjas, least_sessions = records.get_mysterious_ninja(data)
+        busiest_date, busiest_count = records.get_busiest_day(data)
+        rival_shooter, rival_keeper, encounters = records.get_biggest_rivalry(data)
 
         tab1, tab2, tab3, tab4 = st.tabs(
             [
@@ -464,7 +450,7 @@ if not data.empty:
             player_scores = calculate_player_scores(latest_session_data)
             player_stats = player_stats.join(player_scores[Columns.SCORE])
             player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
-            # render_plotly_chart(fig) # fig is not defined in this scope, commenting out for now
+            ui.render_plotly_chart(fig)
             st.dataframe(player_stats, width="stretch")
 
         with tab_keepers:
@@ -483,5 +469,5 @@ if not data.empty:
                 ),
                 margin=dict(b=200),
             )
-            render_plotly_chart(fig)
+            ui.render_plotly_chart(fig)
             st.dataframe(keeper_stats, width="stretch")
