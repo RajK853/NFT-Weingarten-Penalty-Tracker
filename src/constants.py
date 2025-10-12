@@ -1,6 +1,3 @@
-import numpy as np
-
-from typing import List
 
 
 class Columns:
@@ -102,21 +99,11 @@ class UI:
     MAX_PLAYER_SELECTIONS: int = (
         10  # Maximum number of players that can be selected in multi-select widgets.
     )
-    SCATTER_POINT_SIZE: int = 4  # Default size for scatter plot points.
     MAX_NAMES_IN_METRIC_DISPLAY: int = (
         3  # Maximum number of names to display in a metric widget before truncating.
     )
     PIE_CHART_PULL_EFFECT: float = 0.05  # The 'pull' effect for slices in pie charts.
-    Y_AXIS_RANGE_MIN: int = 0  # Minimum value for Y-axis in certain charts.
-    Y_AXIS_RANGE_MAX: int = (
-        100  # Maximum value for Y-axis in certain charts (e.g., percentages).
-    )
     RECENT_DAYS_FILTER: int = 365  # Default number of days for filtering recent data.
-    PERIOD_TYPE_DAYS: str = "Days"  # String constant for 'Days' period type.
-    PERIOD_TYPE_MONTHS: str = "Months"  # String constant for 'Months' period type.
-    GOLD_TEXT_STYLE: str = (
-        "color: gold; text-shadow: 0 0 2px gold, 0 0 4px gold, 0 0 6px gold;"  # CSS style for gold-colored text.
-    )
     TOP_N_PLAYERS_LEADERBOARD: int = (
         10  # Number of top players to display in leaderboards.
     )
@@ -130,7 +117,6 @@ class UI:
     COLOR_LIGHTGRAY: str = "lightgray"  # Light gray color string.
     COLOR_BLUE: str = "blue"  # Blue color string.
     PLOTLY_DISPLAY_MODE_BAR: bool = False  # Whether to display Plotly's mode bar.
-    PLOTLY_FIXED_RANGE: bool = True  # Whether Plotly chart ranges are fixed.
     PLOTLY_TEXT_POSITION_OUTSIDE: str = (
         "outside"  # Text position for Plotly annotations.
     )
@@ -165,21 +151,11 @@ class UI:
     TAB_GOALS: str = "Goals"  # Tab title for goals.
     TAB_SAVED: str = "Saved"  # Tab title for saved shots.
     TAB_OUT: str = "Out"  # Tab title for shots out.
-    TAB_OUTCOME_DISTRIBUTION: str = (
-        "Outcome Distribution"  # Tab title for outcome distribution.
-    )
     TOP_N_KEEPERS_DISPLAY: int = 5  # Number of top keepers to display.
-    GOAL_POST_WIDTH_VISUAL: int = 500  # Visual width of the goal post.
+    GOAL_POST_WIDTH_VISUAL: int = 600  # Visual width of the goal post.
     GOAL_POST_HEIGHT_VISUAL: int = 400  # Visual height of the goal post.
-    POST_LINE_WIDTH_VISUAL: int = 50  # Visual line width of the goal post.
-    FONT_SIZE_BASE: int = 12  # Base font size for UI elements.
-    FONT_SIZE_SCALE: int = 20  # Scale factor for font sizes.
-    COLOR_MIN_RGB: int = 50  # Minimum RGB value for color scaling.
-    COLOR_MAX_RGB: int = 200  # Maximum RGB value for color scaling.
-    MARKER_SIZE_BASE: int = 5  # Base marker size for plots.
-    MARKER_SIZE_SCALE: int = 350  # Scale factor for marker sizes.
-    X_POS_OFFSET: float = 0.5  # X-position offset for visual elements.
-    Y_POS_INVERT_FACTOR: float = 2.3  # Y-position invert factor for visual elements.
+    DEFAULT_PLOT_WIDTH: int = 600  # Default width for plots to maintain 3:2 aspect ratio.
+    DEFAULT_PLOT_HEIGHT: int = 400  # Default height for plots to maintain 3:2 aspect ratio.
 
 
 class Data:
@@ -197,9 +173,6 @@ class Data:
     TYPING_ANIMATION_TIMEOUT: float = 0.2  # Timeout for typing animation effects.
     MIN_DAYS_PER_WEEK: int = 3  # Minimum number of days considered for a week.
     MAX_DAYS_PER_WEEK: int = 4  # Maximum number of days considered for a week.
-    PSEUDO_DATA_OUTPUT_PATH: str = (
-        "data/pseudo_penalty.csv"  # Path for pseudo data output.
-    )
     SCORE_DECIMAL_PLACES: int = 2  # Number of decimal places for displaying scores.
 
 
@@ -214,6 +187,3 @@ class GoalVisual:
     GOAL_POST_LINE_WIDTH: int = 10  # Line width for goal posts.
     GOAL_POST_COLOR: str = "white"  # Color of the goal posts.
     PITCH_COLOR: str = "lightgreen"  # Color of the penalty pitch area.
-    GRID_DIMENSION: int = 3  # Dimension for a square grid (e.g., 3 for a 3x3 grid).
-    GRID_LINES: int = 10  # Number of grid lines for shot map.
-    GRID_SQUARE_SIZE: int = 20  # Size of each square in the grid.

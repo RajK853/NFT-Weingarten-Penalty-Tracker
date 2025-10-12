@@ -185,7 +185,12 @@ def display_page_header(page_title: str, page_icon: str, page_description: str):
 
 
 def render_plotly_chart(
-    fig: go.Figure, use_container_width: bool = True, hide_mode_bar: bool = True, fixed_range: bool = True
+    fig: go.Figure,
+    use_container_width: bool = True,
+    hide_mode_bar: bool = True,
+    fixed_range: bool = True,
+    width: int = UI.DEFAULT_PLOT_WIDTH,
+    height: int = UI.DEFAULT_PLOT_HEIGHT,
 ):
     """
     Renders a Plotly figure within a Streamlit application with common configurations.
@@ -204,7 +209,9 @@ def render_plotly_chart(
     """
     # Apply fixedrange to axes to disable zooming/panning (general requirement)
     if fixed_range:
-        fig.update_layout(xaxis_fixedrange=True, yaxis_fixedrange=True)
+        fig.update_layout(xaxis_fixedrange=True, yaxis_fixedrange=True, width=width, height=height)
+    else:
+        fig.update_layout(width=width, height=height)
 
     # Configure st.plotly_chart
     config = {}
