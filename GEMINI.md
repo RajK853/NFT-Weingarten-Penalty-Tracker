@@ -16,5 +16,6 @@ This document provides a map to the detailed context files located in the `llm_c
 *   **`5_coding_principles.md`**: The project's coding standards and best practices.
 *   **`6_llm_interaction.md`**: Guidelines for interacting with the Gemini LLM.
 *   **`7_dependencies.md`**: A list of the project's main dependencies.
+*   **`8_git_practices.md`**: Guidelines for Git interactions by the Gemini LLM.
 
 ---
