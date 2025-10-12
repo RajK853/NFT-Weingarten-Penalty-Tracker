@@ -93,9 +93,7 @@ def data_refresh_button_ui() -> float:
     if "last_refresh_time" not in st.session_state:
         st.session_state.last_refresh_time = time.time()
 
-    if st.sidebar.button(
-        "Fetch Latest Data", use_container_width=True
-    ):  # Changed button label for clarity
+    if st.sidebar.button("Fetch Latest Data", width='stretch'):  # Changed button label for clarity
         st.session_state.last_refresh_time = time.time()
         st.toast("✅ Latest data loaded from Google Sheet!")  # Add toast message
         st.rerun()
@@ -186,7 +184,7 @@ def display_page_header(page_title: str, page_icon: str, page_description: str):
 
 def render_plotly_chart(
     fig: go.Figure,
-    use_container_width: bool = True,
+    st_width_mode: str = 'stretch',
     hide_mode_bar: bool = True,
     fixed_range: bool = True,
     width: int = UI.DEFAULT_PLOT_WIDTH,
@@ -201,8 +199,9 @@ def render_plotly_chart(
 
     Args:
         fig (go.Figure): The Plotly figure object to be rendered.
-        use_container_width (bool): If True, the chart will expand to use the full width
-                                    of its container. Defaults to True.
+        st_width_mode (str): Controls the width behavior of the chart. Can be 'stretch' or 'content'.
+                             'stretch' makes the chart expand to the full width of its container.
+                             'content' makes the chart fit its content. Defaults to 'stretch'.
         hide_mode_bar (bool): If True, the Plotly mode bar (which includes tools like zoom,
                               pan, download) will be hidden. Defaults to True.
         fixed_range (bool): If True, disables zooming/panning on both x and y axes. Defaults to True.
@@ -213,22 +212,17 @@ def render_plotly_chart(
         layout_params['xaxis_fixedrange'] = True
         layout_params['yaxis_fixedrange'] = True
 
-    if not use_container_width:
-        layout_params['width'] = width
-        layout_params['height'] = height
-    else:
-        # If use_container_width is True, Streamlit handles the width.
-        # We only pass the height to maintain a better aspect ratio.
-        layout_params['height'] = height
-
-    fig.update_layout(**layout_params)
-
-    # Configure st.plotly_chart
     config = {}
     if hide_mode_bar:
         config["displayModeBar"] = UI.PLOTLY_DISPLAY_MODE_BAR
 
-    st.plotly_chart(fig, use_container_width=use_container_width, config=config)
+    if st_width_mode == 'content':
+        fig.update_layout(width=UI.DEFAULT_PLOT_WIDTH)  # Set fixed width for 'content' mode
+    else:
+        # For 'stretch' mode, let Streamlit handle the width automatically
+        fig.update_layout(width=None) # Ensure no fixed width is set in Plotly figure
+
+    st.plotly_chart(fig, config=config)
 
 def _calculate_y_axis_range(y_data: pd.Series, buffer_factor: float) -> tuple[float, float]:
     """

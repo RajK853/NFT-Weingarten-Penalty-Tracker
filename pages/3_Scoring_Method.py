@@ -33,7 +33,7 @@ with col1:
         "Points": [Scoring.GOAL, Scoring.SAVED, Scoring.OUT],
     }
     player_scoring_df = pd.DataFrame(player_scoring_data)
-    st.dataframe(player_scoring_df, hide_index=True, use_container_width=True)
+    st.dataframe(player_scoring_df, hide_index=True, width='stretch')
 
 with col2:
     st.subheader("Goalkeeper Scoring")
@@ -42,7 +42,7 @@ with col2:
         "Points": [Scoring.KEEPER_GOAL, Scoring.KEEPER_SAVED, Scoring.KEEPER_OUT],
     }
     keeper_scoring_df = pd.DataFrame(keeper_scoring_data)
-    st.dataframe(keeper_scoring_df, hide_index=True, use_container_width=True)
+    st.dataframe(keeper_scoring_df, hide_index=True, width='stretch')
 
 
 st.header("Time-Weighted Scoring: Recent Games Matter More")
@@ -152,7 +152,7 @@ with st.expander("See the Math: The Half-Life Formula"):
             x=0.5,
         ),
     )
-    ui.render_plotly_chart(fig, fixed_range=True)
+    ui.render_plotly_chart(fig, st_width_mode='stretch', fixed_range=True)
 
 st.info(
     """
