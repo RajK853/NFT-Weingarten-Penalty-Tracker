@@ -39,7 +39,7 @@ with st.container(border=True):
     st.markdown("This leaderboard ranks players by score. A higher score means better performance.")
     st.info(f"Scores are weighted by how recent they are. The current half-life is {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days. This means recent scores are more important.")
 
-    st.markdown("For a detailed explanation of the scoring system, please visit the [Scoring Information](/Scoring_Information) page.")
+    st.markdown("For a detailed explanation of the scoring system, please visit the [Scoring Method](/Scoring_Method) page.")
 
 
     st.markdown("Use the date range selector to analyze performance during specific periods.")

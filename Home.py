@@ -52,7 +52,7 @@ if not data.empty:
     with st.container(border=True):
         st.subheader("Top Performers")
         st.markdown(f"This section shows the top players and goalkeepers from the last {UI.RECENT_DAYS_FILTER} days. Rankings use a time-weighted score, meaning recent games have a bigger impact.")
-        st.page_link("pages/3_Scoring_Information.py", label="ℹ️ Learn more about our scoring system")
+        st.page_link("pages/3_Scoring_Method.py", label="ℹ️ Learn more about our scoring system")
 
         current_date = pd.to_datetime(data[Columns.DATE]).max()
         start_date_top_performers = (current_date - pd.DateOffset(days=UI.RECENT_DAYS_FILTER)).date()

@@ -9,14 +9,14 @@ from src.constants import Scoring, UI
 from src.ui import render_plotly_chart, display_page_header
 
 st.set_page_config(
-    page_title="NFT Weingarten - Scoring Information",
+    page_title="NFT Weingarten - Scoring Method",
     page_icon="ℹ️",
     initial_sidebar_state="expanded",
     layout="wide"
 )
 
 display_page_header(
-    page_title="How Scoring Works",
+    page_title="Scoring Method",
     page_icon="ℹ️",
     page_description="""
     This page explains how we score players and goalkeepers.
