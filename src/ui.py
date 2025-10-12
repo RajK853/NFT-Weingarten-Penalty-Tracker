@@ -1,7 +1,8 @@
 import time
 import streamlit as st
 from typing import Generator, Iterable, Any
-from src.constants import Data, Gender, SessionState, Paths
+from src.constants import Data, Gender, SessionState, Paths, UI
+import plotly.graph_objects as go
 
 def stream_data(iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_TIMEOUT) -> Generator[Any, None, None]:
     """
@@ -86,7 +87,7 @@ def display_page_header(page_title: str, page_icon: str, page_description: str):
         page_icon (str): The emoji icon for the page.
         page_description (str): A brief description of the page's content.
     """
-    col1, col2, col3 = st.columns([1,0.5,1])
+    col1, col2, col3 = st.columns([1,0.3,1])
     with col2:
         st.image(Paths.LOGO, width='stretch')
 
@@ -97,3 +98,24 @@ def display_page_header(page_title: str, page_icon: str, page_description: str):
     """)
     st.write("")
     st.markdown("---")
+
+def render_plotly_chart(fig: go.Figure, use_container_width: bool = True, hide_mode_bar: bool = True):
+    """
+    Renders a Plotly figure with common configurations for static plots and tooltips.
+    Mobile-specific layout adjustments (legend position, margins) should be applied
+    directly to the figure before calling this function if needed.
+
+    Args:
+        fig (go.Figure): The Plotly figure to render.
+        use_container_width (bool): Whether to use the full width of the container.
+        hide_mode_bar (bool): Whether to hide the Plotly mode bar (zoom, pan, etc.).
+    """
+    # Apply fixedrange to axes to disable zooming/panning (general requirement)
+    fig.update_layout(xaxis_fixedrange=True, yaxis_fixedrange=True)
+
+    # Configure st.plotly_chart
+    config = {}
+    if hide_mode_bar:
+        config['displayModeBar'] = UI.PLOTLY_DISPLAY_MODE_BAR
+
+    st.plotly_chart(fig, use_container_width=use_container_width, config=config)

@@ -8,7 +8,7 @@ import numpy as np
 from src.data_loader import load_data
 from src.analysis import get_player_status_counts_over_time, calculate_player_scores, _get_date_range_from_month_display
 from src.constants import Columns, Data, Scoring, Status, UI
-from src.ui import gender_selection_ui, data_refresh_button_ui, display_page_header
+from src.ui import gender_selection_ui, data_refresh_button_ui, display_page_header, render_plotly_chart
 from typing import List
 from datetime import date
 
@@ -76,9 +76,9 @@ with st.container(border=True):
         buffer = (max_score_val - min_score_val) * UI.CHART_Y_AXIS_BUFFER # 10% buffer
         y_range_min = min_score_val - buffer
         y_range_max = max_score_val + buffer
-        fig_top_players.update_layout(yaxis_title="Score", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(range=[y_range_min, y_range_max]))
+        fig_top_players.update_layout(yaxis_title="Score", yaxis=dict(range=[y_range_min, y_range_max])) # fixedrange will be applied by render_plotly_chart
         fig_top_players.update_traces(texttemplate=f'%{{y:{score_format_specifier}}}', textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE)
-        st.plotly_chart(fig_top_players, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+        render_plotly_chart(fig_top_players)
         st.dataframe(top_players, column_config={Columns.SCORE: st.column_config.NumberColumn(format=f"%.{Data.SCORE_DECIMAL_PLACES}f")})
         
     else:
@@ -130,8 +130,8 @@ with st.container(border=True):
                         fig_score_monthly = px.bar(monthly_player_status_summary, x=Columns.SHOOTER_NAME, y=Columns.SCORE,
                                                   title="Player Monthly Score")
                         fig_score_monthly.update_traces(texttemplate=f'%{{y:{score_format_specifier}}}')
-                        fig_score_monthly.update_layout(yaxis_title="Score", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_score_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        fig_score_monthly.update_layout(yaxis_title="Score", xaxis_title="Player Name") # fixedrange will be applied by render_plotly_chart
+                        render_plotly_chart(fig_score_monthly)
 
                     with goal_tab:
                         max_goals = monthly_player_status_summary[Status.GOAL].max()
@@ -140,8 +140,8 @@ with st.container(border=True):
                         fig_goals_monthly = px.bar(monthly_player_status_summary, x=Columns.SHOOTER_NAME, y=Status.GOAL,
                                                   title="Player Monthly Goals")
                         fig_goals_monthly.update_traces(marker_color=colors_goals)
-                        fig_goals_monthly.update_layout(yaxis_title="Goals", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_goals_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        fig_goals_monthly.update_layout(yaxis_title="Goals", xaxis_title="Player Name") # fixedrange will be applied by render_plotly_chart
+                        render_plotly_chart(fig_goals_monthly)
 
                     with saved_tab:
                         max_saved = monthly_player_status_summary[Status.SAVED].max()
@@ -150,8 +150,8 @@ with st.container(border=True):
                         fig_saved_monthly = px.bar(monthly_player_status_summary, x=Columns.SHOOTER_NAME, y=Status.SAVED,
                                                   title="Player Monthly Saved Shots")
                         fig_saved_monthly.update_traces(marker_color=colors_saved)
-                        fig_saved_monthly.update_layout(yaxis_title="Saved Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                        st.plotly_chart(fig_saved_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                        fig_saved_monthly.update_layout(yaxis_title="Saved Shots", xaxis_title="Player Name") # fixedrange will be applied by render_plotly_chart
+                        render_plotly_chart(fig_saved_monthly)
 
                 with out_tab:
                     max_out = monthly_player_status_summary[Status.OUT].max()
@@ -160,8 +160,8 @@ with st.container(border=True):
                     fig_out_monthly = px.bar(monthly_player_status_summary, x=Columns.SHOOTER_NAME, y=Status.OUT,
                                             title="Player Monthly Out Shots")
                     fig_out_monthly.update_traces(marker_color=colors_out)
-                    fig_out_monthly.update_layout(yaxis_title="Out Shots", xaxis_title="Player Name", xaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE), yaxis=dict(fixedrange=UI.PLOTLY_FIXED_RANGE))
-                    st.plotly_chart(fig_out_monthly, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                    fig_out_monthly.update_layout(yaxis_title="Out Shots", xaxis_title="Player Name") # fixedrange will be applied by render_plotly_chart
+                    render_plotly_chart(fig_out_monthly)
 
 
             else:

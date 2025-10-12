@@ -7,7 +7,7 @@ import pandas as pd
 from src.data_loader import load_data
 from src.analysis import calculate_keeper_scores, get_keeper_outcome_distribution, _get_date_range_from_month_display
 from src.constants import Columns, Data, Status, UI, Scoring
-from src.ui import gender_selection_ui, data_refresh_button_ui, display_page_header
+from src.ui import gender_selection_ui, data_refresh_button_ui, display_page_header, render_plotly_chart
 from typing import List, Optional
 from datetime import date
 
@@ -66,7 +66,7 @@ with st.container(border=True):
                     fig_keeper_outcome = px.pie(keeper_outcome_dist, values=Columns.COUNT, names=Columns.STATUS,
                                                 title=f"Outcome Distribution for {keeper}", hole=UI.PIE_CHART_HOLE_SIZE)
                     fig_keeper_outcome.update_traces(textinfo='percent+label', pull=[UI.PIE_CHART_PULL_EFFECT if status == Status.GOAL else Data.DEFAULT_FILL_VALUE for status in keeper_outcome_dist[Columns.STATUS]])
-                    st.plotly_chart(fig_keeper_outcome, use_container_width=True, config={'displayModeBar': UI.PLOTLY_DISPLAY_MODE_BAR})
+                    render_plotly_chart(fig_keeper_outcome)
                 else:
                     st.info(UI.INFO_NO_KEEPER_DATA.format(keeper=keeper, selected_month_display=selected_month_display) + UI.EMOJI_INFO_SAD)
     else:

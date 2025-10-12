@@ -11,7 +11,7 @@ from src.records import (
     get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
     get_marathon_man, get_mysterious_ninja, get_busiest_day, get_biggest_rivalry
 )
-from src.ui import stream_data, gender_selection_ui, data_refresh_button_ui, display_page_header
+from src.ui import stream_data, gender_selection_ui, data_refresh_button_ui, display_page_header, render_plotly_chart
 
 if "reveal_player" not in st.session_state:
     st.session_state.reveal_player = False
@@ -370,8 +370,7 @@ if not data.empty:
             player_scores = calculate_player_scores(latest_session_data)
             player_stats = player_stats.join(player_scores[Columns.SCORE])
             player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
-            fig = px.bar(player_stats, x=player_stats.index, y=Columns.SCORE)
-            st.plotly_chart(fig, use_container_width=True)
+            render_plotly_chart(fig)
             st.dataframe(player_stats, width='stretch')
 
         with tab_keepers:
@@ -380,5 +379,5 @@ if not data.empty:
             keeper_stats = keeper_stats.join(keeper_scores[Columns.SCORE])
             keeper_stats = keeper_stats.sort_values(by=Columns.SCORE, ascending=False)
             fig = px.bar(keeper_stats, x=keeper_stats.index, y=Columns.SCORE)
-            st.plotly_chart(fig, use_container_width=True)
+            render_plotly_chart(fig)
             st.dataframe(keeper_stats, width='stretch')

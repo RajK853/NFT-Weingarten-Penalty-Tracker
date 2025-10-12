@@ -5,7 +5,8 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from src.constants import Scoring
+from src.constants import Scoring, UI
+from src.ui import render_plotly_chart, display_page_header
 
 st.set_page_config(
     page_title="NFT Weingarten - Scoring Information",
@@ -14,12 +15,14 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("How Scoring Works")
-
-st.markdown("""
-This page explains how we score players and goalkeepers. 
-We want a fair system that shows who is playing well right now.
-""")
+display_page_header(
+    page_title="How Scoring Works",
+    page_icon="ℹ️",
+    page_description="""
+    This page explains how we score players and goalkeepers.
+    We want a fair system that shows who is playing well right now.
+    """
+)
 
 st.header("Base Points System")
 
@@ -121,8 +124,7 @@ with st.expander("See the Math: The Half-Life Formula"):
         ),
         margin=dict(b=200) # Even more increased bottom margin
     )
-
-    st.plotly_chart(fig, use_container_width=True)
+    render_plotly_chart(fig)
 
 st.info("""
 **How is the final score calculated?**
