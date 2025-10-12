@@ -9,10 +9,10 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
+from src import ui
+from src import analysis
 from src.data_loader import load_data
 from src.constants import Columns, Data, Scoring, Status, UI
-import src.ui as ui
-import src.analysis as analysis
 
 st.set_page_config(
     page_title="NFT Weingarten - Goalkeeper Analysis",

@@ -1,15 +1,15 @@
 import time
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
 from streamlit_extras.skeleton import skeleton
 
+from src import ui
+from src import records
 from src.data_loader import load_data
 from src.constants import Columns, Data, Scoring, Status, UI
 from src.analysis import calculate_keeper_scores, calculate_player_scores
-import src.ui as ui
-import src.records as records
 
 if "reveal_player" not in st.session_state:
     st.session_state.reveal_player = False
