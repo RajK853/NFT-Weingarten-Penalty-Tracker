@@ -147,11 +147,10 @@ with st.expander("See the Math: The Half-Life Formula"):
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-0.2,  # Adjusted to be closer to the plot
+            y=-0.4,  # Adjusted to be closer to the plot
             xanchor="center",
             x=0.5,
         ),
-        margin=dict(b=100),  # Reintroduced bottom margin for legend
     )
     ui.render_plotly_chart(fig, fixed_range=True)
 
