@@ -8,7 +8,7 @@ import plotly.express as px
 import streamlit as st
 
 from src.constants import Scoring, UI
-from src.ui import render_plotly_chart
+from src import ui
 
 ui.setup_page(
     page_title="NFT Weingarten - Scoring Method",
