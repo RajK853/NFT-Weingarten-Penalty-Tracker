@@ -435,9 +435,7 @@ with st.container(border=True):
             player_stats = player_stats.join(player_scores[Columns.SCORE])
             player_stats = player_stats.sort_values(by=Columns.SCORE, ascending=False)
             fig = px.bar(player_stats, x=player_stats.index, y=Columns.SCORE)
-            fig.update_layout(
-                margin=dict(b=200),
-            )
+            ui.configure_plotly_layout(fig, player_stats[Columns.SCORE])
             ui.render_plotly_chart(fig, fixed_range=True)
             st.dataframe(player_stats, width="stretch")
 
@@ -451,8 +449,6 @@ with st.container(border=True):
             keeper_stats = keeper_stats.join(keeper_scores[Columns.SCORE])
             keeper_stats = keeper_stats.sort_values(by=Columns.SCORE, ascending=False)
             fig = px.bar(keeper_stats, x=keeper_stats.index, y=Columns.SCORE)
-            fig.update_layout(
-                margin=dict(b=200),
-            )
+            ui.configure_plotly_layout(fig, keeper_stats[Columns.SCORE])
             ui.render_plotly_chart(fig, fixed_range=True)
             st.dataframe(keeper_stats, width="stretch")

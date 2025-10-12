@@ -212,3 +212,71 @@ def render_plotly_chart(
         config["displayModeBar"] = UI.PLOTLY_DISPLAY_MODE_BAR
 
     st.plotly_chart(fig, use_container_width=use_container_width, config=config)
+
+def _calculate_y_axis_range(y_data: pd.Series, buffer_factor: float) -> tuple[float, float]:
+    """
+    Calculates the y-axis range with a buffer to prevent text truncation.
+
+    Args:
+        y_data (pd.Series): The data used for the y-axis.
+        buffer_factor (float): The buffer factor to apply to the y-axis range.
+
+    Returns:
+        tuple[float, float]: A tuple containing the minimum and maximum y-axis values.
+    """
+    min_val = y_data.min()
+    max_val = y_data.max()
+    buffer = (max_val - min_val) * buffer_factor
+    y_range_min = min_val - buffer
+    y_range_max = max_val + buffer
+    return y_range_min, y_range_max
+
+
+def _update_plotly_layout(
+    fig: go.Figure,
+    y_range: tuple[float, float],
+    yaxis_title: str = None,
+    xaxis_title: str = None,
+    margin_b: int = 200,
+):
+    """
+    Updates the layout of a Plotly figure with the given y-axis range, titles, and margin.
+
+    Args:
+        fig (go.Figure): The Plotly figure object to be configured.
+        y_range (tuple[float, float]): A tuple containing the minimum and maximum y-axis values.
+        yaxis_title (str, optional): Title for the y-axis. Defaults to None.
+        xaxis_title (str, optional): Title for the x-axis. Defaults to None.
+        margin_b (int, optional): Bottom margin for the plot. Defaults to 200.
+    """
+    layout_updates = {
+        "margin": dict(b=margin_b),
+        "yaxis": dict(range=y_range),
+    }
+    if yaxis_title:
+        layout_updates["yaxis_title"] = yaxis_title
+    if xaxis_title:
+        layout_updates["xaxis_title"] = xaxis_title
+
+    fig.update_layout(**layout_updates)
+
+
+def configure_plotly_layout(
+    fig: go.Figure,
+    y_data: pd.Series,
+    yaxis_title: str = None,
+    xaxis_title: str = None,
+    margin_b: int = 200,
+):
+    """
+    Configures common Plotly layout settings for bar charts, including y-axis range adjustment and margins.
+
+    Args:
+        fig (go.Figure): The Plotly figure object to be configured.
+        y_data (pd.Series): The data used for the y-axis to calculate min/max for range adjustment.
+        yaxis_title (str, optional): Title for the y-axis. Defaults to None.
+        xaxis_title (str, optional): Title for the x-axis. Defaults to None.
+        margin_b (int, optional): Bottom margin for the plot. Defaults to 200.
+    """
+    y_range = _calculate_y_axis_range(y_data, UI.CHART_Y_AXIS_BUFFER)
+    _update_plotly_layout(fig, y_range, yaxis_title, xaxis_title, margin_b)
