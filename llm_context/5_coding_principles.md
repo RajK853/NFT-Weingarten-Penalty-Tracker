@@ -112,6 +112,7 @@ PEP 8 provides clear guidelines for organizing imports to enhance readability an
         import os, sys
         ```
 *   **Specific Imports**: Import individual objects rather than the entire module when only a few items are needed (e.g., `from math import sqrt` instead of `import math` if only `sqrt` is used).
+*   **No Brackets in Imports**: Avoid using parentheses `()` for multiline import statements. Each imported item should ideally be on its own line or a single line if short enough.
 
 ### 5.3 Tools for Enforcement
 
