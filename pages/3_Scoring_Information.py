@@ -115,7 +115,8 @@ with st.expander("See the Math: The Half-Life Formula"):
             y=-0.4,
             xanchor="center",
             x=0.5
-        )
+        ),
+        margin=dict(b=100) # Add bottom margin
     )
 
     st.plotly_chart(fig, use_container_width=True)
