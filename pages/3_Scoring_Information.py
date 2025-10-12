@@ -67,8 +67,11 @@ with st.expander("See the Math: The Half-Life Formula"):
     """)
 
     # --- Interactive Inputs ---
-    original_score_input = st.number_input("Original Score", value=3.0, step=0.5, key="sim_score")
-    sim_half_life_input = st.number_input("Simulation Half-Life (in days)", value=30.0, min_value=1.0, step=1.0, format="%.1f", key="sim_half_life")
+    col1, col2 = st.columns(2)
+    with col1:
+        original_score_input = st.number_input("Original Score", value=3.0, step=0.5, key="sim_score")
+    with col2:
+        sim_half_life_input = st.number_input("Simulation Half-Life (in days)", value=30.0, min_value=1.0, step=1.0, format="%.1f", key="sim_half_life")
 
     # --- Plot Generation ---
     days_range = np.arange(0, 366)
