@@ -34,8 +34,8 @@ with st.container(border=True):
         f"Scores are weighted by how recent they are. The current half-life is {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days. This means recent scores are more important."
     )
 
-    st.markdown(
-        "For a detailed explanation of the scoring system, please visit the [Scoring Method](/Scoring_Method) page."
+    st.page_link(
+        "pages/3_Scoring_Method.py", label="For a detailed explanation of the scoring system, please visit the Scoring Method page."
     )
 
     st.markdown(
