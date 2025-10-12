@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
-from src.constants import Paths, Gender
+
+from src.constants import Gender, Paths
 
 @st.cache_data
 def load_data(gender: str, last_refresh_time: float) -> pd.DataFrame:

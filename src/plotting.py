@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.graph_objects as go
+
 from src.constants import Columns, Data, GoalVisual, Status, UI
 
 def create_shot_distribution_chart(data: pd.DataFrame) -> go.Figure:

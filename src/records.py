@@ -1,7 +1,9 @@
 from datetime import date
 from typing import List, Tuple
+
 import pandas as pd
 import streamlit as st
+
 from src.constants import Columns, Status
 
 @st.cache_data

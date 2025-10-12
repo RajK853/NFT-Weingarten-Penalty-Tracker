@@ -1,8 +1,10 @@
 import time
-import streamlit as st
-from typing import Generator, Iterable, Any
-from src.constants import Data, Gender, SessionState, Paths, UI
+from typing import Any, Generator, Iterable
+
 import plotly.graph_objects as go
+import streamlit as st
+
+from src.constants import Data, Gender, Paths, SessionState, UI
 
 def stream_data(iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_TIMEOUT) -> Generator[Any, None, None]:
     """

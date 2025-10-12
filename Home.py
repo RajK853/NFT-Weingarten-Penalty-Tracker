@@ -1,17 +1,29 @@
 import time
+
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 from streamlit_extras.skeleton import skeleton
-import plotly.express as px
 
-from src.data_loader import load_data
-from src.analysis import calculate_player_scores, calculate_keeper_scores
+from src.analysis import calculate_keeper_scores, calculate_player_scores
 from src.constants import Columns, Data, Scoring, Status, UI
+from src.data_loader import load_data
 from src.records import (
-    get_longest_goal_streak, get_most_goals_in_session, get_most_saves_in_session,
-    get_marathon_man, get_mysterious_ninja, get_busiest_day, get_biggest_rivalry
+    get_biggest_rivalry,
+    get_busiest_day,
+    get_longest_goal_streak,
+    get_marathon_man,
+    get_most_goals_in_session,
+    get_most_saves_in_session,
+    get_mysterious_ninja,
 )
-from src.ui import stream_data, gender_selection_ui, data_refresh_button_ui, display_page_header, render_plotly_chart
+from src.ui import (
+    data_refresh_button_ui,
+    display_page_header,
+    gender_selection_ui,
+    render_plotly_chart,
+    stream_data,
+)
 
 if "reveal_player" not in st.session_state:
     st.session_state.reveal_player = False

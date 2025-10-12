@@ -1,16 +1,27 @@
 """
 Streamlit page for analyzing player performance in penalties.
 """
-import streamlit as st
-import plotly.express as px
-import pandas as pd
-import numpy as np
-from src.data_loader import load_data
-from src.analysis import get_player_status_counts_over_time, calculate_player_scores, _get_date_range_from_month_display
-from src.constants import Columns, Data, Scoring, Status, UI
-from src.ui import gender_selection_ui, data_refresh_button_ui, display_page_header, render_plotly_chart
-from typing import List
 from datetime import date
+from typing import List
+
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
+from src.analysis import (
+    _get_date_range_from_month_display,
+    calculate_player_scores,
+    get_player_status_counts_over_time,
+)
+from src.constants import Columns, Data, Scoring, Status, UI
+from src.data_loader import load_data
+from src.ui import (
+    data_refresh_button_ui,
+    display_page_header,
+    gender_selection_ui,
+    render_plotly_chart,
+)
 
 st.set_page_config(
     page_title="NFT Weingarten - Player Performance",

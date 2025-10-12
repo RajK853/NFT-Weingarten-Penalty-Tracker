@@ -1,7 +1,9 @@
-from typing import List, Dict, Any
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
 import pandas as pd
+
 from src.constants import Columns, Data, Paths, Status
 
 def generate_pseudo_data(start_date: str = "2024-01-01", end_date: str = "2024-12-31", penalties_per_player_per_day: int = 3) -> pd.DataFrame:

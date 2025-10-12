@@ -1,9 +1,11 @@
 from datetime import date
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
+
+import numpy as np
 import pandas as pd
 import streamlit as st
-from src.constants import Columns, Data, Status, Scoring
-import numpy as np
+
+from src.constants import Columns, Data, Scoring, Status
 
 
 def _get_date_range_from_month_display(selected_month_display: str) -> Tuple[date, date]:

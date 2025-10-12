@@ -1,12 +1,13 @@
 """
 Streamlit page for explaining the scoring system.
 """
-import streamlit as st
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import streamlit as st
+
 from src.constants import Scoring, UI
-from src.ui import render_plotly_chart, display_page_header
+from src.ui import display_page_header, render_plotly_chart
 
 st.set_page_config(
     page_title="NFT Weingarten - Scoring Method",
