@@ -147,7 +147,7 @@ with st.expander("See the Math: The Half-Life Formula"):
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-0.4,  # Adjusted to be closer to the plot
+            y=-0.3,  # Adjusted to be closer to the plot
             xanchor="center",
             x=0.5,
         ),
