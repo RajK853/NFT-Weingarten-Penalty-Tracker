@@ -108,6 +108,16 @@ with st.expander("See the Math: The Half-Life Formula"):
     # Simulation Half-Life
     fig.add_scatter(x=[sim_half_life_input], y=[original_score_input/2], mode='markers', marker=dict(size=10, symbol="x-dot", color='red'), name=f"Simulated Half-Life ({sim_half_life_input:.1f} days)")
 
+    fig.update_layout(
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.4,
+            xanchor="center",
+            x=0.5
+        )
+    )
+
     st.plotly_chart(fig, use_container_width=True)
 
 st.info("""
