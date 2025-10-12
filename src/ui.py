@@ -208,10 +208,20 @@ def render_plotly_chart(
         fixed_range (bool): If True, disables zooming/panning on both x and y axes. Defaults to True.
     """
     # Apply fixedrange to axes to disable zooming/panning (general requirement)
+    layout_params = {}
     if fixed_range:
-        fig.update_layout(xaxis_fixedrange=True, yaxis_fixedrange=True, width=width, height=height)
+        layout_params['xaxis_fixedrange'] = True
+        layout_params['yaxis_fixedrange'] = True
+
+    if not use_container_width:
+        layout_params['width'] = width
+        layout_params['height'] = height
     else:
-        fig.update_layout(width=width, height=height)
+        # If use_container_width is True, Streamlit handles the width.
+        # We only pass the height to maintain a better aspect ratio.
+        layout_params['height'] = height
+
+    fig.update_layout(**layout_params)
 
     # Configure st.plotly_chart
     config = {}
@@ -244,7 +254,7 @@ def _update_plotly_layout(
     y_range: tuple[float, float],
     yaxis_title: str = None,
     xaxis_title: str = None,
-    margin_b: int = 200,
+    margin_b: int = 0,
 ):
     """
     Updates the layout of a Plotly figure with the given y-axis range, titles, and margin.
@@ -273,7 +283,7 @@ def configure_plotly_layout(
     y_data: pd.Series,
     yaxis_title: str = None,
     xaxis_title: str = None,
-    margin_b: int = 200,
+    margin_b: int = 0,
 ):
     """
     Configures common Plotly layout settings for bar charts, including y-axis range adjustment and margins.

@@ -151,7 +151,7 @@ with st.expander("See the Math: The Half-Life Formula"):
             xanchor="center",
             x=0.5,
         ),
-        margin=dict(b=200),  # Even more increased bottom margin
+        margin=dict(b=200),  # Explicitly set bottom margin for legend
     )
     ui.render_plotly_chart(fig, fixed_range=True)
 

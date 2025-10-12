@@ -155,7 +155,7 @@ class UI:
     GOAL_POST_WIDTH_VISUAL: int = 600  # Visual width of the goal post.
     GOAL_POST_HEIGHT_VISUAL: int = 400  # Visual height of the goal post.
     DEFAULT_PLOT_WIDTH: int = 600  # Default width for plots to maintain 3:2 aspect ratio.
-    DEFAULT_PLOT_HEIGHT: int = 400  # Default height for plots to maintain 3:2 aspect ratio.
+    DEFAULT_PLOT_HEIGHT: int = 700  # Default height for plots to maintain 3:2 aspect ratio.
 
 
 class Data:
