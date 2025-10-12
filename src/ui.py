@@ -2,11 +2,13 @@ import time
 from typing import Any, Generator, Iterable
 
 import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
+import plotly.graph_objects as go
 
-from src.constants import Columns, Data, Gender, Paths, SessionState, UI
 from src.data_loader import load_data
+from src.constants import Columns, Data, Gender, Paths, SessionState, UI
+
+
 def stream_data(
     iterable: Iterable[Any], timeout: float = Data.TYPING_ANIMATION_TIMEOUT
 ) -> Generator[Any, None, None]:
@@ -93,17 +95,15 @@ def data_refresh_button_ui() -> float:
     if "last_refresh_time" not in st.session_state:
         st.session_state.last_refresh_time = time.time()
 
-    if st.sidebar.button("Fetch Latest Data", width='stretch'):  # Changed button label for clarity
+    if st.sidebar.button(
+        "Fetch Latest Data", width="stretch"
+    ):  # Changed button label for clarity
         st.session_state.last_refresh_time = time.time()
         st.toast("✅ Latest data loaded from Google Sheet!")  # Add toast message
         st.rerun()
 
     return st.session_state.last_refresh_time
 
-
-import pandas as pd
-from src.data_loader import load_data
-from src.constants import Columns
 
 def load_and_process_data() -> pd.DataFrame:
     """
@@ -115,7 +115,6 @@ def load_and_process_data() -> pd.DataFrame:
     gender_selection = gender_selection_ui()
     last_refresh_time = data_refresh_button_ui()
     st.info("You can change the gender from the left sidebar option.")
-    st.markdown("---")
 
     data = load_data(gender=gender_selection, last_refresh_time=last_refresh_time)
     if not data.empty:
@@ -145,15 +144,15 @@ def setup_page(
         layout (str): Layout of the page ("centered" or "wide"). Defaults to "wide".
     """
     st.set_page_config(
-        page_title=page_title,
+        layout=layout,  # type: ignore
         page_icon=page_icon,
-        initial_sidebar_state=initial_sidebar_state,
-        layout=layout,
+        page_title=page_title,
+        initial_sidebar_state=initial_sidebar_state,  # type: ignore
     )
-    display_page_header(page_title, page_icon, page_description)
+    display_page_header(page_title, page_description)
 
 
-def display_page_header(page_title: str, page_icon: str, page_description: str):
+def display_page_header(page_title: str, page_description: str):
     """
     Displays a standardized page header including a logo, a centered title, and a description.
 
@@ -162,29 +161,23 @@ def display_page_header(page_title: str, page_icon: str, page_description: str):
 
     Args:
         page_title (str): The main title of the page, displayed prominently.
-        page_icon (str): An emoji or short string representing an icon for the page (currently unused in implementation but kept for potential future use).
         page_description (str): A brief textual description of the page's content or purpose.
     """
-    col1, col2, col3 = st.columns([1, 0.3, 1])
-    with col2:
+    _, col, _ = st.columns([1, 0.3, 1])
+    with col:
         st.image(Paths.LOGO, width="stretch")
 
     st.markdown(
         f"<h1 style='text-align: center;'>{page_title}</h1>", unsafe_allow_html=True
     )
 
-    st.markdown(
-        f"""
-    {page_description}
-    """
-    )
-    st.write("")
+    st.markdown(page_description)
     st.markdown("---")
 
 
 def render_plotly_chart(
     fig: go.Figure,
-    st_width_mode: str = 'stretch',
+    st_width_mode: str = "stretch",
     hide_mode_bar: bool = True,
     fixed_range: bool = True,
     width: int = UI.DEFAULT_PLOT_WIDTH,
@@ -209,22 +202,27 @@ def render_plotly_chart(
     # Apply fixedrange to axes to disable zooming/panning (general requirement)
     layout_params = {}
     if fixed_range:
-        layout_params['xaxis_fixedrange'] = True
-        layout_params['yaxis_fixedrange'] = True
+        layout_params["xaxis_fixedrange"] = True
+        layout_params["yaxis_fixedrange"] = True
 
     config = {}
     if hide_mode_bar:
         config["displayModeBar"] = UI.PLOTLY_DISPLAY_MODE_BAR
 
-    if st_width_mode == 'content':
-        fig.update_layout(width=UI.DEFAULT_PLOT_WIDTH)  # Set fixed width for 'content' mode
+    if st_width_mode == "content":
+        fig.update_layout(
+            width=UI.DEFAULT_PLOT_WIDTH
+        )  # Set fixed width for 'content' mode
     else:
         # For 'stretch' mode, let Streamlit handle the width automatically
-        fig.update_layout(width=None) # Ensure no fixed width is set in Plotly figure
+        fig.update_layout(width=None)  # Ensure no fixed width is set in Plotly figure
 
     st.plotly_chart(fig, config=config)
 
-def _calculate_y_axis_range(y_data: pd.Series, buffer_factor: float) -> tuple[float, float]:
+
+def _calculate_y_axis_range(
+    y_data: pd.Series, buffer_factor: float
+) -> tuple[float, float]:
     """
     Calculates the y-axis range with a buffer to prevent text truncation.
 

@@ -90,9 +90,7 @@ with st.container(border=True):
 
             if not top_10_players_df.empty:
                 col_left, col_right = st.columns(2)
-                players_list = list(
-                    top_10_players_df.itertuples(index=True, name=None)
-                )
+                players_list = list(top_10_players_df.itertuples(index=True, name=None))
                 middle_index = round(len(players_list) / 2)
 
                 col_left_items = []
@@ -170,8 +168,12 @@ with st.container(border=True):
 
     # Get records data
     longest_streak_players, longest_streak = records.get_longest_goal_streak(data)
-    most_goals_player, most_goals_date, most_goals = records.get_most_goals_in_session(data)
-    most_saves_keeper, most_saves_date, most_saves = records.get_most_saves_in_session(data)
+    most_goals_player, most_goals_date, most_goals = records.get_most_goals_in_session(
+        data
+    )
+    most_saves_keeper, most_saves_date, most_saves = records.get_most_saves_in_session(
+        data
+    )
     marathon_men, sessions = records.get_marathon_man(data)
     mysterious_ninjas, least_sessions = records.get_mysterious_ninja(data)
     busiest_date, busiest_count = records.get_busiest_day(data)
@@ -200,9 +202,7 @@ with st.container(border=True):
                     current_year_data
                 ).head(1)
                 if not top_player_current_year_df.empty:
-                    top_player_current_year_name = top_player_current_year_df.index[
-                        0
-                    ]
+                    top_player_current_year_name = top_player_current_year_df.index[0]
                     top_player_current_year_score = top_player_current_year_df[
                         Columns.SCORE
                     ].iloc[0]
@@ -222,9 +222,7 @@ with st.container(border=True):
                     current_year_data
                 ).head(1)
                 if not top_keeper_current_year_df.empty:
-                    top_keeper_current_year_name = top_keeper_current_year_df.index[
-                        0
-                    ]
+                    top_keeper_current_year_name = top_keeper_current_year_df.index[0]
                     top_keeper_current_year_score = top_keeper_current_year_df[
                         Columns.SCORE
                     ].iloc[0]
@@ -378,19 +376,13 @@ with st.container(border=True):
         previous_session_data = data[data[Columns.DATE] == previous_date]
 
         total_goals_previous = len(
-            previous_session_data[
-                previous_session_data[Columns.STATUS] == Status.GOAL
-            ]
+            previous_session_data[previous_session_data[Columns.STATUS] == Status.GOAL]
         )
         total_saves_previous = len(
-            previous_session_data[
-                previous_session_data[Columns.STATUS] == Status.SAVED
-            ]
+            previous_session_data[previous_session_data[Columns.STATUS] == Status.SAVED]
         )
         total_outs_previous = len(
-            previous_session_data[
-                previous_session_data[Columns.STATUS] == Status.OUT
-            ]
+            previous_session_data[previous_session_data[Columns.STATUS] == Status.OUT]
         )
 
         delta_goals = total_goals_latest - total_goals_previous

@@ -2,25 +2,20 @@
 Streamlit page for analyzing player performance in penalties.
 """
 
-from datetime import date
 from typing import List
 
-import numpy as np
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
 
-from src import analysis
 from src import ui
+from src import analysis
 from src.constants import Columns, Data, Scoring, Status, UI
 
 ui.setup_page(
     page_title="NFT Weingarten - Player Performance",
     page_icon=UI.EMOJI_PLAYER_PAGE,
-    page_description="""
-    Here you can analyze how well individual players are doing. 
-    Use the tools below to compare players and see who is performing best over time.
-    """,
+    page_description="""Here you can analyze how well individual players are doing, compare them, and see who is performing best over time.""",
 )
 
 data: pd.DataFrame = ui.load_and_process_data()
@@ -35,7 +30,8 @@ with st.container(border=True):
     )
 
     st.page_link(
-        "pages/3_Scoring_Method.py", label="For a detailed explanation of the scoring system, please visit the Scoring Method page."
+        "pages/3_Scoring_Method.py",
+        label="For a detailed explanation of the scoring system, please visit the Scoring Method page.",
     )
 
     st.markdown(
@@ -75,7 +71,9 @@ with st.container(border=True):
             title=f"Top {UI.TOP_N_PLAYERS_LEADERBOARD} Players by Score",
             hover_data=[Status.GOAL, Status.SAVED, Status.OUT],
         )
-        ui.configure_plotly_layout(fig_top_players, top_players[Columns.SCORE], yaxis_title="Score")  # fixedrange will be applied by render_plotly_chart
+        ui.configure_plotly_layout(
+            fig_top_players, top_players[Columns.SCORE], yaxis_title="Score"
+        )  # fixedrange will be applied by render_plotly_chart
         fig_top_players.update_traces(
             texttemplate=f"%{{y:{score_format_specifier}}}",
             textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE,
@@ -118,18 +116,20 @@ with st.container(border=True):
 
     # Determine start and end dates for the selected month
     if selected_month_display:
-        start_date_filter, end_date_filter = analysis._get_date_range_from_month_display(
-            selected_month_display
+        start_date_filter, end_date_filter = (
+            analysis._get_date_range_from_month_display(selected_month_display)
         )
 
         if selected_players:
             st.subheader("Performance Over Time")
 
-            player_status_data: pd.DataFrame = analysis.get_player_status_counts_over_time(
-                data,
-                selected_players,
-                start_date=start_date_filter,
-                end_date=end_date_filter,
+            player_status_data: pd.DataFrame = (
+                analysis.get_player_status_counts_over_time(
+                    data,
+                    selected_players,
+                    start_date=start_date_filter,
+                    end_date=end_date_filter,
+                )
             )
             player_status_data[Columns.MONTH] = (
                 pd.to_datetime(player_status_data[Columns.DATE])
@@ -190,7 +190,12 @@ with st.container(border=True):
                         fig_score_monthly.update_traces(
                             texttemplate=f"%{{y:{score_format_specifier}}}"
                         )
-                        ui.configure_plotly_layout(fig_score_monthly, monthly_player_status_summary[Columns.SCORE], yaxis_title="Score", xaxis_title="Player Name")  # fixedrange will be applied by render_plotly_chart
+                        ui.configure_plotly_layout(
+                            fig_score_monthly,
+                            monthly_player_status_summary[Columns.SCORE],
+                            yaxis_title="Score",
+                            xaxis_title="Player Name",
+                        )  # fixedrange will be applied by render_plotly_chart
                         ui.render_plotly_chart(fig_score_monthly, fixed_range=True)
 
                     with goal_tab:
@@ -215,7 +220,12 @@ with st.container(border=True):
                             title="Player Monthly Goals",
                         )
                         fig_goals_monthly.update_traces(marker_color=colors_goals)
-                        ui.configure_plotly_layout(fig_goals_monthly, monthly_player_status_summary[Status.GOAL], yaxis_title="Goals", xaxis_title="Player Name")  # fixedrange will be applied by render_plotly_chart
+                        ui.configure_plotly_layout(
+                            fig_goals_monthly,
+                            monthly_player_status_summary[Status.GOAL],
+                            yaxis_title="Goals",
+                            xaxis_title="Player Name",
+                        )  # fixedrange will be applied by render_plotly_chart
                         ui.render_plotly_chart(fig_goals_monthly, fixed_range=True)
 
                     with saved_tab:
@@ -240,7 +250,12 @@ with st.container(border=True):
                             title="Player Monthly Saved Shots",
                         )
                         fig_saved_monthly.update_traces(marker_color=colors_saved)
-                        ui.configure_plotly_layout(fig_saved_monthly, monthly_player_status_summary[Status.SAVED], yaxis_title="Saved Shots", xaxis_title="Player Name")  # fixedrange will be applied by render_plotly_chart
+                        ui.configure_plotly_layout(
+                            fig_saved_monthly,
+                            monthly_player_status_summary[Status.SAVED],
+                            yaxis_title="Saved Shots",
+                            xaxis_title="Player Name",
+                        )  # fixedrange will be applied by render_plotly_chart
                         ui.render_plotly_chart(fig_saved_monthly, fixed_range=True)
 
                 with out_tab:
@@ -265,7 +280,12 @@ with st.container(border=True):
                         title="Player Monthly Out Shots",
                     )
                     fig_out_monthly.update_traces(marker_color=colors_out)
-                    ui.configure_plotly_layout(fig_out_monthly, monthly_player_status_summary[Status.OUT], yaxis_title="Out Shots", xaxis_title="Player Name")  # fixedrange will be applied by render_plotly_chart
+                    ui.configure_plotly_layout(
+                        fig_out_monthly,
+                        monthly_player_status_summary[Status.OUT],
+                        yaxis_title="Out Shots",
+                        xaxis_title="Player Name",
+                    )  # fixedrange will be applied by render_plotly_chart
                     ui.render_plotly_chart(fig_out_monthly, fixed_range=True)
 
             else:

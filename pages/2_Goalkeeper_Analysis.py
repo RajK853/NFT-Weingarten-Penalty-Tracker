@@ -6,20 +6,17 @@ from datetime import date
 from typing import List, Optional
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
 
-from src import analysis
 from src import ui
+from src import analysis
 from src.constants import Columns, Data, Scoring, Status, UI
 
 ui.setup_page(
-    page_title="NFT Weingarten - Goalkeeper Analysis",
     page_icon=UI.EMOJI_GOALKEEPER_PAGE,
-    page_description="""
-    This page analyzes goalkeeper performance. 
-    You can see scores and how many goals were saved or missed.
-    """,
+    page_title="NFT Weingarten - Goalkeeper Analysis",
+    page_description="""This page analyzes goalkeeper performance, showing scores and how many goals were saved or missed.""",
 )
 
 
@@ -49,8 +46,8 @@ with st.container(border=True):
 
     # Determine start and end dates for the selected month
     if selected_month_display:
-        start_date_filter, end_date_filter = analysis._get_date_range_from_month_display(
-            selected_month_display
+        start_date_filter, end_date_filter = (
+            analysis._get_date_range_from_month_display(selected_month_display)
         )
 
         keeper_performance_all: pd.DataFrame = analysis.calculate_keeper_scores(
@@ -68,8 +65,13 @@ with st.container(border=True):
             with cols[i]:
                 keeper_score = keeper_performance_all.loc[keeper][Columns.SCORE]
                 st.metric(label=f"{keeper}", value=f"{keeper_score:.2f} pts")
-                keeper_outcome_dist: pd.DataFrame = analysis.get_keeper_outcome_distribution(
-                    data, keeper, start_date=start_date_filter, end_date=end_date_filter
+                keeper_outcome_dist: pd.DataFrame = (
+                    analysis.get_keeper_outcome_distribution(
+                        data,
+                        keeper,
+                        start_date=start_date_filter,
+                        end_date=end_date_filter,
+                    )
                 )
                 if not keeper_outcome_dist.empty:
                     fig_keeper_outcome = px.pie(

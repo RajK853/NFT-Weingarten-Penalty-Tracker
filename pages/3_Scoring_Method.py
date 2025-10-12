@@ -4,19 +4,16 @@ Streamlit page for explaining the scoring system.
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
 
-from src.constants import Scoring, UI
 from src import ui
+from src.constants import Scoring, UI
 
 ui.setup_page(
-    page_title="NFT Weingarten - Scoring Method",
     page_icon="ℹ️",
-    page_description="""
-    This page explains how we score players and goalkeepers.
-    We want a fair system that shows who is playing well right now.
-    """,
+    page_title="NFT Weingarten - Scoring Method",
+    page_description="""This page explains our fair scoring system for players and goalkeepers, showing who is playing well right now.""",
 )
 
 
@@ -33,7 +30,7 @@ with col1:
         "Points": [Scoring.GOAL, Scoring.SAVED, Scoring.OUT],
     }
     player_scoring_df = pd.DataFrame(player_scoring_data)
-    st.dataframe(player_scoring_df, hide_index=True, width='stretch')
+    st.dataframe(player_scoring_df, hide_index=True, width="stretch")
 
 with col2:
     st.subheader("Goalkeeper Scoring")
@@ -42,31 +39,23 @@ with col2:
         "Points": [Scoring.KEEPER_GOAL, Scoring.KEEPER_SAVED, Scoring.KEEPER_OUT],
     }
     keeper_scoring_df = pd.DataFrame(keeper_scoring_data)
-    st.dataframe(keeper_scoring_df, hide_index=True, width='stretch')
+    st.dataframe(keeper_scoring_df, hide_index=True, width="stretch")
 
 
 st.header("Time-Weighted Scoring: Recent Games Matter More")
 
 st.markdown(
-    f"""
-Recent games are more important for the score than older games. This helps us see who is in good form now. We call this **time-weighted scoring**.
-
-A score's value is cut in half every **{Scoring.PERFORMANCE_HALF_LIFE_DAYS} days**. This is called the **half-life**. 
-For example, a penalty from today is worth double the points of a penalty from {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days ago.
-"""
+    f"Recent games are more important for the score than older games, helping us see who is in good form now. This is called **time-weighted scoring**. A score's value is cut in half every **{Scoring.PERFORMANCE_HALF_LIFE_DAYS} days** (its **half-life**). For example, a penalty from today is worth double the points of a penalty from {Scoring.PERFORMANCE_HALF_LIFE_DAYS} days ago."
 )
-
 with st.expander("See the Math: The Half-Life Formula"):
     st.markdown(
         f"""
-    We use this formula to calculate the score's value over time:
+The score's value over time is calculated using the formula:
 
-    `Weighted Score = Original Score * 2^(-days_ago / half_life)`
+`Weighted Score = Original Score * 2^(-days_ago / half_life)`
 
-    This formula reduces the score's value by half for each half-life period. Our app uses a half-life of **{Scoring.PERFORMANCE_HALF_LIFE_DAYS} days**.
-
-    You can use the chart below to see how this works. Change the **"Simulation"** to see how different half-life values affect the score.
-    """
+This formula reduces the score's value by half for each half-life period. Our app uses a half-life of **{Scoring.PERFORMANCE_HALF_LIFE_DAYS} days**. The chart below demonstrates this; adjust the **"Simulation"** to observe how different half-life values impact the score.
+"""
     )
 
     # --- Interactive Inputs ---
@@ -152,7 +141,7 @@ with st.expander("See the Math: The Half-Life Formula"):
             x=0.5,
         ),
     )
-    ui.render_plotly_chart(fig, st_width_mode='stretch', fixed_range=True)
+    ui.render_plotly_chart(fig, st_width_mode="stretch", fixed_range=True)
 
 st.info(
     """
