@@ -1,6 +1,6 @@
 import random
-from datetime import datetime, timedelta
 from typing import Any, Dict, List
+from datetime import datetime, timedelta
 
 import pandas as pd
 

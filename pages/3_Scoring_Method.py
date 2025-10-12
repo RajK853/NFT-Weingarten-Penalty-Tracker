@@ -4,8 +4,8 @@ Streamlit page for explaining the scoring system.
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
 
 from src.constants import Scoring, UI
 from src.ui import display_page_header, render_plotly_chart

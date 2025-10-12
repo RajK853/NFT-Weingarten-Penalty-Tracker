@@ -6,21 +6,21 @@ from datetime import date
 from typing import List, Optional
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
 
-from src.analysis import (
-    _get_date_range_from_month_display,
-    calculate_keeper_scores,
-    get_keeper_outcome_distribution,
-)
-from src.constants import Columns, Data, Scoring, Status, UI
 from src.data_loader import load_data
+from src.constants import Columns, Data, Scoring, Status, UI
 from src.ui import (
     data_refresh_button_ui,
     display_page_header,
     gender_selection_ui,
     render_plotly_chart,
+)
+from src.analysis import (
+    _get_date_range_from_month_display,
+    calculate_keeper_scores,
+    get_keeper_outcome_distribution,
 )
 
 st.set_page_config(
