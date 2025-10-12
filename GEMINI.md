@@ -23,6 +23,7 @@ This document provides a map to the detailed context files located in the `llm_c
 *   **`4_tooling_for_enforcement.md`**: Tools to automate the enforcement of coding standards.
 *   **`5_documentation_aesthetics.md`**: Principles for visually appealing and maintainable documentation.
 *   **`6_git_practices.md`**: Specific Git practices for the Gemini LLM.
+*   **`7_streamlit_page_links.md`**: Guidelines for using `st.page_link` for internal navigation.
 
 ### `llm_context/2_llm_interaction/`
 *   **`0_rules_of_engagement.md`**: My core operating principles for every prompt.
