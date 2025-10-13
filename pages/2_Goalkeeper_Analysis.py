@@ -17,6 +17,7 @@ ui.setup_page(
     page_icon=UI.EMOJI_GOALKEEPER_PAGE,
     page_title="NFT Weingarten - Goalkeeper Analysis",
     page_description="""This page analyzes goalkeeper performance, showing scores and how many goals were saved or missed.""",
+    render_logo=True,
 )
 
 

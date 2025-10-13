@@ -128,6 +128,7 @@ def setup_page(
     page_description: str,
     initial_sidebar_state: str = "expanded",
     layout: str = "wide",
+    render_logo: bool = True,
 ):
     """
     Sets up the Streamlit page configuration and displays a standardized page header.
@@ -142,6 +143,7 @@ def setup_page(
         initial_sidebar_state (str): Initial state of the sidebar ("auto", "expanded", or "collapsed").
                                      Defaults to "expanded".
         layout (str): Layout of the page ("centered" or "wide"). Defaults to "wide".
+        render_logo (bool): If True, the logo will be displayed. Defaults to True.
     """
     st.set_page_config(
         layout=layout,  # type: ignore
@@ -149,10 +151,10 @@ def setup_page(
         page_title=page_title,
         initial_sidebar_state=initial_sidebar_state,  # type: ignore
     )
-    display_page_header(page_title, page_description)
+    display_page_header(page_title, page_description, render_logo=render_logo)
 
 
-def display_page_header(page_title: str, page_description: str):
+def display_page_header(page_title: str, page_description: str, render_logo: bool = True):
     """
     Displays a standardized page header including a logo, a centered title, and a description.
 
@@ -162,10 +164,12 @@ def display_page_header(page_title: str, page_description: str):
     Args:
         page_title (str): The main title of the page, displayed prominently.
         page_description (str): A brief textual description of the page's content or purpose.
+        render_logo (bool): If True, the logo will be displayed. Defaults to True.
     """
-    _, col, _ = st.columns([1, 0.3, 1])
-    with col:
-        st.image(Paths.LOGO, width="stretch")
+    if render_logo:
+        _, col, _ = st.columns([1, 0.3, 1])
+        with col:
+            st.image(Paths.LOGO, width="stretch")
 
     st.markdown(
         f"<h1 style='text-align: center;'>{page_title}</h1>", unsafe_allow_html=True

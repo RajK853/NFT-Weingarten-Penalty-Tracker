@@ -14,6 +14,7 @@ ui.setup_page(
     page_icon="ℹ️",
     page_title="NFT Weingarten - Scoring Method",
     page_description="""This page explains our fair scoring system for players and goalkeepers, showing who is playing well right now.""",
+    render_logo=True,
 )
 
 

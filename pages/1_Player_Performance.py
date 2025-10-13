@@ -16,6 +16,7 @@ ui.setup_page(
     page_title="NFT Weingarten - Player Performance",
     page_icon=UI.EMOJI_PLAYER_PAGE,
     page_description="""Here you can analyze how well individual players are doing, compare them, and see who is performing best over time.""",
+    render_logo=True,
 )
 
 data: pd.DataFrame = ui.load_and_process_data()
