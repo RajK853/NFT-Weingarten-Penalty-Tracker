@@ -22,10 +22,11 @@ st.markdown("""
     display: flex; /* Use flexbox for centering content */
     justify-content: center; /* Center content horizontally */
     align-items: center; /* Center content vertically */
+    gap: 10px; /* Space between icon and text */
     height: 50px; /* Fixed height for all links */
     margin: 0 auto; /* Center the page link */
     margin-bottom: 10px;
-    box-shadow: 0 4px 8px rgba(, 0, 0, 0.5); /* Subtle shadow */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Subtle shadow */
     transition: all 0.5s ease-in-out; /* Smooth transition for hover effects */
 }
 
@@ -40,7 +41,6 @@ st.markdown("""
 .stPageLink > svg {
     font-size: 1.5em; /* Example: make icon slightly larger */
     vertical-align: middle;
-    margin-right: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
