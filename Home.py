@@ -23,7 +23,7 @@ st.markdown("""
     justify-content: center; /* Center content horizontally */
     align-items: center; /* Center content vertically */
     gap: 10px; /* Space between icon and text */
-    height: 50px; /* Fixed height for all links */
+    height: 60px; /* Fixed height for all links */
     margin: 0 auto; /* Center the page link */
     margin-bottom: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Subtle shadow */
