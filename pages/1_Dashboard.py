@@ -34,27 +34,17 @@ data = ui.load_and_process_data()
 with st.container(border=True):
     st.subheader("Top Performers")
     st.markdown(
-        f"This section shows the top players and goalkeepers from the last {UI.RECENT_DAYS_FILTER} days. Rankings use a time-weighted score, meaning recent games have a bigger impact."
+        "This section shows the top players and goalkeepers. Rankings use a time-weighted score, meaning recent games have a bigger impact."
     )
     st.page_link(
         "pages/3_Scoring_Method.py", label="ℹ️ Learn more about our scoring system"
     )
 
-    current_date = pd.to_datetime(data[Columns.DATE]).max()
-    start_date_top_performers = (
-        current_date - pd.DateOffset(days=UI.RECENT_DAYS_FILTER)
-    ).date()
-    end_date_top_performers = current_date.date()
-
-    top_player_df = calculate_player_scores(
-        data, start_date=start_date_top_performers, end_date=end_date_top_performers
-    ).head(1)
+    top_player_df = calculate_player_scores(data).head(1)
     top_player_name = top_player_df.index[0]
     top_player_score = top_player_df[Columns.SCORE].iloc[0]
 
-    top_keeper_df = calculate_keeper_scores(
-        data, start_date=start_date_top_performers, end_date=end_date_top_performers
-    ).head(1)
+    top_keeper_df = calculate_keeper_scores(data).head(1)
     top_keeper_name = top_keeper_df.index[0]
     top_keeper_score = top_keeper_df[Columns.SCORE].iloc[0]
 
@@ -83,11 +73,7 @@ with st.container(border=True):
                 countdown_placeholder.empty()  # Clear the countdown
 
         if st.session_state.reveal_top10_players:
-            top_10_players_df = calculate_player_scores(
-                data,
-                start_date=start_date_top_performers,
-                end_date=end_date_top_performers,
-            ).head(10)
+            top_10_players_df = calculate_player_scores(data).head(10)
 
             if not top_10_players_df.empty:
                 col_left, col_right = st.columns(2)
@@ -180,9 +166,8 @@ with st.container(border=True):
     busiest_date, busiest_count = records.get_busiest_day(data)
     rival_shooter, rival_keeper, encounters = records.get_biggest_rivalry(data)
 
-    tab1, tab2, tab3, tab4 = st.tabs(
+    tab1, tab2, tab3 = st.tabs(
         [
-            "🗓️ Current Year Records",
             "📅 Single Session Records",
             "🏆 All-Time Records",
             "✨ Fun Facts",
@@ -190,54 +175,6 @@ with st.container(border=True):
     )
 
     with tab1:
-        current_year = pd.Timestamp.now().year
-        current_year_data = data[
-            pd.to_datetime(data[Columns.DATE]).dt.year == current_year
-        ]
-
-        col1_tab4, col2_tab4 = st.columns(2)
-
-        with col1_tab4:
-            if not current_year_data.empty:
-                top_player_current_year_df = calculate_player_scores(
-                    current_year_data
-                ).head(1)
-                if not top_player_current_year_df.empty:
-                    top_player_current_year_name = top_player_current_year_df.index[0]
-                    top_player_current_year_score = top_player_current_year_df[
-                        Columns.SCORE
-                    ].iloc[0]
-                    st.metric(
-                        label="⚽ Top Scorer",
-                        value=top_player_current_year_name,
-                        delta=f"{top_player_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
-                    )
-                else:
-                    skeleton(height=80)
-            else:
-                skeleton(height=80)
-
-        with col2_tab4:
-            if not current_year_data.empty:
-                top_keeper_current_year_df = calculate_keeper_scores(
-                    current_year_data
-                ).head(1)
-                if not top_keeper_current_year_df.empty:
-                    top_keeper_current_year_name = top_keeper_current_year_df.index[0]
-                    top_keeper_current_year_score = top_keeper_current_year_df[
-                        Columns.SCORE
-                    ].iloc[0]
-                    st.metric(
-                        label="🧤 Top Goalkeeper",
-                        value=top_keeper_current_year_name,
-                        delta=f"{top_keeper_current_year_score:.{Data.SCORE_DECIMAL_PLACES}f} points",
-                    )
-                else:
-                    skeleton(height=80)
-            else:
-                skeleton(height=80)
-
-    with tab2:
         col1_tab2, col2_tab2 = st.columns(2)
         with col1_tab2:
             st.metric(
@@ -254,7 +191,7 @@ with st.container(border=True):
                 help="Most saves made by a goalkeeper in a single game.",
             )
 
-    with tab3:
+    with tab2:
         col1_tab1, col2_tab1 = st.columns(2)
         with col1_tab1:
             if not longest_streak_players:
@@ -283,7 +220,7 @@ with st.container(border=True):
                 help="The shooter and goalkeeper who played against each other the most.",
             )
 
-    with tab4:
+    with tab3:
         col1_tab3, col2_tab3 = st.columns(2)
         with col1_tab3:
             if not marathon_men:

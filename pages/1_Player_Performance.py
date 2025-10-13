@@ -35,62 +35,33 @@ with st.container(border=True):
         label="For a detailed explanation of the scoring system, please visit the Scoring Method page.",
     )
 
-    st.markdown(
-        "Use the date range selector to analyze performance during specific periods."
+    score_format_specifier = f".{Data.SCORE_DECIMAL_PLACES}f"
+    top_players: pd.DataFrame = analysis.calculate_player_scores(data).head(
+        UI.TOP_N_PLAYERS_LEADERBOARD
     )
-
-    min_date_leaderboard = data[Columns.DATE].min()
-    max_date_leaderboard = data[Columns.DATE].max()
-
-    selected_date_range = st.date_input(
-        "Select date range for Leaderboard",
-        value=[min_date_leaderboard, max_date_leaderboard],
-        min_value=min_date_leaderboard,
-        max_value=max_date_leaderboard,
+    fig_top_players = px.bar(
+        top_players,
+        x=top_players.index,
+        y=Columns.SCORE,
+        title=f"Top {UI.TOP_N_PLAYERS_LEADERBOARD} Players by Score",
+        hover_data=[Status.GOAL, Status.SAVED, Status.OUT],
     )
-
-    leaderboard_start_date = None
-    leaderboard_end_date = None
-
-    if len(selected_date_range) == 2:
-        leaderboard_start_date = selected_date_range[0]
-        leaderboard_end_date = selected_date_range[1]
-    elif len(selected_date_range) == 1:
-        leaderboard_start_date = selected_date_range[0]
-        # If only one date is selected, assume it's the start date and set end date to the same for a single-day range
-        leaderboard_end_date = selected_date_range[0]
-
-    if leaderboard_start_date and leaderboard_end_date:
-        score_format_specifier = f".{Data.SCORE_DECIMAL_PLACES}f"
-        top_players: pd.DataFrame = analysis.calculate_player_scores(
-            data, start_date=leaderboard_start_date, end_date=leaderboard_end_date
-        ).head(UI.TOP_N_PLAYERS_LEADERBOARD)
-        fig_top_players = px.bar(
-            top_players,
-            x=top_players.index,
-            y=Columns.SCORE,
-            title=f"Top {UI.TOP_N_PLAYERS_LEADERBOARD} Players by Score",
-            hover_data=[Status.GOAL, Status.SAVED, Status.OUT],
-        )
-        ui.configure_plotly_layout(
-            fig_top_players, top_players[Columns.SCORE], yaxis_title="Score"
-        )  # fixedrange will be applied by render_plotly_chart
-        fig_top_players.update_traces(
-            texttemplate=f"%{{y:{score_format_specifier}}}",
-            textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE,
-        )
-        ui.render_plotly_chart(fig_top_players, fixed_range=True)
-        st.dataframe(
-            top_players,
-            column_config={
-                Columns.SCORE: st.column_config.NumberColumn(
-                    format=f"%.{Data.SCORE_DECIMAL_PLACES}f"
-                )
-            },
-        )
-
-    else:
-        st.info(UI.INFO_SELECT_DATE_RANGE)
+    ui.configure_plotly_layout(
+        fig_top_players, top_players[Columns.SCORE], yaxis_title="Score"
+    )  # fixedrange will be applied by render_plotly_chart
+    fig_top_players.update_traces(
+        texttemplate=f"%{{y:{score_format_specifier}}}",
+        textposition=UI.PLOTLY_TEXT_POSITION_OUTSIDE,
+    )
+    ui.render_plotly_chart(fig_top_players, fixed_range=True)
+    st.dataframe(
+        top_players,
+        column_config={
+            Columns.SCORE: st.column_config.NumberColumn(
+                format=f"%.{Data.SCORE_DECIMAL_PLACES}f"
+            )
+        },
+    )
 
     st.subheader("Compare Player Performance Over Time")
     st.markdown(
